@@ -1,0 +1,19 @@
+*** This is a text document that contains notes about how the packet parser will work.
+
+Regex for tossups:
+question text
+(?<=\d{1,2}\. )(.|\n)*?(?=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?)
+answer
+(?<=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?: )(.|\n)*?(?=<.*>)
+tag
+<.*>
+
+regex for bonuses:
+leadin
+(?<=\d{1,2}\. )(.|\n)*?(?=\[[10hmeHME]+\])
+parts
+(?<=\[[10hmeHME]+\] )(.|\n)*?(?=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?)
+answers
+(?<=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?: )(.|\n)*?(?=\[[10hmeHME]+\]|<.*>)
+tags
+<.*>
