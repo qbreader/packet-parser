@@ -1,7 +1,8 @@
 import os
 import json
 
-directory = 'packets/2020-ikea/'
+directory = 'output'
+
 for j in range(24):
     print(directory + str(j+1) + '.json')
     g = open(directory + str(j+1) + '.json')
