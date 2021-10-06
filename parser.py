@@ -17,6 +17,7 @@ def get_subcategory(s):
 
     return category
 
+
 subcat_conversion = {
     "American Literature": "American Literature",
     "British Literature": "British Literature",
@@ -28,7 +29,9 @@ subcat_conversion = {
     "Drama": "Drama",
     "Poetry": "Poetry",
     "Long Fiction": "Long Fiction",
+    "Long Form": "Long Fiction",
     "Short Fiction": "Short Fiction",
+    "Short Form": "Short Fiction",
     "Misc Literature": "Misc Literature",
     "Miscellaneous Literature": "Misc Literature",
     "American History": "American History",
@@ -69,6 +72,7 @@ subcat_conversion = {
     "Opera": "Other Fine Arts",
     "Dance": "Other Fine Arts",
     "Religion": "Religion",
+    "Myth": "Mythology",
     "Mythology": "Mythology",
     "Philosophy": "Philosophy",
     "Economics": "Social Science",
@@ -162,14 +166,17 @@ for file in os.listdir(input_directory):
         packet_text += line
 
     packet_text = packet_text.replace('\n', ' ')
-    tossups, bonuses = regex.split(
-        '[Bb][Oo][Nn][Uu][Ss][Ee][Ss]', packet_text)
+    packet_text = packet_text.replace('', ' ')
+    tossups, bonuses = regex.split('[Bb][Oo][Nn][Uu][Ss][Ee][Ss]', packet_text)
+    # tossups, bonuses = regex.split('[Bb][Oo][Nn][Uu][Ss][Ee][Ss]', packet_text)[0], ''
     bonuses = '>' + bonuses
 
-    for i in regex.findall(r'(?<=\d{1,2}\. ).*?(?= [Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]:)', tossups):
+    for i in regex.findall(r'(?<=\d{1,2}\. +|TB. +).+?(?= *[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]:)', tossups):
         data['tossups'].append({'question_sanitized': i})
 
-    for i, j in enumerate(regex.findall(r'(?<=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]: ).*?(?= <.*>)', tossups)):
+    print('Processed', len(data['tossups']), 'tossups')
+
+    for i, j in enumerate(regex.findall(r'(?<=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]: +).+?(?= *<.*>)', tossups)):
         data['tossups'][i]['answer_sanitized'] = j
 
     for i, j in enumerate(regex.findall(r'<.*?>', tossups)):
@@ -180,15 +187,18 @@ for file in os.listdir(input_directory):
             data['tossups'][i]['subcategory'] = cat
             data['tossups'][i]['category'] = subcat[cat]
 
-    for i in regex.findall(r'(?<=> \d{1,2}\. ).*?(?= \[[10hmeHME]+\])', bonuses):
+    for i in regex.findall(r'(?<=> *\d{1,2}\. +|TB. +).+?(?= +\[[10hmeHME]+\])', bonuses):
         data['bonuses'].append({'leadin_sanitized': i})
-    for i, j in enumerate(regex.findall(r'(?<=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?: ).*?(?= \[[10hmeHME]+\]|<.*>)', bonuses)):
+
+    print('Processed', len(data['bonuses']), 'bonuses')
+
+    for i, j in enumerate(regex.findall(r'(?<=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?: +).+?(?= *\[[10hmeHME]+\]|<.*>)', bonuses)):
         if i % 3 == 0:
             data['bonuses'][i//3]['answers_sanitized'] = [j]
         else:
             data['bonuses'][i//3]['answers_sanitized'].append(j)
-    
-    for i, j in enumerate(regex.findall(r'(?<=\[[10hmeHME]+\] ).*?(?= [Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?:)', bonuses)):
+
+    for i, j in enumerate(regex.findall(r'(?<=\[[10hmeHME]+\] +).+?(?= *[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?:)', bonuses)):
         if i % 3 == 0:
             data['bonuses'][i//3]['parts_sanitized'] = [j]
         else:
