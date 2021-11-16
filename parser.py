@@ -20,6 +20,7 @@ def get_subcategory(s):
 
 subcat_conversion = {
     "American Literature": "American Literature",
+    "US Literature": "American Literature",
     "British Literature": "British Literature",
     "Classical Literature": "Classical Literature",
     "European Literature": "European Literature",
@@ -62,8 +63,10 @@ subcat_conversion = {
     "Painting": "Visual Fine Arts",
     "Sculpture": "Visual Fine Arts",
     "Visual Fine Arts": "Visual Fine Arts",
+    "Visual Arts": "Visual Fine Arts",
     "Music": "Auditory Fine Arts",
     "Auditory Fine Arts": "Auditory Fine Arts",
+    "Auditory Arts": "Auditory Fine Arts",
     "Other Arts": "Other Fine Arts",
     "Architecture": "Other Fine Arts",
     "Photography": "Visual Fine Arts",
