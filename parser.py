@@ -19,10 +19,13 @@ def get_subcategory(s):
 
 
 subcat_conversion = {
+    "American Lit": "American Literature",
     "American Literature": "American Literature",
     "US Literature": "American Literature",
+    "British Lit": "British Literature",
     "British Literature": "British Literature",
     "Classical Literature": "Classical Literature",
+    "European/World Lit": "European Literature",
     "European Literature": "European Literature",
     "World Literature": "World Literature",
     "Other Literature": "Other Literature",
@@ -46,6 +49,7 @@ subcat_conversion = {
     "Euro History": "European History",
     "Other Western History": "European History",
     "World History": "World History",
+    "Misc. History": "Other History",
     "Zeitgeist": "Other History",
     "Other History": "Other History",
     "Historiography": "Other History",
@@ -66,11 +70,14 @@ subcat_conversion = {
     "Other Sci": "Other Science",
     "Painting": "Visual Fine Arts",
     "Sculpture": "Visual Fine Arts",
+    "Visual FA": "Visual Fine Arts",
     "Visual Fine Arts": "Visual Fine Arts",
     "Visual Arts": "Visual Fine Arts",
     "Music": "Auditory Fine Arts",
+    "Auditory FA": "Auditory Fine Arts",
     "Auditory Fine Arts": "Auditory Fine Arts",
     "Auditory Arts": "Auditory Fine Arts",
+    "Misc. FA": "Other Fine Arts",
     "Other Arts": "Other Fine Arts",
     "Architecture": "Other Fine Arts",
     "Photography": "Visual Fine Arts",
@@ -92,8 +99,10 @@ subcat_conversion = {
     "Current Events": "Current Events",
     "Geography": "Geography",
     "Other Academic": "Other Academic",
+    "Mixed Academic": "Other Academic",
     "Trash": "Trash",
-    "Pop Culture": "Trash"
+    "Pop Culture": "Trash",
+    "Sports": "Trash",
 }
 
 subcat = {
@@ -158,6 +167,8 @@ output_directory = 'output/'
 os.mkdir(output_directory)
 
 for file in os.listdir(input_directory):
+    if file == '.DS_Store':
+        continue
     print(file)
     f = open(input_directory + file)
     g = open(output_directory + file[:-4] + '.json', 'w')
@@ -177,9 +188,8 @@ for file in os.listdir(input_directory):
     # tossups, bonuses = regex.split('[Bb][Oo][Nn][Uu][Ss][Ee][Ss]', packet_text)[0], ''
     bonuses = '>' + bonuses
 
-    for i in regex.findall(r'(?<=\d{1,2}\. +|TB. +).+?(?= *[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]:)', tossups):
+    for i in regex.findall(r'(?<=\d{1,2}\. +|TB\. +|Tiebreaker\. +|TIEBREAKER\. +).+?(?= *[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]:)', tossups):
         data['tossups'].append({'question_sanitized': i})
-
     print('Processed', len(data['tossups']), 'tossups')
 
     for i, j in enumerate(regex.findall(r'(?<=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]: +).+?(?= *<.*>)', tossups)):
@@ -193,7 +203,7 @@ for file in os.listdir(input_directory):
             data['tossups'][i]['subcategory'] = cat
             data['tossups'][i]['category'] = subcat[cat]
 
-    for i in regex.findall(r'(?<=> *\d{1,2}\. +|TB. +).+?(?= +\[[10hmeHME]+\])', bonuses):
+    for i in regex.findall(r'(?<=> *\d{1,2}\. +|TB. +|Tiebreaker. +|TIEBREAKER\. +).+?(?= +\[[10hmeHME]+\])', bonuses):
         data['bonuses'].append({'leadin_sanitized': i})
 
     print('Processed', len(data['bonuses']), 'bonuses')
