@@ -1,0 +1,2 @@
+Use this regex to get all tossups
+(\d{1,2}\. +|TB\. +|Tiebreaker\. +|TIEBREAKER\. +)(.|\n)+?>
