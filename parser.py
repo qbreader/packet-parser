@@ -100,6 +100,7 @@ subcat_conversion = {
     "Geography": "Geography",
     "Other Academic": "Other Academic",
     "Mixed Academic": "Other Academic",
+    "Miscellaneous": "Other Academic",
     "Trash": "Trash",
     "Pop Culture": "Trash",
     "Sports": "Trash",
