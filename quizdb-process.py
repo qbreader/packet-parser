@@ -34,8 +34,8 @@ for i in range(max_round):
     for a in data['tossups']:
         if a['round'] == str(i+1) or a['round'] == '0' + str(i+1):
             b = {}
-            b['question_sanitized'] = a['text']
-            b['answer_sanitized'] = a['answer']
+            b['question'] = a['text']
+            b['answer'] = a['answer']
             if 'name' in a['subcategory']:
                 b['subcategory'] = a['subcategory']['name']
             if 'name' in a['category']:
@@ -45,9 +45,9 @@ for i in range(max_round):
     for a in data['bonuses']:
         if a['round'] == str(i+1) or a['round'] == '0' + str(i+1):
             b = {}
-            b['leadin_sanitized'] = a['leadin']
-            b['answers_sanitized'] = a['answers']
-            b['parts_sanitized'] = a['texts']
+            b['leadin'] = a['leadin']
+            b['answers'] = a['answers']
+            b['parts'] = a['texts']
             if 'name' in a['subcategory']:
                 b['subcategory'] = a['subcategory']['name']
             if 'name' in a['category']:
