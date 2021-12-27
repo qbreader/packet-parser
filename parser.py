@@ -204,18 +204,18 @@ for file in os.listdir(input_directory):
             data['tossups'][i]['subcategory'] = cat
             data['tossups'][i]['category'] = subcat[cat]
 
-    for i in regex.findall(r'(?<=> *\d{1,2}\. +|TB. +|Tiebreaker. +|TIEBREAKER\. +).+?(?= +\[[10hmeHME]+\])', bonuses):
+    for i in regex.findall(r'(?<=> *\d{1,2}\. *|TB. *|Tiebreaker. *|TIEBREAKER\. *).+?(?= *\[[10hmeHME]+\])', bonuses):
         data['bonuses'].append({'leadin_sanitized': i})
 
     print('Processed', len(data['bonuses']), 'bonuses')
 
-    for i, j in enumerate(regex.findall(r'(?<=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?: +).+?(?= *\[[10hmeHME]+\]|<.*>)', bonuses)):
+    for i, j in enumerate(regex.findall(r'(?<=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?: *).+?(?= *\[[10hmeHME]+\]|<.*>)', bonuses)):
         if i % 3 == 0:
             data['bonuses'][i//3]['answers_sanitized'] = [j]
         else:
             data['bonuses'][i//3]['answers_sanitized'].append(j)
 
-    for i, j in enumerate(regex.findall(r'(?<=\[[10hmeHME]+\] +).+?(?= *[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?:)', bonuses)):
+    for i, j in enumerate(regex.findall(r'(?<=\[[10hmeHME]+\] *).+?(?= *[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?:)', bonuses)):
         if i % 3 == 0:
             data['bonuses'][i//3]['parts_sanitized'] = [j]
         else:
