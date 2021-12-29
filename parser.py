@@ -199,7 +199,7 @@ for file in os.listdir(input_directory):
     for i, j in enumerate(regex.findall(r'<.*?>', tossups)):
         cat = get_subcategory(j)
         if len(cat) == 0:
-            print(i, "tossup error finding the subcategory", j)
+            print(i+1, "tossup error finding the subcategory", j)
         else:
             data['tossups'][i]['subcategory'] = cat
             data['tossups'][i]['category'] = subcat[cat]
@@ -224,7 +224,7 @@ for file in os.listdir(input_directory):
     for i, j in enumerate(regex.findall(r'<.*?>', bonuses)):
         cat = get_subcategory(j)
         if len(cat) == 0:
-            print(i, "bonus error finding the subcategory", j)
+            print(i+1, "bonus error finding the subcategory", j)
         else:
             data['bonuses'][i]['subcategory'] = cat
             data['bonuses'][i]['category'] = subcat[cat]
