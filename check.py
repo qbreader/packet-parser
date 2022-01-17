@@ -11,9 +11,9 @@ for j in range(24):
     if 'tossups' in data:
         for tu in data['tossups']:
             if 'category' not in tu:
-                print(tu['answer_sanitized'])
+                print(tu['answer'])
 
     if 'bonuses' in data:
         for tu in data['bonuses']:
             if 'category' not in tu:
-                print(tu['answers_sanitized'])
+                print(tu['answers'])
