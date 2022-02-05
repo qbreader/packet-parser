@@ -81,6 +81,7 @@ subcat_conversion = {
     "Auditory Arts": "Auditory Fine Arts",
     "Misc. FA": "Other Fine Arts",
     "Other Arts": "Other Fine Arts",
+    "Other Fine Art": "Other Fine Arts",
     "Architecture": "Other Fine Arts",
     "Ballet": "Other Fine Arts",
     "Theatre": "Other Fine Arts",
@@ -215,7 +216,7 @@ for file in os.listdir(input_directory):
             data['tossups'][i]['subcategory'] = cat
             data['tossups'][i]['category'] = subcat[cat]
 
-    for i in regex.findall(r'(?<=> *\d{1,2}\. *|TB. *|Tiebreaker. *|TIEBREAKER\. *).+?(?= *\[[10hmeHME]+\])', bonuses):
+    for i in regex.findall(r'(?<=> *\d{1,2}\. *|TB\. *|Tiebreaker\. *|TIEBREAKER\. *|Extra\. *).+?(?= *\[[10hmeHME]+\])', bonuses):
         data['bonuses'].append({'leadin': i})
 
     print('Processed', len(data['bonuses']), 'bonuses')
