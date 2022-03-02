@@ -16,6 +16,31 @@ with open('subcat_conversion.json') as f:
 with open('subcat.json') as f:
     subcat = json.load(f)
 
+with open('stop_words.txt') as f:
+    stop_words = set(f.readlines())
+    stop_words = set([word.strip() for word in stop_words])
+
+
+all_questions = []
+for (dirpath, dirnames, filenames) in os.walk('packets_classify'):
+    for filename in filenames:
+        if filename == '.DS_Store':
+            continue
+
+        f = open(dirpath + '/' + filename)
+
+        try:
+            data = json.load(f)
+        except:
+            print(dirpath + '/' + filename)
+            continue
+
+        all_questions.append(data)
+
+
+def removePunctuation(s, punctuation='''.,!-;:'"\/?@#$%^&*_~'''):
+    return ''.join(ch for ch in s if ch not in punctuation)
+
 
 def get_subcategory(s):
     for key in subcat_conversion:
@@ -46,35 +71,25 @@ def difference(text1, text2):
     return count
 
 
-def classify_question(text, is_tossup, max_number_to_check=100000, training_directory="packets_classify"):
+def classify_question(text, is_tossup, max_number_to_check=100000):
     i = 0
     text = set(text.split())
-    text = set([word for word in text if len(word) > 4])
+    text = set([removePunctuation(word).lower() for word in text])
+    text = set([word for word in text if word not in stop_words])
 
     best_questions = []
-    for (dirpath, dirnames, filenames) in os.walk(training_directory):
-        for filename in filenames:
-            if filename == '.DS_Store':
-                continue
+    for data in all_questions:
+        # 1 nearest neighbor LOL
+        if is_tossup:
+            if len(data['tossups']) > 0:
+                best_questions.append(max(data['tossups'], key=lambda x: 0 if 'subcategory' not in x else difference(x['question'], text)))
 
-            f = open(dirpath + '/' + filename)
+            i += len(data['tossups'])
+        elif 'bonuses' in data:
+            if len(data['bonuses']) > 0:
+                best_questions.append(max(data['bonuses'], key=lambda x: 0 if 'subcategory' not in x else difference(x['leadin'], text)))
 
-            try:
-                data = json.load(f)
-            except:
-                print(dirpath + '/' + filename)
-
-            # 1 nearest neighbor LOL
-            if is_tossup:
-                if len(data['tossups']) > 0:
-                    best_questions.append(max(data['tossups'], key=lambda x: 0 if 'subcategory' not in x else difference(x['question'], text)))
-
-                i += len(data['tossups'])
-            elif 'bonuses' in data:
-                if len(data['bonuses']) > 0:
-                    best_questions.append(max(data['bonuses'], key=lambda x: 0 if 'subcategory' not in x else difference(x['leadin'], text)))
-
-                i += len(data['bonuses'])
+            i += len(data['bonuses'])
 
         if i > max_number_to_check:
             break
@@ -105,7 +120,7 @@ for file in os.listdir(input_directory):
 
     packet_text = packet_text.replace('\n', ' ')
     packet_text = packet_text.replace('', ' ')
-    tossups, bonuses = regex.split('[Bb][Oo][Nn][Uu][Ss][Ee][Ss]', packet_text)
+    tossups, bonuses = regex.split('bonuses', packet_text, flags=regex.IGNORECASE)
     # tossups, bonuses = regex.split('[Bb][Oo][Nn][Uu][Ss][Ee][Ss]', packet_text)[0], ''
 
     if has_category_tags:
@@ -114,18 +129,18 @@ for file in os.listdir(input_directory):
         tossups += ' 21.'
         bonuses += ' [10]'
 
-    for i in regex.findall(r'(?<=\d{1,2}\. +|TB\. +|Tiebreaker\. +|TIEBREAKER\. +).+?(?= *[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]:)', tossups):
+    for i in regex.findall(r'(?<=\d{1,2}\. +|TB\. +|Tiebreaker\. +).+?(?= *Answer:)', tossups, flags=regex.IGNORECASE):
         data['tossups'].append({'question': i})
     print('Processed', len(data['tossups']), 'tossups')
 
     if has_category_tags:
-        for i, j in enumerate(regex.findall(r'(?<=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]: +).+?(?= *<.*>)', tossups)):
+        for i, j in enumerate(regex.findall(r'(?<=Answer: +).+?(?= *<.*>)', tossups, flags=regex.IGNORECASE)):
             data['tossups'][i]['answer'] = j
     else:
-        for i, j in enumerate(regex.findall(r'(?<=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]: +).+?(?= *\d{1,2}\.| *TB\.| *Tiebreaker\.| *TIEBREAKER\.)', tossups)):
+        for i, j in enumerate(regex.findall(r'(?<=Answer: +).+?(?= *\d{1,2}\.| *TB\.| *Tiebreaker\.)', tossups, flags=regex.IGNORECASE)):
             data['tossups'][i]['answer'] = j
 
-    for i, j in enumerate(regex.findall(r'<.*?>', tossups)):
+    for i, j in enumerate(regex.findall(r'<.*?>', tossups, flags=regex.IGNORECASE)):
         cat = get_subcategory(j)
         if len(cat) == 0:
             print(i+1, "tossup error finding the subcategory", j)
@@ -135,34 +150,33 @@ for file in os.listdir(input_directory):
 
 
     if has_category_tags:
-        for i in regex.findall(r'(?<=> *\d{1,2}\. *|TB\. *|Tiebreaker\. *|TIEBREAKER\. *|Extra\. *).+?(?= *\[[10hmeHME]+\])', bonuses):
+        for i in regex.findall(r'(?<=> *\d{1,2}\. *|TB\. *|Tiebreaker\. *|Extra\. *).+?(?= *\[[10hme]+\])', bonuses, flags=regex.IGNORECASE):
             data['bonuses'].append({'leadin': i})
     else:
-        for i in regex.findall(r'(?<= +\d{1,2}\. +|TB\. +|Tiebreaker\. +|TIEBREAKER\. +|Extra\. +).+?(?= *\[[10hmeHME]+\])', bonuses):
+        for i in regex.findall(r'(?<= +\d{1,2}\. +|TB\. +|Tiebreaker\. +|Extra\. +).+?(?= *\[[10hme]+\])', bonuses, flags=regex.IGNORECASE):
             data['bonuses'].append({'leadin': i})
-            print(i)
     print('Processed', len(data['bonuses']), 'bonuses')
 
     if has_category_tags:
-        for i, j in enumerate(regex.findall(r'(?<=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?: *).+?(?= *\[[10hmeHME]+\]|<.*>)', bonuses)):
+        for i, j in enumerate(regex.findall(r'(?<=Answer: *).+?(?= *\[[10hmeHME]+\]|<.*>)', bonuses, flags=regex.IGNORECASE)):
             if i % 3 == 0:
                 data['bonuses'][i//3]['answers'] = [j]
             else:
                 data['bonuses'][i//3]['answers'].append(j)
     else:
-        for i, j in enumerate(regex.findall(r'(?<=[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?: +).+?(?= *\[[10hmeHME]+\]| *\d{1,2}\.)', bonuses)):
+        for i, j in enumerate(regex.findall(r'(?<=Answer: +).+?(?= *\[[10hmeHME]+\]| *\d{1,2}\.)', bonuses, flags=regex.IGNORECASE)):
             if i % 3 == 0:
                 data['bonuses'][i//3]['answers'] = [j]
             else:
                 data['bonuses'][i//3]['answers'].append(j)
 
-    for i, j in enumerate(regex.findall(r'(?<=\[[10hmeHME]+\] +).+?(?= *[Aa][Nn]?[Ss]?[Ww]?[Ee]?[Rr]?:)', bonuses)):
+    for i, j in enumerate(regex.findall(r'(?<=\[[10hme]+\] +).+?(?= *Answer:)', bonuses, flags=regex.IGNORECASE)):
         if i % 3 == 0:
             data['bonuses'][i//3]['parts'] = [j]
         else:
             data['bonuses'][i//3]['parts'].append(j)
 
-    for i, j in enumerate(regex.findall(r'<.*?>', bonuses)):
+    for i, j in enumerate(regex.findall(r'<.*?>', bonuses, flags=regex.IGNORECASE)):
         cat = get_subcategory(j)
         if len(cat) == 0:
             print(i+1, "bonus error finding the subcategory", j)
