@@ -188,18 +188,24 @@ for file in os.listdir(input_directory):
 
     if not has_category_tags:
         for bonus in data['bonuses']:
+            if 'parts' not in bonus:
+                print('No parts for bonus', bonus)
+                continue
+            if len(bonus['parts']) < 3:
+                print('Bonus', bonus['parts'], 'has less than 3 parts')
+                continue
             category, subcategory = classify_question(bonus['leadin'] + bonus['parts'][0] + bonus['parts'][1] + bonus['parts'][2], is_tossup=False)
             bonus['category'] = category
             bonus['subcategory'] = subcategory
 
-            print(category, subcategory)
+            # print(category, subcategory)
 
         for tossup in data['tossups']:
             category, subcategory = classify_question(tossup['question'], is_tossup=True)
             tossup['category'] = category
             tossup['subcategory'] = subcategory
 
-            print(category, subcategory)
+            # print(category, subcategory)
 
     print(f'it took {time.perf_counter() - time_now} seconds to classify')
     json.dump(data, g)
