@@ -1,10 +1,9 @@
 import json
 import os
 import regex
-# import re
 import time
 
-has_category_tags = False
+has_category_tags = True
 
 input_directory = 'packets/'
 output_directory = 'output/'
@@ -122,6 +121,7 @@ for file in os.listdir(input_directory):
     packet_text = packet_text + '\n0.'
 
     packet_text = packet_text.replace('', ' ')
+    packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
     packet_questions = regex.findall(r'\d{1,2}\.(?:.|\n)*?ANSWER:(?:.*\n)*?(?=\d{1,2}\.)', packet_text)
 
     tossups = []
