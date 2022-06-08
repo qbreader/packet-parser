@@ -122,7 +122,7 @@ for file in os.listdir(input_directory):
 
     packet_text = packet_text.replace('', ' ')
     packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
-    packet_questions = regex.findall(r'\d{1,2}\.(?:.|\n)*?ANSWER:(?:.*\n)*?(?=\d{1,2}\.)', packet_text)
+    packet_questions = regex.findall(r'\d{1,2}\.(?:.|\n)*?ANSWER:(?:.*\n)*?(?=\d{1,2}\.)', packet_text, flags=regex.IGNORECASE)
 
     tossups = []
     bonuses = []
@@ -137,19 +137,19 @@ for file in os.listdir(input_directory):
     print('Processed', len(bonuses), 'bonuses')
 
     for i, tossup in enumerate(tossups):
-        question = regex.findall(r'(?<=\d{1,2}\.)(?:.|\n)*?(?=ANSWER)', tossup)[0].strip().replace('\n', ' ')
+        question = regex.findall(r'(?<=\d{1,2}\.)(?:.|\n)*?(?=ANSWER)', tossup, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
         data['tossups'].append({"question": question})
 
         part = ''
         if has_category_tags:
-            part = regex.findall(r'(?<=ANSWER:)(?:.|\n)*(?=<)', tossup)[0].strip().replace('\n', ' ')
+            part = regex.findall(r'(?<=ANSWER:)(?:.|\n)*(?=<)', tossup, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
         else:
-            part = regex.findall(r'(?<=ANSWER:)(?:.|\n)*', tossup)[0].strip().replace('\n', ' ')
+            part = regex.findall(r'(?<=ANSWER:)(?:.|\n)*', tossup, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
         
         data['tossups'][i]["answer"] = part
 
         if has_category_tags:
-            j = regex.findall(r'<.*?>', tossup)[0].strip().replace('\n', ' ')
+            j = regex.findall(r'<.*?>', tossup, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
             cat = get_subcategory(j)
             if len(cat) == 0:
                 print(i+1, "tossup error finding the subcategory", j)
@@ -158,19 +158,19 @@ for file in os.listdir(input_directory):
                 data['tossups'][i]['category'] = subcat[cat]
 
     for i, bonus in enumerate(bonuses):
-        leadin = regex.findall(r'(?<=\d{1,2}\.)(?:.|\n)*?(?=\[)', bonus)[0].strip().replace('\n', ' ')
+        leadin = regex.findall(r'(?<=\d{1,2}\.)(?:.|\n)*?(?=\[)', bonus, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
         data['bonuses'].append({"leadin": leadin})
 
         bonus = bonus + '\n[10]'
         data['bonuses'][i]["answers"] = []
-        answers = regex.findall(r'(?<=ANSWER:)(?:.|\n)*?(?=\[.{1,3}\]|<)', bonus)
+        answers = regex.findall(r'(?<=ANSWER:)(?:.|\n)*?(?=\[.{1,3}\]|<)', bonus, flags=regex.IGNORECASE)
         for answer in answers:
             answer = answer.strip().replace('\n', ' ')
             data['bonuses'][i]["answers"].append(answer)
         bonus = bonus[:-5]
 
         data['bonuses'][i]["parts"] = []
-        parts = regex.findall(r'(?<=\[.{1,3}\])(?:.|\n)*?(?=ANSWER)', bonus)
+        parts = regex.findall(r'(?<=\[.{1,3}\])(?:.|\n)*?(?=ANSWER)', bonus, flags=regex.IGNORECASE)
         for part in parts:
             part = part.strip().replace('\n', ' ')
             data['bonuses'][i]["parts"].append(part)
