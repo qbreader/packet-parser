@@ -1,9 +1,13 @@
 import json
 import os
+from struct import pack
 import regex
+# import re
 import time
 
-has_category_tags = False
+from zmq import has
+
+has_category_tags = True
 
 input_directory = 'packets/'
 output_directory = 'output/'
@@ -117,72 +121,71 @@ for file in os.listdir(input_directory):
     packet_text = ''
     for line in f.readlines():
         packet_text += line
+    
+    packet_text = packet_text + '\n0.'
 
-    packet_text = packet_text.replace('\n', ' ')
     packet_text = packet_text.replace('', ' ')
-    tossups, bonuses = regex.split('bonuses', packet_text, flags=regex.IGNORECASE)
-    # tossups, bonuses = regex.split('[Bb][Oo][Nn][Uu][Ss][Ee][Ss]', packet_text)[0], ''
+    all_questions = regex.findall(r'\d{1,2}\.(?:.|\n)*?ANSWER:(?:.*\n)*?(?=\d{1,2}\.)', packet_text)
 
-    if has_category_tags:
-        bonuses = '>' + bonuses
-    else:
-        tossups += ' 21.'
-        bonuses += ' [10]'
+    tossups = []
+    bonuses = []
 
-    for i in regex.findall(r'(?<=\d{1,2}\. +|TB\. +|Tiebreaker\. +).+?(?= *Answer:)', tossups, flags=regex.IGNORECASE):
-        data['tossups'].append({'question': i})
-    print('Processed', len(data['tossups']), 'tossups')
-
-    if has_category_tags:
-        for i, j in enumerate(regex.findall(r'(?<=Answer: +).+?(?= *<.*>)', tossups, flags=regex.IGNORECASE)):
-            data['tossups'][i]['answer'] = j
-    else:
-        for i, j in enumerate(regex.findall(r'(?<=Answer: +).+?(?= *\d{1,2}\.| *TB\.| *Tiebreaker\.)', tossups, flags=regex.IGNORECASE)):
-            data['tossups'][i]['answer'] = j
-
-    for i, j in enumerate(regex.findall(r'<.*?>', tossups, flags=regex.IGNORECASE)):
-        cat = get_subcategory(j)
-        if len(cat) == 0:
-            print(i+1, "tossup error finding the subcategory", j)
+    for q in all_questions:
+        if regex.findall(r'For\s10\spoints\seach', q, flags=regex.IGNORECASE) or regex.findall(r'For\s10\spoints:', q, flags=regex.IGNORECASE):
+            bonuses.append(q)
         else:
-            data['tossups'][i]['subcategory'] = cat
-            data['tossups'][i]['category'] = subcat[cat]
+            tossups.append(q)
 
+    print('Processed', len(tossups), 'tossups')
+    print('Processed', len(bonuses), 'bonuses')
 
-    if has_category_tags:
-        for i in regex.findall(r'(?<=> *\d{1,2}\. *|TB\. *|Tiebreaker\. *|Extra\. *).+?(?= *\[[10hme]+\])', bonuses, flags=regex.IGNORECASE):
-            data['bonuses'].append({'leadin': i})
-    else:
-        for i in regex.findall(r'(?<= +\d{1,2}\. +|TB\. +|Tiebreaker\. +|Extra\. +).+?(?= *\[[10hme]+\])', bonuses, flags=regex.IGNORECASE):
-            data['bonuses'].append({'leadin': i})
-    print('Processed', len(data['bonuses']), 'bonuses')
+    for i, tossup in enumerate(tossups):
+        question = regex.findall(r'(?<=\d{1,2}\.)(?:.|\n)*?(?=ANSWER)', tossup)[0].strip().replace('\n', ' ')
+        data['tossups'].append({"question": question})
 
-    if has_category_tags:
-        for i, j in enumerate(regex.findall(r'(?<=Answer: *).+?(?= *\[[10hmeHME]+\]|<.*>)', bonuses, flags=regex.IGNORECASE)):
-            if i % 3 == 0:
-                data['bonuses'][i//3]['answers'] = [j]
+        part = ''
+        if has_category_tags:
+            part = regex.findall(r'(?<=ANSWER:)(?:.|\n)*(?=<)', tossup)[0].strip().replace('\n', ' ')
+        else:
+            part = regex.findall(r'(?<=ANSWER:)(?:.|\n)*', tossup)[0].strip().replace('\n', ' ')
+        
+        data['tossups'][i]["answer"] = part
+
+        if has_category_tags:
+            j = regex.findall(r'<.*?>', tossup)[0].strip().replace('\n', ' ')
+            cat = get_subcategory(j)
+            if len(cat) == 0:
+                print(i+1, "tossup error finding the subcategory", j)
             else:
-                data['bonuses'][i//3]['answers'].append(j)
-    else:
-        for i, j in enumerate(regex.findall(r'(?<=Answer: +).+?(?= *\[[10hmeHME]+\]| *\d{1,2}\.)', bonuses, flags=regex.IGNORECASE)):
-            if i % 3 == 0:
-                data['bonuses'][i//3]['answers'] = [j]
+                data['tossups'][i]['subcategory'] = cat
+                data['tossups'][i]['category'] = subcat[cat]
+
+    for i, bonus in enumerate(bonuses):
+        leadin = regex.findall(r'(?<=\d{1,2}\.)(?:.|\n)*?(?=\[)', bonus)[0].strip().replace('\n', ' ')
+        data['bonuses'].append({"leadin": leadin})
+
+        bonus = bonus + '\n[10]'
+        data['bonuses'][i]["answers"] = []
+        answers = regex.findall(r'(?<=ANSWER:)(?:.|\n)*?(?=\[.{1,3}\]|<)', bonus)
+        for answer in answers:
+            answer = answer.strip().replace('\n', ' ')
+            data['bonuses'][i]["answers"].append(answer)
+        bonus = bonus[:-5]
+
+        data['bonuses'][i]["parts"] = []
+        parts = regex.findall(r'(?<=\[.{1,3}\])(?:.|\n)*?(?=ANSWER)', bonus)
+        for part in parts:
+            part = part.strip().replace('\n', ' ')
+            data['bonuses'][i]["parts"].append(part)
+        
+        if has_category_tags:
+            j = regex.findall(r'<.*?>', bonus, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
+            cat = get_subcategory(j)
+            if len(cat) == 0:
+                print(i+1, "tossup error finding the subcategory", j)
             else:
-                data['bonuses'][i//3]['answers'].append(j)
-
-    for i, j in enumerate(regex.findall(r'(?<=\[[10hme]+\] +).+?(?= *Answer:)', bonuses, flags=regex.IGNORECASE)):
-        if i % 3 == 0:
-            data['bonuses'][i//3]['parts'] = [j]
-        else:
-            data['bonuses'][i//3]['parts'].append(j)
-
-    for i, j in enumerate(regex.findall(r'<.*?>', bonuses, flags=regex.IGNORECASE)):
-        cat = get_subcategory(j)
-        if len(cat) == 0:
-            print(i+1, "bonus error finding the subcategory", j)
-        else:
-            data['bonuses'][i]['subcategory'] = cat
-            data['bonuses'][i]['category'] = subcat[cat]
+                data['bonuses'][i]['subcategory'] = cat
+                data['bonuses'][i]['category'] = subcat[cat]
 
     time_now = time.perf_counter()
 
@@ -207,5 +210,5 @@ for file in os.listdir(input_directory):
 
             # print(category, subcategory)
 
-    print(f'it took {time.perf_counter() - time_now} seconds to classify')
+        print(f'it took {time.perf_counter() - time_now} seconds to classify')
     json.dump(data, g)

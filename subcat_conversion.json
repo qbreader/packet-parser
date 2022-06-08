@@ -23,6 +23,7 @@
     "American History": "American History",
     "US Hist": "American History",
     "US History": "American History",
+    "U.S. History": "American History",
     "Ancient History": "Ancient History",
     "British History": "European History",
     "Commonwealth History": "European History",
@@ -73,13 +74,15 @@
     "Jazz": "Auditory Fine Arts",
     "Opera": "Other Fine Arts",
     "Dance": "Other Fine Arts",
+    "Misc. Art": "Other Fine Arts",
     "Religion": "Religion",
     "Theology": "Religion",
-    "<Misc Belief": "Mythology",
+    "Misc Belief": "Mythology",
     "Myth": "Mythology",
     "Legends": "Mythology",
     "Mythology": "Mythology",
     "Philosophy": "Philosophy",
+    "Economy": "Social Science",
     "Economics": "Social Science",
     "Psychology": "Social Science",
     "Linguistics": "Social Science",
@@ -97,5 +100,6 @@
     "General Knowledge": "Other Academic",
     "Trash": "Trash",
     "Pop Culture": "Trash",
-    "Sports": "Trash"
+    "Sports": "Trash",
+    "Other": "Other Academic"
 }
