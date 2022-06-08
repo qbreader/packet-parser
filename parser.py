@@ -1,13 +1,10 @@
 import json
 import os
-from struct import pack
 import regex
 # import re
 import time
 
-from zmq import has
-
-has_category_tags = True
+has_category_tags = False
 
 input_directory = 'packets/'
 output_directory = 'output/'
@@ -125,12 +122,12 @@ for file in os.listdir(input_directory):
     packet_text = packet_text + '\n0.'
 
     packet_text = packet_text.replace('', ' ')
-    all_questions = regex.findall(r'\d{1,2}\.(?:.|\n)*?ANSWER:(?:.*\n)*?(?=\d{1,2}\.)', packet_text)
+    packet_questions = regex.findall(r'\d{1,2}\.(?:.|\n)*?ANSWER:(?:.*\n)*?(?=\d{1,2}\.)', packet_text)
 
     tossups = []
     bonuses = []
 
-    for q in all_questions:
+    for q in packet_questions:
         if regex.findall(r'For\s10\spoints\seach', q, flags=regex.IGNORECASE) or regex.findall(r'For\s10\spoints:', q, flags=regex.IGNORECASE):
             bonuses.append(q)
         else:
