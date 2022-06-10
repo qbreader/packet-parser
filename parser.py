@@ -104,7 +104,6 @@ def classify_question(text, is_tossup, max_number_to_check=100000):
 
 for file in os.listdir(input_directory):
     if file == '.DS_Store': continue
-    print(file)
 
     f = open(input_directory + file)
     g = open(output_directory + file[:-4] + '.json', 'w')
@@ -120,7 +119,7 @@ for file in os.listdir(input_directory):
     
     packet_text = packet_text + '\n0.'
 
-    packet_text = packet_text.replace('', ' ')
+    packet_text = packet_text.replace('', '')
     packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
     packet_questions = regex.findall(r'\d{1,2}\.(?:.|\n)*?ANSWER:(?:.*\n)*?(?=\d{1,2}\.)', packet_text, flags=regex.IGNORECASE)
 
@@ -133,8 +132,7 @@ for file in os.listdir(input_directory):
         else:
             tossups.append(q)
 
-    print('Processed', len(tossups), 'tossups')
-    print('Processed', len(bonuses), 'bonuses')
+    print(f'{file}: parsed {len(tossups)} tossups and {len(bonuses)} bonuses')
 
     for i, tossup in enumerate(tossups):
         question = regex.findall(r'(?<=\d{1,2}\.)(?:.|\n)*?(?=ANSWER)', tossup, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
