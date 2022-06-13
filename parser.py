@@ -177,7 +177,7 @@ for file in os.listdir(input_directory):
             j = regex.findall(r'<.*?>', bonus, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
             cat = get_subcategory(j)
             if len(cat) == 0:
-                print(i+1, "tossup error finding the subcategory", j)
+                print(i+1, "bonus error finding the subcategory", j)
             else:
                 data['bonuses'][i]['subcategory'] = cat
                 data['bonuses'][i]['category'] = subcat[cat]
