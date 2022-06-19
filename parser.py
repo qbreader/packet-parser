@@ -69,7 +69,7 @@ def difference(text1, text2):
         if word in words2: count += len(word)
 
     return count
-
+ 
 
 def classify_question(text, is_tossup, max_number_to_check=100000):
     i = 0
@@ -121,13 +121,13 @@ for file in os.listdir(input_directory):
 
     packet_text = packet_text.replace('', '')
     packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
-    packet_questions = regex.findall(r'\d{1,2}\.(?:.|\n)*?ANSWER:(?:.*\n)*?(?=\d{1,2}\.)', packet_text, flags=regex.IGNORECASE)
+    packet_questions = regex.findall(r'^\d{1,2}\.(?:.|\n)*?ANSWER:(?:.*\n)*?(?=\d{1,2}\.)', packet_text, flags=regex.IGNORECASE | regex.MULTILINE)
 
     tossups = []
     bonuses = []
 
     for q in packet_questions:
-        if regex.findall(r'For\s10\spoints\seach', q, flags=regex.IGNORECASE) or regex.findall(r'For\s10\spoints:', q, flags=regex.IGNORECASE):
+        if regex.findall(r'For\s10\spoints\seach', q, flags=regex.IGNORECASE) or regex.findall(r'\[(?:10)?[EMH]?\]', q, flags=regex.IGNORECASE):
             bonuses.append(q)
         else:
             tossups.append(q)
@@ -138,13 +138,8 @@ for file in os.listdir(input_directory):
         question = regex.findall(r'(?<=\d{1,2}\.)(?:.|\n)*?(?=ANSWER)', tossup, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
         data['tossups'].append({"question": question})
 
-        part = ''
-        if has_category_tags:
-            part = regex.findall(r'(?<=ANSWER:)(?:.|\n)*(?=<)', tossup, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
-        else:
-            part = regex.findall(r'(?<=ANSWER:)(?:.|\n)*', tossup, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
-        
-        data['tossups'][i]["answer"] = part
+        answer = regex.findall(r'(?<=ANSWER:)(?:.|\n)*(?=<)' if has_category_tags else r'(?<=ANSWER:)(?:.|\n)*', tossup, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
+        data['tossups'][i]['answer'] = answer
 
         if has_category_tags:
             j = regex.findall(r'<.*?>', tossup, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
@@ -161,17 +156,17 @@ for file in os.listdir(input_directory):
 
         bonus = bonus + '\n[10]'
         data['bonuses'][i]["answers"] = []
-        answers = regex.findall(r'(?<=ANSWER:)(?:.|\n)*?(?=\[.{1,3}\]|<)', bonus, flags=regex.IGNORECASE)
+        answers = regex.findall(r'(?<=ANSWER:)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<)', bonus, flags=regex.IGNORECASE)
         for answer in answers:
             answer = answer.strip().replace('\n', ' ')
             data['bonuses'][i]["answers"].append(answer)
         bonus = bonus[:-5]
 
         data['bonuses'][i]["parts"] = []
-        parts = regex.findall(r'(?<=\[.{1,3}\])(?:.|\n)*?(?=ANSWER)', bonus, flags=regex.IGNORECASE)
-        for part in parts:
-            part = part.strip().replace('\n', ' ')
-            data['bonuses'][i]["parts"].append(part)
+        parts = regex.findall(r'(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?=ANSWER)', bonus, flags=regex.IGNORECASE)
+        for answer in parts:
+            answer = answer.strip().replace('\n', ' ')
+            data['bonuses'][i]["parts"].append(answer)
         
         if has_category_tags:
             j = regex.findall(r'<.*?>', bonus, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
