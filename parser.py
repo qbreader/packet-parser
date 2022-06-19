@@ -11,7 +11,7 @@ os.mkdir(OUTPUT_DIRECTORY)
 
 
 REGEX_QUESTION = r'^\d{1,2}\.(?:.|\n)*?ANSWER:(?:.*\n)*?(?=\d{1,2}\.)'
-REGEX_CATEGORY_TAG = r'<.*?>'
+REGEX_CATEGORY_TAG = r'<.*?\n?.*?>'
 
 REGEX_TOSSUP_TEXT = r'(?<=\d{1,2}\.)(?:.|\n)*?(?=ANSWER)'
 REGEX_TOSSUP_ANSWER = r'(?<=ANSWER:)(?:.|\n)*(?=<)' if HAS_CATEGORY_TAGS else r'(?<=ANSWER:)(?:.|\n)*'
@@ -128,6 +128,8 @@ for file in os.listdir(INPUT_DIRECTORY):
 
     packet_text = packet_text + '\n0.'
     packet_text = packet_text.replace('', '')
+    # packet_text = regex.sub(r'^TB\.', '21.', packet_text, flags=regex.IGNORECASE | regex.MULTILINE)
+    # packet_text = regex.sub(r'^Tiebreaker\.', '21.', packet_text, flags=regex.IGNORECASE | regex.MULTILINE)
     packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
     packet_questions = regex.findall(REGEX_QUESTION, packet_text, flags=regex.IGNORECASE | regex.MULTILINE)
 
