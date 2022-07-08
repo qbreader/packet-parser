@@ -3,7 +3,7 @@ import os
 import regex
 import time
 
-HAS_CATEGORY_TAGS = True
+HAS_CATEGORY_TAGS = False
 
 INPUT_DIRECTORY = 'packets/'
 OUTPUT_DIRECTORY = 'output/'
@@ -91,22 +91,22 @@ def classify_question(text, is_tossup, max_number_to_check=100000):
         # 1 nearest neighbor LOL
         if is_tossup:
             if len(data['tossups']) > 0:
-                best_questions.append(max(data['tossups'], key=lambda x: 0 if 'subcategory' not in x else difference(x['question'], text)))
+                best_questions.append(max(data['tossups'], key=lambda x: -100 if 'subcategory' not in x else difference(x['question'], text)))
 
             i += len(data['tossups'])
         elif 'bonuses' in data:
             if len(data['bonuses']) > 0:
-                best_questions.append(max(data['bonuses'], key=lambda x: 0 if 'subcategory' not in x else difference(x['leadin'], text)))
+                best_questions.append(max(data['bonuses'], key=lambda x: -100 if 'subcategory' not in x else difference(x['leadin'], text)))
 
             i += len(data['bonuses'])
 
         if i > max_number_to_check:
             break
-    
+
     if is_tossup:
-        best = max(best_questions, key=lambda x: difference(x['question'], text))
+        best = max(best_questions, key=lambda x: -100 if 'subcategory' not in x else difference(x['question'], text))
     else:
-        best = max(best_questions, key=lambda x: difference(x['leadin'], text))
+        best = max(best_questions, key=lambda x: -100 if 'subcategory' not in x else difference(x['leadin'], text))
 
     return best['category'], best['subcategory']
 
