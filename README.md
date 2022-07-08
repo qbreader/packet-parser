@@ -5,3 +5,5 @@ Flags:
 - -c = collegiate
 - -m = middle school
 - -t = trash
+
+If there are any issues with the parsing text to json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `parser.py`.
