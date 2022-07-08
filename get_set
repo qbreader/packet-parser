@@ -11,6 +11,7 @@ while getopts 'cmt' flag; do
 done
 
 read -p "Set ID (number after ${URL}): " SET
+echo "Getting packets from ${URL}${SET}"
 wget robots=off -nv -A.pdf --include-directories=$SET -r "https://${URL}"
 mv "${URL}${SET}/" ".packets-pdf"
 rm -r "${URL}"
