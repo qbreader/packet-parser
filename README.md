@@ -1,6 +1,7 @@
 # qb-packet-parser
- 
-Run the `getset.sh` file (`./getset.sh`) to automatically download an entire set and parse it.
+
+Make sure you have the [poppler](https://poppler.freedesktop.org/) utilities installed on your system.
+Run the `get_set` file (using `bash get_set`) to automatically download an entire set and parse it.
 Flags:
 - -c = collegiate
 - -m = middle school
