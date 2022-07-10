@@ -3,22 +3,26 @@ import os
 import regex
 import time
 
-HAS_CATEGORY_TAGS = False
+HAS_CATEGORY_TAGS = (input("Do you have category tags? (y/n) ") == "y")
+if HAS_CATEGORY_TAGS:
+    print('Using category tags')
+else:
+    print('Using question classifier')
 
 INPUT_DIRECTORY = 'packets/'
 OUTPUT_DIRECTORY = 'output/'
 os.mkdir(OUTPUT_DIRECTORY)
 
 
-REGEX_QUESTION = r'^\d{1,2}\.(?:.|\n)*?ANSWER:(?:.*\n)*?(?=\d{1,2}\.)'
+REGEX_QUESTION = r'^\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?<.*?\n?.*?>' if HAS_CATEGORY_TAGS else r'^\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?=\d{1,2}\.)'
 REGEX_CATEGORY_TAG = r'<.*?\n?.*?>'
 
-REGEX_TOSSUP_TEXT = r'(?<=\d{1,2}\.)(?:.|\n)*?(?=ANSWER)'
-REGEX_TOSSUP_ANSWER = r'(?<=ANSWER:)(?:.|\n)*(?=<)' if HAS_CATEGORY_TAGS else r'(?<=ANSWER:)(?:.|\n)*'
+REGEX_TOSSUP_TEXT = r'(?<=\d{1,2}\.)(?:.|\n)*?(?=^ ?ANSWER)'
+REGEX_TOSSUP_ANSWER = r'(?<=^ ?ANSWER:)(?:.|\n)*(?=<)' if HAS_CATEGORY_TAGS else r'(?<=^ ?ANSWER:)(?:.|\n)*'
 
-REGEX_BONUS_LEADIN = r'(?<=\d{1,2}\.)(?:.|\n)*?(?=\[)'
-REGEX_BONUS_PARTS = r'(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?=ANSWER)'
-REGEX_BONUS_ANSWERS = r'(?<=ANSWER:)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<)'
+REGEX_BONUS_LEADIN = r'(?<=^\d{1,2}\.)(?:.|\n)*?(?=\n\[)'
+REGEX_BONUS_PARTS = r'(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?= ?ANSWER)'
+REGEX_BONUS_ANSWERS = r'(?<=^ ?ANSWER:)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<)'
 
 with open('subcat_conversion.json') as f:
     subcat_conversion = json.load(f)
@@ -146,14 +150,14 @@ for file in os.listdir(INPUT_DIRECTORY):
     print(f'{file}: parsed {len(tossups)} tossups and {len(bonuses)} bonuses')
 
     for i, tossup in enumerate(tossups):
-        question = regex.findall(REGEX_TOSSUP_TEXT, tossup, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
+        question = regex.findall(REGEX_TOSSUP_TEXT, tossup, flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
         data['tossups'].append({'question': question})
 
-        answer = regex.findall(REGEX_TOSSUP_ANSWER, tossup, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
+        answer = regex.findall(REGEX_TOSSUP_ANSWER, tossup, flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
         data['tossups'][i]['answer'] = answer
 
         if HAS_CATEGORY_TAGS:
-            j = regex.findall(REGEX_CATEGORY_TAG, tossup, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
+            j = regex.findall(REGEX_CATEGORY_TAG, tossup, flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
             cat = get_subcategory(j)
             if len(cat) == 0:
                 print(i+1, 'tossup - error finding the subcategory', j)
@@ -162,25 +166,25 @@ for file in os.listdir(INPUT_DIRECTORY):
                 data['tossups'][i]['category'] = cat_conversion[cat]
 
     for i, bonus in enumerate(bonuses):
-        leadin = regex.findall(REGEX_BONUS_LEADIN, bonus, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
+        leadin = regex.findall(REGEX_BONUS_LEADIN, bonus, flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
         data['bonuses'].append({'leadin': leadin})
 
         data['bonuses'][i]['parts'] = []
-        parts = regex.findall(REGEX_BONUS_PARTS, bonus, flags=regex.IGNORECASE)
+        parts = regex.findall(REGEX_BONUS_PARTS, bonus, flags=regex.IGNORECASE | regex.MULTILINE)
         for part in parts:
             part = part.strip().replace('\n', ' ')
             data['bonuses'][i]['parts'].append(part)
 
         bonus = bonus + '\n[10]'
         data['bonuses'][i]['answers'] = []
-        answers = regex.findall(REGEX_BONUS_ANSWERS, bonus, flags=regex.IGNORECASE)
+        answers = regex.findall(REGEX_BONUS_ANSWERS, bonus, flags=regex.IGNORECASE | regex.MULTILINE)
         for answer in answers:
             answer = answer.strip().replace('\n', ' ')
             data['bonuses'][i]['answers'].append(answer)
         bonus = bonus[:-5]
 
         if HAS_CATEGORY_TAGS:
-            j = regex.findall(REGEX_CATEGORY_TAG, bonus, flags=regex.IGNORECASE)[0].strip().replace('\n', ' ')
+            j = regex.findall(REGEX_CATEGORY_TAG, bonus, flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
             cat = get_subcategory(j)
             if len(cat) == 0:
                 print(i+1, 'bonus - error finding the subcategory', j)
