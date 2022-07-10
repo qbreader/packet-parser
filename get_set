@@ -11,20 +11,32 @@ while getopts 'cmt' flag; do
 done
 
 read -p "Set ID (number after ${URL}): " SET
+read -p "File type (p = pdf, d = docx): " TYPE
+case $TYPE in
+    p | pdf) TYPE="pdf" ;;
+    d | docx) TYPE="docx" ;;
+    t | txt) TYPE="txt" ;;
+    *) echo "Invalid file type" && exit 1 ;;
+esac
 echo "Getting packets from ${URL}${SET}"
-wget robots=off -nv -A.pdf --include-directories=$SET -r "https://${URL}"
-mv "${URL}${SET}/" ".packets-pdf"
+wget robots=off -nv -A.$TYPE --include-directories=$SET -r "https://${URL}"
+mv "${URL}${SET}/" ".packets-$TYPE"
 rm -r "${URL}"
 mkdir -p "packets"
 
-echo "Parsing PDFs to text..."
+echo "Parsing ${TYPE} to text..."
 counter=0
-for filename in .packets-pdf/*.pdf; do
+for filename in .packets-$TYPE/*.$TYPE; do
+    echo "Parsing ${filename}..."
     counter=$((counter+1))
-    pdftotext -q -layout "$filename" "packets/${counter}.txt"
+    case $TYPE in
+        pdf) pdftotext -q -layout "$filename" "packets/${counter}.txt" ;;
+        docx) docx2txt "$filename" && mv "${filename%.docx}.txt" "packets/${counter}.txt";;
+        txt) mv "$filename" "packets/${counter}.txt" ;;
+    esac
 done
-rm -r .packets-pdf
-echo "Parsed ${counter} PDFs."
+rm -r .packets-$TYPE
+echo "Parsed ${counter} ${TYPE}s."
 
 echo "Parsing text to json..."
 rm -fr output
