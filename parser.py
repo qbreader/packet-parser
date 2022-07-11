@@ -14,7 +14,7 @@ OUTPUT_DIRECTORY = 'output/'
 os.mkdir(OUTPUT_DIRECTORY)
 
 
-REGEX_QUESTION = r'^\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?<.*?\n?.*?>' if HAS_CATEGORY_TAGS else r'^\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?=\d{1,2}\.)'
+REGEX_QUESTION = r'^\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<.*?\n?.*?>' if HAS_CATEGORY_TAGS else r'^\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?=\d{1,2}\.)'
 REGEX_CATEGORY_TAG = r'<.*?\n?.*?>'
 
 REGEX_TOSSUP_TEXT = r'(?<=\d{1,2}\.)(?:.|\n)*?(?=^ ?ANSWER)'
