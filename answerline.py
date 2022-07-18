@@ -2,6 +2,7 @@ from collections import Counter
 import json
 import re
 
+
 def get_indicator(text):
     indicators = ['']
     text = text.lower()
@@ -17,6 +18,18 @@ def get_indicator(text):
             indicators.append(indicator)
 
     return Counter(indicators).most_common(1)[0][0]
+
+
+def split_main_alternate(answer):
+    """
+    Get the text between the brackets.
+    """
+    index1 = answer.find('[')
+    index2 = answer.find(']')
+    if index1 != -1 and index2 != -1:
+        return answer[:index1].strip(), answer[index1+1:index2].strip()
+    else:
+        return None
 
 f = open('packet.json')
 data = json.load(f)
@@ -34,59 +47,44 @@ for question in questions:
     acceptable = []
     promptable = []
     rejectable = []
-    main_answer = question['answer'][:index].strip()
+    main_answer, alternate_answer = split_main_alternate(question['answer'])
     answer_formatted += f'<b><u>{main_answer}</u></b> ['
-    alternate_answer = question['answer'][index + 1:question['answer'].find(']')]
     answer_fragments = alternate_answer.split(';')
     for fragment in answer_fragments:
         fragment = fragment.strip()
         if fragment[:2] == 'or': acceptor = 'or'
         if fragment[:6] == 'accept': acceptor = 'accept'
-        if fragment[:2] == 'or' or fragment[:6] == 'accept':
+        if fragment[:9] == 'prompt on': acceptor = 'prompt on'
+        if acceptor:
             fragment = ' ' + fragment
-            fragment = re.split(' or | accept ', fragment)
+            fragment = re.split(f' {acceptor} | or ', fragment)
             first = False
-            for i, piece in enumerate(fragment):
+            for piece in fragment:
                 piece = piece.strip()
                 if len(piece) == 0: continue
                 if piece == 'equivalents': 
-                    answer_formatted += f' {acceptor} equivalents'
+                    answer_formatted += f' or equivalents'
                     continue
                 if piece.find('before') != -1:
                     before, after = piece[:piece.index('before')], piece[piece.index('before') + 6:]
                     before = before.strip()
                     after = after.strip()
-                    answer_formatted += f'accept <u>{before}</u> before {after}'
+                    answer_formatted += f'{acceptor} <u>{before}</u> before {after}'
                     continue
                 if not first:
                     answer_formatted += f'{acceptor} <b><u>{piece}</u></b>'
                     first = True
                 else:
                     answer_formatted += f' or <b><u>{piece}</u></b>'
-                acceptable.append(piece)
-            answer_formatted += f'; '
-
-        elif fragment[:9] == 'prompt on':
-            fragment = ' ' + fragment
-            fragment = re.split(' prompt on | or ', fragment)
-            first = False
-            for piece in fragment:
-                piece = piece.strip()
-                if len(piece) == 0: continue
-                if piece == 'equivalents': continue
-                if piece.find('before') != -1:
-                    before, after = piece[:piece.index('before')], piece[piece.index('before') + 6:]
-                    before = before.strip()
-                    after = after.strip()
-                    answer_formatted += f'prompt on <u>{before}</u> before {after}'
-                    continue
-                if not first:
-                    answer_formatted += f'prompt on <u>{piece}</u>'
-                    first = True
-                else:
-                    answer_formatted += f' or <u>{piece}</u>'
-                promptable.append(piece)
+                
+                if acceptor in ['accept', 'or']:
+                    acceptable.append(piece)
+                if acceptor in ['prompt on']:
+                    promptable.append(piece)
+                if acceptor in ['reject', 'do not accept or prompt on']:
+                    rejectable.append(piece)
             answer_formatted += '; '
+
         elif fragment[:6] == 'reject':
             answer_formatted += f'{fragment}; '
             fragment = fragment[6:].strip()
