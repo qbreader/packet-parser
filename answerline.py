@@ -18,14 +18,17 @@ ANSWER: {sailor} [{or} {al-Ba\u1e25riyy}; {accept} answers like {seaman} or {mar
 PACKET_DIRECTORY = 'packets'
 
 ARTICLES = ['a', 'an', 'the', 'A', 'An', 'The']
-META_ANSWERS = ['other equivalents', 'clear-knowledge equivalents', 'equivalents', 'word forms']
-PREFIX_PHRASES = ['a ', 'an ', 'the ', 'more specific answers such as ', 'answers like ', 'any description mentioning ', 'word forms like ', 'answers involving ', 'any answer equivalent to ', 'anything with the ', 'any answer with word forms of ', 'synonyms such as ']
-POSTFIX_PHRASES = [' before ', ' after ', ' since ', ' in place of ', ' alone', ' before mention', ' effect', ' theorem', ' until ', ' by asking ']
+META_ANSWERS = ['other equivalents', 'clear-knowledge equivalents', 'equivalents', 'word forms', 'partial answer']
+PREFIX_PHRASES = ['a ', 'an ', 'the ', 'more specific answers such as ', 'answers like ', 'any description mentioning ', 'word forms like ', 'answers involving ', 'any answer equivalent to ', 'anything with the ', 'any answer with word forms of ', 'synonyms such as ', 'more specific answers like']
+POSTFIX_PHRASES = [' before ', ' after ', ' since ', ' in place of ', ' alone', ' effect', ' theorem', ' until ', ' by asking ']
 PEOPLE_INDICATORS = [
     'person',
     'leader',
+    'man',
+    'woman',
     'figure',
     'thinker',
+    'composer',
     'profession',
     'country',
     'region',
@@ -76,6 +79,7 @@ PEOPLE_INDICATORS = [
     'pharmacist',
     'photographer',
     'physician',
+    'physicist',
     'pilot',
     'poet',
     'plumber',
@@ -89,6 +93,7 @@ PEOPLE_INDICATORS = [
     'salesman',
     'salesperson',
     'saleswoman',
+    'scholar',
     'secretary',
     'singer',
     'surgeon',
@@ -128,6 +133,8 @@ def get_keyword(fragment: str) -> tuple:
         return 'accept', '<b><u>', '</u></b>'
     if fragment[:9] == 'prompt on': 
         return 'prompt on', '<u>', '</u>'
+    if fragment[:14] == 'anti-prompt on': 
+        return 'anti-prompt on', '<u>', '</u>'
     if fragment[:6] == 'reject':
         return 'reject', '"', '"'
     if fragment[:26] == 'do not accept or prompt on':
@@ -145,14 +152,14 @@ def is_person(indicator: str) -> bool:
 
 def parse_main_answer(main_answer, question='') -> Tuple[str, str]:
     for word in ARTICLES:
-        if main_answer[:len(word) + 1] == word + ' ':
+        if len(main_answer) > len(word) and main_answer[:len(word) + 1] == word + ' ':
             return word + ' ', main_answer[len(word) + 1:], ''
 
     if len(main_answer.split(' ')) == 2:
         before, after = main_answer.split(' ')
-        if before in question:
+        if before.lower() in question.lower():
             return before + ' ', after, ''
-        elif after in question:
+        elif after.lower() in question.lower():
             return '', before, ' ' + after
         else:
             return '', f'{before} {after}', ''
@@ -229,7 +236,7 @@ def process_question(question: str, answer: str) -> dict:
         acceptor, left_tag, right_tag = get_keyword(fragment)
         if acceptor:
             first = True
-            fragment = re.split(f' {acceptor} | or ', ' ' + fragment)
+            fragment = re.split(f' {acceptor} | or | and ', ' ' + fragment)
             for piece in fragment:
                 piece, answer_text = process_piece(piece, acceptor, left_tag, right_tag, first)
                 answer_formatted += answer_text
@@ -269,23 +276,25 @@ def split_main_alternate_metadata(answer) -> Tuple[str, str, str]:
     """
     index1 = answer.find('[')
     index2 = answer.find(']')
+    alternate = ''
+    metadata = ''
+    if index1 != -1 and index2 != -1:
+        alternate = answer[index1+1:index2].strip()
+        answer = answer[:index1].strip() + answer[index2+1:]
+
     index3 = answer.find('<')
     index4 = answer.find('>')
-    index5 = answer.find('(')
-    index6 = answer.find(')')
-    metadata = ''
     if index3 != -1 and index4 != -1:
         metadata += answer[index3+1:index4]
+        answer = answer[:index3].strip() + answer[index4+1:]
+
+    index5 = answer.find('(')
+    index6 = answer.find(')')
     if index5 != -1 and index6 != -1:
         metadata += answer[index5+1:index6]
-    if index3 == -1: index3 = len(answer)
-    if index5 == -1: index5 = len(answer)
-    if index3 != -1 or index5 != -1:
-        answer = answer[:min(index3, index5)]
-    if index1 != -1 and index2 != -1:
-        return answer[:index1].strip(), answer[index1+1:index2].strip(), metadata
-    else:
-        return answer.strip(), '', metadata.strip()
+        answer = answer[:index5].strip() + answer[index6+1:]
+
+    return answer.strip(), alternate.strip(), metadata.strip()
 
 
 for (dirpath, dirnames, filenames) in os.walk(PACKET_DIRECTORY):
@@ -293,7 +302,11 @@ for (dirpath, dirnames, filenames) in os.walk(PACKET_DIRECTORY):
         if filename == '.DS_Store': continue
 
         f = open(dirpath + '/' + filename)
-        packet = json.load(f)
+        try:
+            packet = json.load(f)
+        except json.decoder.JSONDecodeError:
+            print(f'Error parsing {dirpath}/{filename}')
+            exit(0)
 
         if 'tossups' in packet:
             for i, tossup in enumerate(packet['tossups']):
@@ -304,7 +317,7 @@ for (dirpath, dirnames, filenames) in os.walk(PACKET_DIRECTORY):
                     packet['tossups'][i]['promptable'] = result['promptable']
                     packet['tossups'][i]['rejectable'] = result['rejectable']
                     packet['tossups'][i]['metadata'] = result['metadata']
-                except: 
+                except:
                     print(f'Error processing tossup {i} in {dirpath}/{filename}')
                     print(tossup)
                     continue
