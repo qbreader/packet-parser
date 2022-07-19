@@ -14,7 +14,7 @@ Example:
 ANSWER: {sailor} [{or} {al-Ba\u1e25riyy}; {accept} answers like {seaman} or {mariner} or {pirate}; {accept} {The Story of the Shipwrecked Sailor}; {prompt on} {merchant}]
 """
 
-PACKET_DIRECTORY = 'packets/2022-mrna/t'
+PACKET_DIRECTORY = 'packets'
 
 DESCRIPTIVE_WORDS = [' before ', ' after ', ' since ']
 META_ANSWERS = ['equivalents', 'word forms']
@@ -113,7 +113,6 @@ def get_indicator(text):
 
             indicators.append(indicator)
 
-    print(Counter(indicators).most_common(1)[0][0])
     return Counter(indicators).most_common(1)[0][0]
 
 
