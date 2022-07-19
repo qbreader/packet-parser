@@ -4,6 +4,7 @@ import os
 import re
 from typing import List, Tuple
 
+
 """
 Answerlines have the following form:
 ANSWER: {main_answer} [{alternate_answer}]
@@ -16,14 +17,17 @@ ANSWER: {sailor} [{or} {al-Ba\u1e25riyy}; {accept} answers like {seaman} or {mar
 
 PACKET_DIRECTORY = 'packets'
 
-DESCRIPTIVE_WORDS = [' before ', ' after ', ' since ']
-META_ANSWERS = ['equivalents', 'word forms']
-PREFIX_PHRASES = ['a ', 'an ', 'the ', 'more specific answers such as ', 'answers like ', 'any description mentioning ', 'word forms like ']
+META_ANSWERS = ['other equivalents', 'clear-knowledge equivalents', 'equivalents', 'word forms']
+PREFIX_PHRASES = ['a ', 'an ', 'the ', 'more specific answers such as ', 'answers like ', 'any description mentioning ', 'word forms like ', 'answers involving ', 'any answer equivalent to ', 'anything with the ', 'any answer with word forms of ', 'synonyms such as ']
+POSTFIX_PHRASES = [' before ', ' after ', ' since ', ' in place of ', ' alone', ' before mention', ' effect', ' theorem']
 PEOPLE_INDICATORS = [
     'person',
     'leader',
     'figure',
+    'thinker',
+    'profession',
     'country',
+    'region',
     'accountant',
     'actor',
     'actress',
@@ -127,6 +131,8 @@ def get_keyword(fragment: str) -> tuple:
         return 'reject', '"', '"'
     if fragment[:26] == 'do not accept or prompt on':
         return 'do not accept or prompt on', '"', '"'
+    if fragment[:26] == 'do NOT accept or prompt on':
+        return 'do NOT accept or prompt on', '"', '"'
     if fragment[:13] == 'do not accept':
         return 'do not accept', '"', '"'
     return '', '', ''
@@ -148,19 +154,23 @@ def process_piece(piece: str, acceptor: str, left_tag: str, right_tag: str, firs
     if piece in META_ANSWERS:
         return '', f'{acceptor} {piece}'
 
+    prefix = ' '
     for phrase in PREFIX_PHRASES:
         if piece[:len(phrase)] == phrase:
             piece = piece[len(phrase):].strip()
-            return piece, f'{acceptor} {phrase}{left_tag}{piece}{right_tag}'
+            prefix = ' ' + phrase.strip() + ' '
+            break
 
-    for word in DESCRIPTIVE_WORDS:
-        if word in piece:
-            piece, after = piece.split(word)[0], piece.split(word)[1]
+    postfix = ''
+    for phrase in POSTFIX_PHRASES:
+        if phrase in piece:
+            piece, after = piece.split(phrase)[0], piece.split(phrase)[1]
             piece = piece.strip()
             after = after.strip()
-            return piece, f'{acceptor} {left_tag}{piece}{right_tag}{word}{after}'
+            postfix = f' {phrase.strip()}{" " if after else ""}{after}'
+            break
 
-    return piece, f'{acceptor} {left_tag}{piece}{right_tag}'
+    return piece, f'{acceptor}{prefix}{left_tag}{piece}{right_tag}{postfix}'
 
 
 def process_question(question: str, answer: str) -> dict:
@@ -176,9 +186,18 @@ def process_question(question: str, answer: str) -> dict:
     main_answer, alternate_answer, metadata = split_main_alternate_metadata(answer)
     acceptable.append(main_answer)
     index = main_answer.rfind(' ')
+
+    # accept last word only if the indicator indicates a person
     if is_person(get_indicator(question)) and not index == -1:
-        before, main_answer = main_answer[:index], main_answer[index+1:]
-        answer_formatted = f'{before} <b><u>{main_answer}</u></b>'
+        before, after = main_answer[:index], main_answer[index+1:]
+        answer_formatted = f'{before} <b><u>{after}</u></b>'
+        acceptable.append(after)
+    elif main_answer[:4] == 'The ':
+        answer_formatted += f'The <b><u>{main_answer[4:]}</u></b>'
+    elif main_answer[:3] == 'An ':
+        answer_formatted += f'An <b><u>{main_answer[3:]}</u></b>'
+    elif main_answer[:2] == 'A ':
+        answer_formatted += f'A <b><u>{main_answer[2:]}</u></b>'
     else:
         answer_formatted += f'<b><u>{main_answer}</u></b>'
     if alternate_answer == '':
@@ -215,6 +234,13 @@ def process_question(question: str, answer: str) -> dict:
             answer_formatted += f'{fragment}; '
 
     answer_formatted = answer_formatted[:-2] + ']'
+    for prompt in promptable:
+        if prompt in main_answer:
+            answer_formatted = '<b><u>' + main_answer + '</u></b>' + answer_formatted[answer_formatted.index('[') - 1:]
+            if is_person(get_indicator(question)):
+                del acceptable[1]
+            break
+
     return {
         'answer_formatted': answer_formatted,
         'acceptable': acceptable,
@@ -247,6 +273,7 @@ def split_main_alternate_metadata(answer) -> Tuple[str, str, str]:
         return answer[:index1].strip(), answer[index1+1:index2].strip(), metadata
     else:
         return answer.strip(), '', metadata.strip()
+
 
 for (dirpath, dirnames, filenames) in os.walk(PACKET_DIRECTORY):
     for filename in filenames:
