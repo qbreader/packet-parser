@@ -17,9 +17,10 @@ ANSWER: {sailor} [{or} {al-Ba\u1e25riyy}; {accept} answers like {seaman} or {mar
 
 PACKET_DIRECTORY = 'packets'
 
+ARTICLES = ['a', 'an', 'the', 'A', 'An', 'The']
 META_ANSWERS = ['other equivalents', 'clear-knowledge equivalents', 'equivalents', 'word forms']
 PREFIX_PHRASES = ['a ', 'an ', 'the ', 'more specific answers such as ', 'answers like ', 'any description mentioning ', 'word forms like ', 'answers involving ', 'any answer equivalent to ', 'anything with the ', 'any answer with word forms of ', 'synonyms such as ']
-POSTFIX_PHRASES = [' before ', ' after ', ' since ', ' in place of ', ' alone', ' before mention', ' effect', ' theorem']
+POSTFIX_PHRASES = [' before ', ' after ', ' since ', ' in place of ', ' alone', ' before mention', ' effect', ' theorem', ' until ', ' by asking ']
 PEOPLE_INDICATORS = [
     'person',
     'leader',
@@ -142,13 +143,30 @@ def is_person(indicator: str) -> bool:
     return indicator in PEOPLE_INDICATORS
 
 
+def parse_main_answer(main_answer, question='') -> Tuple[str, str]:
+    for word in ARTICLES:
+        if main_answer[:len(word) + 1] == word + ' ':
+            return word + ' ', main_answer[len(word) + 1:], ''
+
+    if len(main_answer.split(' ')) == 2:
+        before, after = main_answer.split(' ')
+        if before in question:
+            return before + ' ', after, ''
+        elif after in question:
+            return '', before, ' ' + after
+        else:
+            return '', f'{before} {after}', ''
+
+    return '', main_answer, ''
+
+
 def process_piece(piece: str, acceptor: str, left_tag: str, right_tag: str, first: bool) -> Tuple[str, str]:
     acceptor = acceptor if first else " or"
     piece = piece.strip()
     if len(piece) == 0: return '', ''
-    if piece[0] == '"':
+    if piece[0] in ['"', '“', '‘']:
         piece = piece[1:]
-    if piece[-1] == '"':
+    if piece[-1] in ['"', '”', '’']:
         piece = piece[:-1]
 
     if piece in META_ANSWERS:
@@ -186,20 +204,15 @@ def process_question(question: str, answer: str) -> dict:
     main_answer, alternate_answer, metadata = split_main_alternate_metadata(answer)
     acceptable.append(main_answer)
     index = main_answer.rfind(' ')
-
     # accept last word only if the indicator indicates a person
     if is_person(get_indicator(question)) and not index == -1:
         before, after = main_answer[:index], main_answer[index+1:]
         answer_formatted = f'{before} <b><u>{after}</u></b>'
         acceptable.append(after)
-    elif main_answer[:4] == 'The ':
-        answer_formatted += f'The <b><u>{main_answer[4:]}</u></b>'
-    elif main_answer[:3] == 'An ':
-        answer_formatted += f'An <b><u>{main_answer[3:]}</u></b>'
-    elif main_answer[:2] == 'A ':
-        answer_formatted += f'A <b><u>{main_answer[2:]}</u></b>'
     else:
-        answer_formatted += f'<b><u>{main_answer}</u></b>'
+        before, main, after = parse_main_answer(main_answer, question)
+        answer_formatted = f'{before}<b><u>{main}</u></b>{after}'
+        acceptable.append(main)
     if alternate_answer == '':
         return {
         'answer_formatted': answer_formatted,
