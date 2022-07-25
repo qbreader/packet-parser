@@ -24,11 +24,7 @@ REGEX_BONUS_LEADIN = r'(?<=^\d{1,2}\.)(?:.|\n)*?(?=\n\[)'
 REGEX_BONUS_PARTS = r'(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?= ?ANSWER)'
 REGEX_BONUS_ANSWERS = r'(?<=^ ?ANSWER:)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<)'
 
-with open('subcat_conversion.json') as f:
-    subcat_conversion = json.load(f)
 
-with open('subcat.json') as f:
-    cat_conversion = json.load(f)
 
 with open('stop_words.txt') as f:
     stop_words = set(f.readlines())
@@ -56,14 +52,14 @@ def removePunctuation(s, punctuation='''.,!-;:'"\/?@#$%^&*_~'''):
 
 
 def get_subcategory(s):
-    for key in subcat_conversion:
+    for key in standarize_subcats:
         works = True
         for word in key.split():
             if word not in s:
                 works = False
                 break
         if works:
-            return subcat_conversion[key]
+            return standarize_subcats[key]
 
     return ''
 
@@ -163,7 +159,7 @@ for file in os.listdir(INPUT_DIRECTORY):
                 print(i+1, 'tossup - error finding the subcategory', j)
             else:
                 data['tossups'][i]['subcategory'] = cat
-                data['tossups'][i]['category'] = cat_conversion[cat]
+                data['tossups'][i]['category'] = subcat_to_cat[cat]
 
     for i, bonus in enumerate(bonuses):
         leadin = regex.findall(REGEX_BONUS_LEADIN, bonus, flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
@@ -190,7 +186,7 @@ for file in os.listdir(INPUT_DIRECTORY):
                 print(i+1, 'bonus - error finding the subcategory', j)
             else:
                 data['bonuses'][i]['subcategory'] = cat
-                data['bonuses'][i]['category'] = cat_conversion[cat]
+                data['bonuses'][i]['category'] = subcat_to_cat[cat]
 
     time_now = time.perf_counter()
 
