@@ -31,7 +31,8 @@ for filename in .packets-$TYPE/*.$TYPE; do
     counter=$((counter+1))
     case $TYPE in
         pdf) pdftotext -q -layout "$filename" "packets/${counter}.txt" ;;
-        docx) docx2txt "$filename" && mv "${filename%.docx}.txt" "packets/${counter}.txt";;
+        # docx) docx2txt "$filename" && mv "${filename%.docx}.txt" "packets/${counter}.txt";;
+        docx) python3 docx-to-txt.py ".packets-${TYPE}/${filename}" > "packets/${counter}.txt" ;;
         txt) mv "$filename" "packets/${counter}.txt" ;;
     esac
 done
