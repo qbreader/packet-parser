@@ -24,6 +24,14 @@ You can check by seeing if there are tags that look like one of the following in
 5. If any errors apeear text->json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `parser.py -f`. **If you specified txt files, do not include the -f flag **.
     - The -f flag tells the parser to look for the following sequences: {bu}, {/bu}, {u}, {/u} which indicate where in the answerline there should be bolding/underlining.
 
+## Preprocessing
+
+If the bonus parts don't have the [10] in front of them, try adding them by matching using one of the two regexes below:
+```re
+(?=^[^(].*\nANSWER:)
+(?=^[^0-9].*\nANSWER:)
+```
+
 ## Background:
 
 I wrote this program after being dissatisfied with yet another packet parser, [YAPP](https://github.com/alopezlago/YetAnotherPacketParser), due to its strict formatting requirements and lack of category support. 

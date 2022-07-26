@@ -147,6 +147,7 @@ for file in os.listdir(INPUT_DIRECTORY):
     # packet_text = regex.sub(r'^TB\.', '21.', packet_text, flags=regex.IGNORECASE | regex.MULTILINE)
     # packet_text = regex.sub(r'^Tiebreaker\.', '21.', packet_text, flags=regex.IGNORECASE | regex.MULTILINE)
     packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
+    packet_text = regex.sub(r'\(\d{1,2}\)', '1.', packet_text)
     packet_questions = regex.findall(REGEX_QUESTION, packet_text, flags=regex.IGNORECASE | regex.MULTILINE)
 
     tossups = []
