@@ -60,14 +60,16 @@ for (dirpath, dirnames, filenames) in os.walk('packets_classify'):
 def remove_formatting(text):
     return text.replace('{bu}', '').replace('{/bu}', '').replace('{u}', '').replace('{/u}', '')
 
+
 def removePunctuation(s, punctuation='''.,!-;:'"\/?@#$%^&*_~'''):
     return ''.join(ch for ch in s if ch not in punctuation)
 
 
 def get_subcategory(s):
+    s = s.lower()
     for key in standarize_subcats:
         works = True
-        for word in key.split():
+        for word in key.lower().split():
             if word not in s:
                 works = False
                 break
