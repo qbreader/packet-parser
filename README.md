@@ -21,7 +21,8 @@ You can check by seeing if there are tags that look like one of the following in
 <Ed. Wu - Biology>
 <GW - Science, Biology>
 ```
-5. If any errors apeear text->json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `parser.py`.
+5. If any errors apeear text->json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `parser.py -f`. **If you specified txt files, do not include the -f flag **.
+    - The -f flag tells the parser to look for the following sequences: {bu}, {/bu}, {u}, {/u} which indicate where in the answerline there should be bolding/underlining.
 
 ## Background:
 
