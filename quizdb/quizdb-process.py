@@ -36,6 +36,7 @@ for i in range(max_round):
             b = {}
             b['question'] = a['text']
             b['answer'] = a['answer']
+            b['answer_formatted'] = a['formatted_answer']
             if 'name' in a['subcategory']:
                 b['subcategory'] = a['subcategory']['name']
             if 'name' in a['category']:
@@ -47,6 +48,7 @@ for i in range(max_round):
             b = {}
             b['leadin'] = a['leadin']
             b['answers'] = a['answers']
+            b['answers_formatted'] = a['formatted_answers']
             b['parts'] = a['texts']
             if 'name' in a['subcategory']:
                 b['subcategory'] = a['subcategory']['name']
