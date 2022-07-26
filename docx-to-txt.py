@@ -4,18 +4,16 @@ from docx import Document
 import sys
 
 document = Document(sys.argv[1])
-text = ''
 for para in document.paragraphs:
+    text = ''
     for runs in para.runs:
         if runs.bold and runs.underline:
-            text += '<u><b>' + runs.text + '</b></u>'
+            text += '{bu}' + runs.text + '{/bu}'
 
         elif runs.underline:
-            text += '<u>' + runs.text + '</u>'
-        
+            text += '{u}' + runs.text + '{/u}'
+
         else:
             text += runs.text
     
-    text += '\n'
-
-print(text)
+    print(text)

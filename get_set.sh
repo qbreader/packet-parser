@@ -24,7 +24,6 @@ wget robots=off -nv -A.$TYPE --include-directories=$SET -r "https://${URL}"
 mv "${URL}${SET}/" ".packets-$TYPE"
 rm -r "${URL}"
 mkdir -p "packets"
-mkdir -p "answerline-formatting"
 
 ##### Convert all files to .txt, and for .docx and .pdf also get the answerline formatting #####
 echo "Parsing ${TYPE} to text..."
@@ -33,8 +32,8 @@ for filename in .packets-$TYPE/*.$TYPE; do
     echo "Parsing ${filename}..."
     counter=$((counter+1))
     case $TYPE in
-        pdf) pdftotext -q -layout "$filename" "packets/${counter}.txt" && python pdf-to-docx.py "$filename" && python docx-to-txt.py "${filename%.pdf}.docx" > "answerline-formatting/${counter}.txt";;
-        docx) docx2txt "$filename" && mv "${filename%.docx}.txt" "packets/${counter}.txt" && python3 docx-to-txt.py "${filename}" > "answerline-formatting/${counter}.txt" ;;
+        pdf) python pdf-to-docx.py "$filename" && python docx-to-txt.py "${filename%.pdf}.docx" > "packets/${counter}.txt";;
+        docx) python3 docx-to-txt.py "${filename}" > "packets/${counter}.txt" ;;
         txt) mv "$filename" "packets/${counter}.txt" ;;
     esac
 done
@@ -43,5 +42,9 @@ echo "Parsed ${counter} ${TYPE}s."
 
 echo "Parsing text to json..."
 rm -fr output
-python3 parser.py
+case $TYPE in
+    pdf) python3 parser.py -f ;;
+    docx) python3 parser.py -f ;;
+    txt) python3 parser.py ;;
+esac
 echo "Done."
