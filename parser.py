@@ -1,9 +1,12 @@
 import json
 import os
 import regex
+import sys
 import time
 
+
 HAS_CATEGORY_TAGS = (input("Do you have category tags? (y/n) ") == "y")
+FORMATTED_ANSWERLINE = (len(sys.argv) == 2 and sys.argv[1] == '-f')
 if HAS_CATEGORY_TAGS:
     print('Using category tags')
 else:
@@ -11,20 +14,27 @@ else:
 
 INPUT_DIRECTORY = 'packets/'
 OUTPUT_DIRECTORY = 'output/'
-os.mkdir(OUTPUT_DIRECTORY)
+try:
+    os.mkdir(OUTPUT_DIRECTORY)
+except FileExistsError:
+    print('Output directory already exists')
 
 
-REGEX_QUESTION = r'^\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<.*?\n?.*?>' if HAS_CATEGORY_TAGS else r'^\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?=\d{1,2}\.)'
-REGEX_CATEGORY_TAG = r'<.*?\n?.*?>'
+REGEX_QUESTION = r'^\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>' if HAS_CATEGORY_TAGS else r'^\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?=\d{1,2}\.)'
+REGEX_CATEGORY_TAG = r'<[^>]*>'
 
-REGEX_TOSSUP_TEXT = r'(?<=\d{1,2}\.)(?:.|\n)*?(?=^ ?ANSWER)'
-REGEX_TOSSUP_ANSWER = r'(?<=^ ?ANSWER:)(?:.|\n)*(?=<)' if HAS_CATEGORY_TAGS else r'(?<=^ ?ANSWER:)(?:.|\n)*'
+REGEX_TOSSUP_TEXT = r'(?<=\d{1,2}\.)(?:.|\n)*?(?=^ ?ANSWER|ANSWER:)'
+REGEX_TOSSUP_ANSWER = r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*(?=<[^>]*>)' if HAS_CATEGORY_TAGS else r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*'
 
 REGEX_BONUS_LEADIN = r'(?<=^\d{1,2}\.)(?:.|\n)*?(?=\n\[)'
-REGEX_BONUS_PARTS = r'(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?= ?ANSWER)'
-REGEX_BONUS_ANSWERS = r'(?<=^ ?ANSWER:)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<)'
+REGEX_BONUS_PARTS = r'(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?= ?ANSWER|ANSWER:)'
+REGEX_BONUS_ANSWERS = r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<[^>]*>)'
 
+with open('standardize-subcats.json') as f:
+    standarize_subcats = json.load(f)
 
+with open('subcat-to-cat.json') as f:
+    subcat_to_cat = json.load(f)
 
 with open('stop_words.txt') as f:
     stop_words = set(f.readlines())
@@ -46,6 +56,9 @@ for (dirpath, dirnames, filenames) in os.walk('packets_classify'):
 
         all_questions.append(data)
 
+
+def remove_formatting(text):
+    return text.replace('{bu}', '').replace('{/bu}', '').replace('{u}', '').replace('{/u}', '')
 
 def removePunctuation(s, punctuation='''.,!-;:'"\/?@#$%^&*_~'''):
     return ''.join(ch for ch in s if ch not in punctuation)
@@ -146,14 +159,19 @@ for file in os.listdir(INPUT_DIRECTORY):
     print(f'{file}: parsed {len(tossups)} tossups and {len(bonuses)} bonuses')
 
     for i, tossup in enumerate(tossups):
-        question = regex.findall(REGEX_TOSSUP_TEXT, tossup, flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
+        question = regex.findall(REGEX_TOSSUP_TEXT, remove_formatting(tossup), flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
         data['tossups'].append({'question': question})
 
         answer = regex.findall(REGEX_TOSSUP_ANSWER, tossup, flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
+
+        if FORMATTED_ANSWERLINE:
+            data['tossups'][i]['answer_formatted'] = answer.replace('{bu}', '<b><u>').replace('{/bu}', '</u></b>').replace('{u}', '<u>').replace('{/u}', '</u>')
+            answer = remove_formatting(answer)
+
         data['tossups'][i]['answer'] = answer
 
         if HAS_CATEGORY_TAGS:
-            j = regex.findall(REGEX_CATEGORY_TAG, tossup, flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
+            j = regex.findall(REGEX_CATEGORY_TAG, remove_formatting(tossup), flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
             cat = get_subcategory(j)
             if len(cat) == 0:
                 print(i+1, 'tossup - error finding the subcategory', j)
@@ -162,25 +180,32 @@ for file in os.listdir(INPUT_DIRECTORY):
                 data['tossups'][i]['category'] = subcat_to_cat[cat]
 
     for i, bonus in enumerate(bonuses):
-        leadin = regex.findall(REGEX_BONUS_LEADIN, bonus, flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
+        leadin = regex.findall(REGEX_BONUS_LEADIN, remove_formatting(bonus), flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
         data['bonuses'].append({'leadin': leadin})
 
         data['bonuses'][i]['parts'] = []
-        parts = regex.findall(REGEX_BONUS_PARTS, bonus, flags=regex.IGNORECASE | regex.MULTILINE)
+        parts = regex.findall(REGEX_BONUS_PARTS, remove_formatting(bonus), flags=regex.IGNORECASE | regex.MULTILINE)
         for part in parts:
             part = part.strip().replace('\n', ' ')
+            part = part
             data['bonuses'][i]['parts'].append(part)
 
         bonus = bonus + '\n[10]'
         data['bonuses'][i]['answers'] = []
+        if FORMATTED_ANSWERLINE:
+            data['bonuses'][i]['answers_formatted'] = []
+
         answers = regex.findall(REGEX_BONUS_ANSWERS, bonus, flags=regex.IGNORECASE | regex.MULTILINE)
         for answer in answers:
             answer = answer.strip().replace('\n', ' ')
+            if FORMATTED_ANSWERLINE:
+                data['bonuses'][i]['answers_formatted'].append(answer.replace('{bu}', '<b><u>').replace('{/bu}', '</u></b>').replace('{u}', '<u>').replace('{/u}', '</u>'))
+                answer = answer.replace('{bu}', '').replace('{/bu}', '').replace('{u}', '').replace('{/u}', '')
             data['bonuses'][i]['answers'].append(answer)
         bonus = bonus[:-5]
 
         if HAS_CATEGORY_TAGS:
-            j = regex.findall(REGEX_CATEGORY_TAG, bonus, flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
+            j = regex.findall(REGEX_CATEGORY_TAG, remove_formatting(bonus), flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
             cat = get_subcategory(j)
             if len(cat) == 0:
                 print(i+1, 'bonus - error finding the subcategory', j)
