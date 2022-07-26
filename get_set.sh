@@ -48,4 +48,4 @@ case $TYPE in
     docx) python3 parser.py -f ;;
     txt) python3 parser.py ;;
 esac
-echo "Make sure to check the packets for any artifacts, such as the \":\" character at the beginning of answers."
+echo "Done."

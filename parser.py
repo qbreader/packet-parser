@@ -163,6 +163,8 @@ for file in os.listdir(INPUT_DIRECTORY):
         data['tossups'].append({'question': question})
 
         answer = regex.findall(REGEX_TOSSUP_ANSWER, tossup, flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
+        if answer.startswith(':'):
+            answer = answer[1:].strip()
 
         if FORMATTED_ANSWERLINE:
             data['tossups'][i]['answer_formatted'] = answer.replace('{bu}', '<b><u>').replace('{/bu}', '</u></b>').replace('{u}', '<u>').replace('{/u}', '</u>')
@@ -198,6 +200,8 @@ for file in os.listdir(INPUT_DIRECTORY):
         answers = regex.findall(REGEX_BONUS_ANSWERS, bonus, flags=regex.IGNORECASE | regex.MULTILINE)
         for answer in answers:
             answer = answer.strip().replace('\n', ' ')
+            if answer.startswith(':'):
+                answer = answer[1:].strip()
             if FORMATTED_ANSWERLINE:
                 data['bonuses'][i]['answers_formatted'].append(answer.replace('{bu}', '<b><u>').replace('{/bu}', '</u></b>').replace('{u}', '<u>').replace('{/u}', '</u>'))
                 answer = answer.replace('{bu}', '').replace('{/bu}', '').replace('{u}', '').replace('{/u}', '')
