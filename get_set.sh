@@ -31,10 +31,11 @@ counter=0
 for filename in .packets-$TYPE/*.$TYPE; do
     echo "Parsing ${filename}..."
     counter=$((counter+1))
+    BASENAME=$(echo "${filename%.pdf}" | cut -d'/' -f 2)
     case $TYPE in
-        pdf) python pdf-to-docx.py "$filename" && python docx-to-txt.py "${filename%.pdf}.docx" > "packets/${counter}.txt";;
-        docx) python3 docx-to-txt.py "${filename}" > "packets/${counter}.txt" ;;
-        txt) mv "$filename" "packets/${counter}.txt" ;;
+        pdf) python pdf-to-docx.py "$filename" && python docx-to-txt.py "${filename%.pdf}.docx" > "packets/${BASENAME}.txt";;
+        docx) python3 docx-to-txt.py "${filename}" > "packets/${BASENAME}.txt" ;;
+        txt) mv "$filename" "packets/${BASENAME}.txt" ;;
     esac
 done
 rm -r .packets-$TYPE
@@ -47,4 +48,4 @@ case $TYPE in
     docx) python3 parser.py -f ;;
     txt) python3 parser.py ;;
 esac
-echo "Done."
+echo "Make sure to check the packets for any artifacts, such as the \":\" character at the beginning of answers."

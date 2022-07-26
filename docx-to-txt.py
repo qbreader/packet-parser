@@ -7,7 +7,9 @@ document = Document(sys.argv[1])
 for para in document.paragraphs:
     text = ''
     for runs in para.runs:
-        if runs.bold and runs.underline:
+        if len(runs.text.strip()) == 0:
+            text += runs.text
+        elif runs.bold and runs.underline:
             text += '{bu}' + runs.text + '{/bu}'
 
         elif runs.underline:
