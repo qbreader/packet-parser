@@ -31,11 +31,11 @@ counter=0
 for filename in .packets-$TYPE/*.$TYPE; do
     echo "Parsing ${filename}..."
     counter=$((counter+1))
-    BASENAME=$(echo "${filename%.pdf}" | cut -d'/' -f 2)
+    BASENAME=$(echo "${filename}" | cut -d'/' -f 2)
     case $TYPE in
-        pdf) python pdf-to-docx.py "$filename" && python docx-to-txt.py "${filename%.pdf}.docx" > "packets/${BASENAME}.txt";;
-        docx) python3 docx-to-txt.py "${filename}" > "packets/${BASENAME}.txt" ;;
-        txt) mv "$filename" "packets/${BASENAME}.txt" ;;
+        pdf) python3 pdf-to-docx.py "$filename" && python3 docx-to-txt.py "${filename%.pdf}.docx" > "packets/${BASENAME%.pdf}.txt";;
+        docx) python3 docx-to-txt.py "${filename}" > "packets/${BASENAME%.docx}.txt" ;;
+        txt) mv "$filename" "packets/${BASENAME%.txt}.txt" ;;
     esac
 done
 rm -r .packets-$TYPE
