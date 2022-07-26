@@ -162,7 +162,11 @@ for file in os.listdir(INPUT_DIRECTORY):
     print(f'{file}: parsed {len(tossups)} tossups and {len(bonuses)} bonuses')
 
     for i, tossup in enumerate(tossups):
-        question = regex.findall(REGEX_TOSSUP_TEXT, remove_formatting(tossup), flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
+        try:
+            question = regex.findall(REGEX_TOSSUP_TEXT, remove_formatting(tossup), flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
+        except:
+            print("TOSSUP ERROR:", tossup)
+            exit(0)
         data['tossups'].append({'question': question})
 
         answer = regex.findall(REGEX_TOSSUP_ANSWER, tossup, flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
@@ -185,7 +189,11 @@ for file in os.listdir(INPUT_DIRECTORY):
                 data['tossups'][i]['category'] = subcat_to_cat[cat]
 
     for i, bonus in enumerate(bonuses):
-        leadin = regex.findall(REGEX_BONUS_LEADIN, remove_formatting(bonus), flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
+        try:
+            leadin = regex.findall(REGEX_BONUS_LEADIN, remove_formatting(bonus), flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
+        except:
+            print("BONUS ERROR:", bonus)
+            exit(0)
         data['bonuses'].append({'leadin': leadin})
 
         data['bonuses'][i]['parts'] = []
