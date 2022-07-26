@@ -1,15 +1,29 @@
 # qb-packet-parser
 
-This program uses the [poppler](https://poppler.freedesktop.org/) utilities to parse PDFs and [docx2txt](http://docx2txt.sourceforge.net/) to parse DOCX files. (Installing docx2txt may install the program as `docx2txt.sh`, in which case you'll need to rename it to `docx2txt` or change the source script.)
+## How to Use
 
-Run the `get_set` file to automatically download an entire set and parse it.
-Flags:
-- -c = collegiate
-- -m = middle school
-- -t = trash
+Make sure you have python3 installed on your computer.
 
-If there are any issues with the parsing text to json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `parser.py`.
+1. Clone the repository and cd into the folder.
+2. Run `pip install -r requirements.txt`, which will install pdf2docx, regex, and python-docx.
+3. Run the command `./get_set.sh` (equivalent to calling `bash get_set.sh`). 
+If you are interested in a **non-high school** set, use one of the flags below:
+    - -c = collegiate
+    - -m = middle school
+    - -t = trash
+4. Packets will automatically be downloaded and parsed and appear in the folder `output/`. 
+The script will prompt you if the packets have category tags.
+You can check by seeing if there are tags that look like one of the following in the packets: 
+(If unsure, reply with "n").
+```
+<Science - Biology>
+<Biology>
+<Ed. Wu - Biology>
+<GW - Science, Biology>
+```
+5. If any errors apeear text->json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `parser.py`.
 
 ## Background:
 
-I wrote this program after being dissatisfied with yet another packet parser, [YAPP](https://github.com/alopezlago/YetAnotherPacketParser), due to its strict formatting requirements and lack of category support. YAPP is awesome and powers [MODAQ](https://www.quizbowlreader.com/demo.html), which I believe to be the future of quizbowl moderation.
+I wrote this program after being dissatisfied with yet another packet parser, [YAPP](https://github.com/alopezlago/YetAnotherPacketParser), due to its strict formatting requirements and lack of category support. 
+YAPP is awesome and powers an awesome moderation tool, [MODAQ](https://www.quizbowlreader.com/demo.html).
