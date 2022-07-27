@@ -166,7 +166,7 @@ for file in os.listdir(INPUT_DIRECTORY):
             question = regex.findall(REGEX_TOSSUP_TEXT, remove_formatting(tossup), flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
         except:
             print("TOSSUP ERROR:", tossup)
-            exit(0)
+            exit(1)
         data['tossups'].append({'question': question})
 
         answer = regex.findall(REGEX_TOSSUP_ANSWER, tossup, flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
@@ -193,7 +193,7 @@ for file in os.listdir(INPUT_DIRECTORY):
             leadin = regex.findall(REGEX_BONUS_LEADIN, remove_formatting(bonus), flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
         except:
             print("BONUS ERROR:", bonus)
-            exit(0)
+            exit(1)
         data['bonuses'].append({'leadin': leadin})
 
         data['bonuses'][i]['parts'] = []
