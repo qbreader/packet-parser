@@ -6,11 +6,7 @@ Make sure you have python3 installed on your computer.
 
 1. Clone the repository and cd into the folder.
 2. Run `pip install -r requirements.txt`, which will install pdf2docx, regex, and python-docx.
-3. Run the command `./get_set.sh` (equivalent to calling `bash get_set.sh`). 
-If you are interested in a **non-high school** set, use one of the flags below:
-    - -c = collegiate
-    - -m = middle school
-    - -t = trash
+3. Run the command `./get_set.sh` (equivalent to calling `bash get_set.sh`).
 4. Packets will automatically be downloaded and parsed and appear in the folder `output/`. 
 The script will prompt you if the packets have category tags.
 You can check by seeing if there are tags that look like one of the following in the packets: 

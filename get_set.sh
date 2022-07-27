@@ -2,13 +2,12 @@
 
 URL="quizbowlpackets.com/"
 
-while getopts 'cmt' flag; do
-    case "${flag}" in
-        c) URL="collegiate.quizbowlpackets.com/" ;;
-        m) URL="ms.quizbowlpackets.com/" ;;
-        t) URL="trash.quizbowlpackets.com/" ;;
-    esac
-done
+read -p "Packet level (m = middle school, c = college, t = trash; leave blank for high school) " LEVEL
+case $LEVEL in
+    c) URL="collegiate.quizbowlpackets.com/" ;;
+    m) URL="ms.quizbowlpackets.com/" ;;
+    t) URL="trash.quizbowlpackets.com/" ;;
+esac
 
 ##### Download all packets in the set #####
 read -p "Set ID (number after ${URL}): " SET
