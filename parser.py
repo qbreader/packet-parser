@@ -69,7 +69,7 @@ def get_subcategory(s):
     s = s.lower()
     for key in standarize_subcats:
         works = True
-        for word in key.lower().split():
+        for word in regex.split(f'[\/ ]', key.lower()):
             if word not in s:
                 works = False
                 break
