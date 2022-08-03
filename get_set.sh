@@ -2,7 +2,7 @@
 
 URL="quizbowlpackets.com/"
 
-read -p "Packet level (m = middle school, c = college, t = trash; leave blank for high school) " LEVEL
+read -p "Packet level (m = middle school, c = college, t = trash; leave blank for high school): " LEVEL
 case $LEVEL in
     c) URL="collegiate.quizbowlpackets.com/" ;;
     m) URL="ms.quizbowlpackets.com/" ;;
