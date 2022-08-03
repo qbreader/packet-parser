@@ -144,6 +144,10 @@ for file in os.listdir(INPUT_DIRECTORY):
     packet_text = packet_text + '\n0.'
     packet_text = packet_text.replace('', '')
     packet_text = packet_text.replace('​', '') # remove zero-width U+200b character that appears in the text
+    packet_text = packet_text.replace('ANWER:', 'ANSWER:')
+    packet_text = packet_text.replace('ANSER:', 'ANSWER:')
+    packet_text = packet_text.replace('Anwer:', 'Answer:')
+    packet_text = packet_text.replace('Anser:', 'Answer:')
     packet_text = regex.sub(r'^TB[\.:]?', '21.', packet_text, flags=regex.IGNORECASE | regex.MULTILINE)
     packet_text = regex.sub(r'^Tiebreaker\.?', '21.', packet_text, flags=regex.IGNORECASE | regex.MULTILINE)
     packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
