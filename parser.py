@@ -158,7 +158,7 @@ for file in os.listdir(INPUT_DIRECTORY):
     bonuses = []
 
     for q in packet_questions:
-        if regex.findall(r'For\s10\spoints\seach', q, flags=regex.IGNORECASE) or regex.findall(r'\[(?:10)?[EMH]?\]', q, flags=regex.IGNORECASE):
+        if regex.findall(r'\[(?:10)?[EMH]?\]', q, flags=regex.IGNORECASE):
             bonuses.append(q)
         else:
             tossups.append(q)
@@ -187,7 +187,7 @@ for file in os.listdir(INPUT_DIRECTORY):
             j = regex.findall(REGEX_CATEGORY_TAG, remove_formatting(tossup), flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
             cat = get_subcategory(j)
             if len(cat) == 0:
-                print(i+1, 'tossup - error finding the subcategory', j)
+                print(i+1, 'tossup - ERROR: unrecognized subcategory', j)
             else:
                 data['tossups'][i]['subcategory'] = cat
                 data['tossups'][i]['category'] = subcat_to_cat[cat]
@@ -227,7 +227,7 @@ for file in os.listdir(INPUT_DIRECTORY):
             j = regex.findall(REGEX_CATEGORY_TAG, remove_formatting(bonus), flags=regex.IGNORECASE | regex.MULTILINE)[0].strip().replace('\n', ' ')
             cat = get_subcategory(j)
             if len(cat) == 0:
-                print(i+1, 'bonus - error finding the subcategory', j)
+                print(i+1, 'bonus - ERROR: unrecognized subcategory', j)
             else:
                 data['bonuses'][i]['subcategory'] = cat
                 data['bonuses'][i]['category'] = subcat_to_cat[cat]
@@ -240,12 +240,12 @@ for file in os.listdir(INPUT_DIRECTORY):
             tossup['category'] = category
             tossup['subcategory'] = subcategory
 
-        for bonus in data['bonuses']:
+        for i, bonus in enumerate(data['bonuses']):
             if 'parts' not in bonus:
-                print('No parts found for bonus', bonus)
+                print(i+1, 'bonus - ERROR: no parts found for bonus')
                 continue
             if len(bonus['parts']) < 3:
-                print('Bonus', bonus['parts'], 'has fewer than 3 parts')
+                print(i+1, 'bonus - ERROR: has fewer than 3 parts')
                 continue
             category, subcategory = classify_question(bonus['leadin'] + bonus['parts'][0] + bonus['parts'][1] + bonus['parts'][2], is_tossup=False)
             bonus['category'] = category
