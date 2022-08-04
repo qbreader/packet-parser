@@ -148,6 +148,8 @@ for file in os.listdir(INPUT_DIRECTORY):
     packet_text = packet_text.replace('ANSER:', 'ANSWER:')
     packet_text = packet_text.replace('Anwer:', 'Answer:')
     packet_text = packet_text.replace('Anser:', 'Answer:')
+    packet_text = packet_text.replace('FTPE', 'For 10 points each')
+    packet_text = packet_text.replace('FTP', 'For 10 points')
     packet_text = regex.sub(r'^TB[\.:]?', '21.', packet_text, flags=regex.IGNORECASE | regex.MULTILINE)
     packet_text = regex.sub(r'^Tiebreaker\.?', '21.', packet_text, flags=regex.IGNORECASE | regex.MULTILINE)
     packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
