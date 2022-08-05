@@ -146,8 +146,10 @@ for file in os.listdir(INPUT_DIRECTORY):
     packet_text = packet_text.replace('​', '') # remove zero-width U+200b character that appears in the text
     packet_text = packet_text.replace('ANWER:', 'ANSWER:')
     packet_text = packet_text.replace('ANSER:', 'ANSWER:')
+    packet_text = packet_text.replace('ANSWR:', 'ANSWER:')
     packet_text = packet_text.replace('Anwer:', 'Answer:')
     packet_text = packet_text.replace('Anser:', 'Answer:')
+    packet_text = packet_text.replace('Answr:', 'Answer:')
     packet_text = packet_text.replace('FTPE', 'For 10 points each')
     packet_text = packet_text.replace('FTP', 'For 10 points')
     packet_text = regex.sub(r'^TB[\.:]?', '21.', packet_text, flags=regex.IGNORECASE | regex.MULTILINE)
