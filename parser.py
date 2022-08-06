@@ -174,7 +174,7 @@ for file in os.listdir(INPUT_DIRECTORY):
                 tossup), flags=REGEX_FLAGS)[0].strip().replace('\n', ' ')
             cat = get_subcategory(j)
             if len(cat) == 0:
-                print(i+1, 'tossup - ERROR: unrecognized subcategory', j)
+                print(f'tossup {i+1} - ERROR: unrecognized subcategory', j)
             else:
                 data['tossups'][i]['subcategory'] = cat
                 data['tossups'][i]['category'] = SUBCAT_TO_CAT[cat]
@@ -220,7 +220,7 @@ for file in os.listdir(INPUT_DIRECTORY):
                 bonus), flags=REGEX_FLAGS)[0].strip().replace('\n', ' ')
             cat = get_subcategory(j)
             if len(cat) == 0:
-                print(i+1, 'bonus - ERROR: unrecognized subcategory', j)
+                print(f'bonus {i+1} - ERROR: unrecognized subcategory', j)
             else:
                 data['bonuses'][i]['subcategory'] = cat
                 data['bonuses'][i]['category'] = SUBCAT_TO_CAT[cat]
@@ -233,10 +233,10 @@ for file in os.listdir(INPUT_DIRECTORY):
 
         for i, bonus in enumerate(data['bonuses']):
             if 'parts' not in bonus:
-                print(i+1, 'bonus - ERROR: no parts found for bonus')
+                print(f'bonus {i+1} - ERROR: no parts found for bonus')
                 continue
             if len(bonus['parts']) < 3:
-                print(i+1, 'bonus - ERROR: has fewer than 3 parts')
+                print(f'bonus {i+1} - ERROR: has fewer than 3 parts')
                 continue
             category, subcategory = classify_question(bonus, type='bonus')
             bonus['category'] = category
