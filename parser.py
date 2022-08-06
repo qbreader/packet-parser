@@ -6,6 +6,9 @@ import time
 
 
 def classify_question(question, type='tossup'):
+    if type not in ['tossup', 'bonus']:
+        raise ValueError('type must be tossup or bonus')
+
     if type == 'tossup':
         prediction = classify_subcategory(question['question'])
     if type == 'bonus' and 'parts' in question and len(question['parts']) == 3:
@@ -52,7 +55,6 @@ def get_subcategory(s):
             return STANDARDIZE_SUBCATS[key]
 
     return ''
-
 
 
 HAS_CATEGORY_TAGS = (input("Do you have category tags? (y/n) ") == "y")
@@ -129,8 +131,10 @@ for file in os.listdir(INPUT_DIRECTORY):
     packet_text = packet_text.replace('Answr:', 'Answer:')
     packet_text = packet_text.replace('FTPE', 'For 10 points each')
     packet_text = packet_text.replace('FTP', 'For 10 points')
-    packet_text = regex.sub(r'^TB[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
-    packet_text = regex.sub(r'^Tiebreaker\.?', '21.', packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r'^TB[\.:]?', '21.',
+                            packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r'^Tiebreaker\.?', '21.',
+                            packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
     packet_text = regex.sub(r'\(\d{1,2}\)', '1.', packet_text)
     packet_questions = regex.findall(
@@ -228,8 +232,7 @@ for file in os.listdir(INPUT_DIRECTORY):
 
     if not HAS_CATEGORY_TAGS:
         for tossup in data['tossups']:
-            category, subcategory = classify_question(
-                tossup['question'], is_tossup=True)
+            category, subcategory = classify_question(tossup, type='tossup')
             tossup['category'] = category
             tossup['subcategory'] = subcategory
 
@@ -240,8 +243,7 @@ for file in os.listdir(INPUT_DIRECTORY):
             if len(bonus['parts']) < 3:
                 print(i+1, 'bonus - ERROR: has fewer than 3 parts')
                 continue
-            category, subcategory = classify_question(
-                bonus['leadin'] + bonus['parts'][0] + bonus['parts'][1] + bonus['parts'][2], is_tossup=False)
+            category, subcategory = classify_question(bonus, type='bonus')
             bonus['category'] = category
             bonus['subcategory'] = subcategory
 
