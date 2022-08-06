@@ -65,7 +65,7 @@ try:
 except FileExistsError:
     print('Output directory already exists')
 
-REGEX_FLAGS = REGEX_FLAGS
+REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
 
 REGEX_QUESTION = r'^\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>' if HAS_CATEGORY_TAGS else r'^\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?=\d{1,2}\.)'
 REGEX_CATEGORY_TAG = r'<[^>]*>'
