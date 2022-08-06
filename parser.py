@@ -2,7 +2,6 @@ import json
 import os
 import regex
 import sys
-import time
 
 
 def classify_question(question, type='tossup'):
@@ -226,8 +225,6 @@ for file in os.listdir(INPUT_DIRECTORY):
                 data['bonuses'][i]['subcategory'] = cat
                 data['bonuses'][i]['category'] = SUBCAT_TO_CAT[cat]
 
-    time_now = time.perf_counter()
-
     if not HAS_CATEGORY_TAGS:
         for tossup in data['tossups']:
             category, subcategory = classify_question(tossup, type='tossup')
@@ -244,7 +241,5 @@ for file in os.listdir(INPUT_DIRECTORY):
             category, subcategory = classify_question(bonus, type='bonus')
             bonus['category'] = category
             bonus['subcategory'] = subcategory
-
-        print(f'it took {time.perf_counter() - time_now} seconds to classify')
 
     json.dump(data, g)
