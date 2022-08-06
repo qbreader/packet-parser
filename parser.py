@@ -97,7 +97,7 @@ with open('subcategories.txt') as f:
     SUBCATEGORIES = [line.strip() for line in f.readlines()]
 
 
-with open('word_to_subcat_normalized.json') as f:
+with open('classifier/word_to_subcat_normalized.json') as f:
     WORD_TO_SUBCAT = json.load(f)
 
 
