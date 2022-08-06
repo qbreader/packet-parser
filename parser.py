@@ -6,14 +6,13 @@ import time
 
 
 def classify_question(question, type='tossup'):
-    if type not in ['tossup', 'bonus']:
-        raise ValueError('type must be tossup or bonus')
-
     if type == 'tossup':
         prediction = classify_subcategory(question['question'])
-    if type == 'bonus' and 'parts' in question and len(question['parts']) == 3:
+    elif type == 'bonus':
         prediction = classify_subcategory(
             question['leadin'] + ' ' + question['parts'][0] + ' ' + question['parts'][1] + ' ' + question['parts'][2])
+    else:
+        raise ValueError('type must be tossup or bonus')
 
     return SUBCAT_TO_CAT[prediction], prediction
 
@@ -29,7 +28,8 @@ def classify_subcategory(text):
             for i in range(len(SUBCATEGORIES)):
                 likelihoods[i] += WORD_TO_SUBCAT[token][i]
         else:
-            print('Token not in word_to_subcat:', token)
+            pass
+            # print('Token not in word_to_subcat:', token)
 
     subcategory_index = likelihoods.index(max(likelihoods))
     return SUBCATEGORIES[subcategory_index]
@@ -84,7 +84,7 @@ with open('standardize-subcats.json') as f:
     STANDARDIZE_SUBCATS = json.load(f)
 
 
-with open('stop_words.txt') as f:
+with open('stop-words.txt') as f:
     STOP_WORDS = set(f.readlines())
     STOP_WORDS = set([word.strip() for word in STOP_WORDS])
 
