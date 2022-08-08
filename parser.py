@@ -185,7 +185,7 @@ for file in os.listdir(INPUT_DIRECTORY):
                 bonus), flags=REGEX_FLAGS)[0].strip().replace('\n', ' ')
         except:
             print("BONUS ERROR:", bonus)
-            exit(1)
+            exit(2)
         data['bonuses'].append({'leadin': leadin})
 
         data['bonuses'][i]['parts'] = []
