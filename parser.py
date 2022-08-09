@@ -64,7 +64,9 @@ OUTPUT_DIRECTORY = 'output/'
 try:
     os.mkdir(OUTPUT_DIRECTORY)
 except FileExistsError:
-    print('Output directory already exists')
+    print('WARNING: Output directory already exists')
+    if not input("Continue? (y/n) ") == "y":
+        exit(0)
 
 REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
 
@@ -150,15 +152,18 @@ for file in os.listdir(INPUT_DIRECTORY):
 
     for i, tossup in enumerate(tossups):
         try:
-            question = regex.findall(REGEX_TOSSUP_TEXT, remove_formatting(
-                tossup), flags=REGEX_FLAGS)[0].strip().replace('\n', ' ')
+            question = regex.findall(REGEX_TOSSUP_TEXT, remove_formatting(tossup), flags=REGEX_FLAGS)
+            question = question[0].strip().replace('\n', ' ')
         except:
-            print("TOSSUP ERROR:", tossup)
+            print(f'ERROR: {i+1} tossup - ', tossup)
             exit(1)
-        data['tossups'].append({'question': question})
 
-        answer = regex.findall(REGEX_TOSSUP_ANSWER, tossup, flags=REGEX_FLAGS)[
-            0].strip().replace('\n', ' ')
+        data['tossups'].append({'question': question})
+        if 'answer:' in question.lower():
+            print(f'WARNING: tossup {i+1} question may contain the next question')
+
+        answer = regex.findall(REGEX_TOSSUP_ANSWER, tossup, flags=REGEX_FLAGS)
+        answer = answer[0].strip().replace('\n', ' ')
         if answer.startswith(':'):
             answer = answer[1:].strip()
 
@@ -168,32 +173,38 @@ for file in os.listdir(INPUT_DIRECTORY):
             answer = remove_formatting(answer)
 
         data['tossups'][i]['answer'] = answer
+        if 'answer:' in answer.lower():
+            print(f'WARNING: tossup {i+1} answer may contain the next question')
 
         if HAS_CATEGORY_TAGS:
             j = regex.findall(REGEX_CATEGORY_TAG, remove_formatting(
                 tossup), flags=REGEX_FLAGS)[0].strip().replace('\n', ' ')
             cat = get_subcategory(j)
             if len(cat) == 0:
-                print(f'tossup {i+1} - ERROR: unrecognized subcategory', j)
+                print(f'WARNING: tossup {i+1} has unrecognized subcategory', j)
             else:
                 data['tossups'][i]['subcategory'] = cat
                 data['tossups'][i]['category'] = SUBCAT_TO_CAT[cat]
+        else:
+            category, subcategory = classify_question(data['tossups'][i], type='tossup')
+            data['tossups'][i]['category'] = category
+            data['tossups'][i]['subcategory'] = subcategory
 
     for i, bonus in enumerate(bonuses):
         try:
-            leadin = regex.findall(REGEX_BONUS_LEADIN, remove_formatting(
-                bonus), flags=REGEX_FLAGS)[0].strip().replace('\n', ' ')
+            leadin = regex.findall(REGEX_BONUS_LEADIN, remove_formatting(bonus), flags=REGEX_FLAGS)
+            leadin = leadin[0].strip().replace('\n', ' ')
         except:
-            print("BONUS ERROR:", bonus)
+            print(f'ERROR: bonus {i+1} - ', bonus)
             exit(2)
         data['bonuses'].append({'leadin': leadin})
 
         data['bonuses'][i]['parts'] = []
-        parts = regex.findall(REGEX_BONUS_PARTS, remove_formatting(
-            bonus), flags=REGEX_FLAGS)
+        parts = regex.findall(REGEX_BONUS_PARTS, remove_formatting(bonus), flags=REGEX_FLAGS)
+        if len(parts) > 3:
+            print(f'WARNING: bonus {i+1} has more than 3 parts')
         for part in parts:
             part = part.strip().replace('\n', ' ')
-            part = part
             data['bonuses'][i]['parts'].append(part)
 
         bonus = bonus + '\n[10]'
@@ -220,26 +231,19 @@ for file in os.listdir(INPUT_DIRECTORY):
                 bonus), flags=REGEX_FLAGS)[0].strip().replace('\n', ' ')
             cat = get_subcategory(j)
             if len(cat) == 0:
-                print(f'bonus {i+1} - ERROR: unrecognized subcategory', j)
+                print(f'WARNING: bonus {i+1} has unrecognized subcategory', j)
             else:
                 data['bonuses'][i]['subcategory'] = cat
                 data['bonuses'][i]['category'] = SUBCAT_TO_CAT[cat]
-
-    if not HAS_CATEGORY_TAGS:
-        for tossup in data['tossups']:
-            category, subcategory = classify_question(tossup, type='tossup')
-            tossup['category'] = category
-            tossup['subcategory'] = subcategory
-
-        for i, bonus in enumerate(data['bonuses']):
-            if 'parts' not in bonus:
-                print(f'bonus {i+1} - ERROR: no parts found for bonus')
+        else:
+            if 'parts' not in data['bonuses'][i]:
+                print(f'ERROR: no parts found for bonus {i+1}')
                 continue
-            if len(bonus['parts']) < 3:
-                print(f'bonus {i+1} - ERROR: has fewer than 3 parts')
+            if len(data['bonuses'][i]['parts']) < 3:
+                print(f'ERROR: bonus {i+1} has fewer than 3 parts')
                 continue
-            category, subcategory = classify_question(bonus, type='bonus')
-            bonus['category'] = category
-            bonus['subcategory'] = subcategory
+            category, subcategory = classify_question(data['bonuses'][i], type='bonus')
+            data['bonuses'][i]['category'] = category
+            data['bonuses'][i]['subcategory'] = subcategory
 
     json.dump(data, g)
