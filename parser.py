@@ -210,7 +210,8 @@ for file in os.listdir(INPUT_DIRECTORY):
             print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} bonus {i+1} - ', bonus)
             exit(2)
         data['bonuses'].append({'leadin': leadin})
-
+        if 'answer:' in leadin.lower():
+            print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i+1} leadin may contain the previous question')
         data['bonuses'][i]['parts'] = []
         parts = regex.findall(REGEX_BONUS_PARTS, remove_formatting(bonus), flags=REGEX_FLAGS)
         if len(parts) > 3:
