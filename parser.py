@@ -134,6 +134,8 @@ for file in os.listdir(INPUT_DIRECTORY):
     packet_text = packet_text.replace('', '')
     # remove zero-width U+200b character that appears in the text
     packet_text = packet_text.replace('​', '')
+    packet_text = packet_text.replace('{/bu}{bu}', '')
+    packet_text = packet_text.replace('{/u}{u}', '')
     packet_text = packet_text.replace('ANWER:', 'ANSWER:')
     packet_text = packet_text.replace('ANSER:', 'ANSWER:')
     packet_text = packet_text.replace('ANSWR:', 'ANSWER:')
