@@ -4,6 +4,8 @@ A complete program to automatically download and parse a set of packets from qui
 Can also be used to parse individual packets.
 Designed to work well with a variety of packet formats - can parse packets "as-is".
 
+WARNING: Although the program can parse pdf files, results may vary - pdf parsing is notoriously inconsistent.
+
 ## How to Use
 
 Make sure you have python3 installed on your computer.
