@@ -34,6 +34,18 @@ If the bonus parts don't have the [10] in front of them, try adding them by matc
 (?=^[^0-9].*\nANSWER:)
 ```
 
+## Postprocessing Packet Names
+
+Remove first 7 characters from each file name:
+```bash
+for f in *; do mv "$f" "${f:6}"; done
+```
+
+Rename files from x.json to 0x.json:
+```bash
+for f in *; do if [ ${#f} = 6 ] ; then mv "$f" "0${f}"; fi; done
+```
+
 ## Background:
 
 I needed a way to automatically download and parse packets for [qbreader](https://www.qbreader.org/).
