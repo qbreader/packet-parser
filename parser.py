@@ -144,6 +144,8 @@ for file in os.listdir(INPUT_DIRECTORY):
     packet_text = packet_text.replace('Answr:', 'Answer:')
     packet_text = packet_text.replace('FTPE', 'For 10 points each')
     packet_text = packet_text.replace('FTP', 'For 10 points')
+    packet_text = regex.sub(r'\(\d{1,2}|TB\)', '1.', packet_text)
+    packet_text = regex.sub(r'^(\d{1,2}|TB)\)', '1.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^TB[\.:]?', '21.',
                             packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^Tiebreaker[\.:]?', '21.',
@@ -151,7 +153,6 @@ for file in os.listdir(INPUT_DIRECTORY):
     packet_text = regex.sub(r'^Extra[\.:]?', '21.',
                             packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
-    packet_text = regex.sub(r'\(\d{1,2}\)', '1.', packet_text)
     packet_questions = regex.findall(
         REGEX_QUESTION, packet_text, flags=REGEX_FLAGS)
 
