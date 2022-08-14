@@ -4,6 +4,7 @@ It should contain all of the questions in the database dumped from mongodb.
 """
 
 import json
+from tqdm import tqdm
 
 def hhi(arr):
     return sum([_**2 for _ in arr]) / sum(arr) ** 2
@@ -27,7 +28,7 @@ with open('../subcategories.txt') as f:
 
 word_to_subcat = {}
 
-for line in questions:
+for line in tqdm(questions):
     data = json.loads(line)
     if 'subcategory' not in data: continue
 
