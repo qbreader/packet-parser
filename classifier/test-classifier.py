@@ -47,7 +47,7 @@ with open('../subcat-to-cat.json') as f:
     SUBCAT_TO_CAT = json.load(f)
 
 time_now = time.perf_counter()
-with open('word_to_subcat_normalized.json') as f:
+with open('word-to-subcat-normalized.json') as f:
     word_to_subcat = json.load(f)
 print('Time to load word_to_subcat:', time.perf_counter() - time_now)
 

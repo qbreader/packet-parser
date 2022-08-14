@@ -40,7 +40,7 @@ def classify_subcategory(text):
                 likelihoods[i] += WORD_TO_SUBCAT[token][i]
         else:
             pass
-            # print('Token not in word_to_subcat:', token)
+            # print('Token not in word-to-subcat:', token)
 
     subcategory_index = likelihoods.index(max(likelihoods))
     return SUBCATEGORIES[subcategory_index]
@@ -110,7 +110,7 @@ with open('subcategories.txt') as f:
     SUBCATEGORIES = [line.strip() for line in f.readlines()]
 
 
-with open('classifier/word_to_subcat_normalized.json') as f:
+with open('classifier/word-to-subcat-normalized.json') as f:
     WORD_TO_SUBCAT = json.load(f)
 
 
