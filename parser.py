@@ -217,6 +217,7 @@ for file in os.listdir(INPUT_DIRECTORY):
         data['bonuses'].append({'leadin': leadin})
         if 'answer:' in leadin.lower():
             print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i+1} leadin may contain the previous question')
+
         data['bonuses'][i]['parts'] = []
         parts = regex.findall(REGEX_BONUS_PARTS, remove_formatting(bonus), flags=REGEX_FLAGS)
         if len(parts) > 3:
@@ -224,6 +225,7 @@ for file in os.listdir(INPUT_DIRECTORY):
         for part in parts:
             part = part.strip().replace('\n', ' ')
             data['bonuses'][i]['parts'].append(part)
+        data['bonuses'][i]['values'] = [10 for _ in range(len(data['bonuses'][i]['parts']))]
 
         bonus = bonus + '\n[10]'
         data['bonuses'][i]['answers'] = []
