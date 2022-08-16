@@ -114,7 +114,7 @@ with open('classifier/word-to-subcat-normalized.json') as f:
     WORD_TO_SUBCAT = json.load(f)
 
 
-for file in os.listdir(INPUT_DIRECTORY):
+for file in sorted(os.listdir(INPUT_DIRECTORY)):
     if file == '.DS_Store':
         continue
 
