@@ -165,7 +165,7 @@ for file in sorted(os.listdir(INPUT_DIRECTORY)):
         else:
             tossups.append(q)
 
-    print(f'Found {" " * (2 - len(str(len(tossups))))}{len(tossups)} tossups and {" " * (2 - len(str(len(bonuses))))}{len(bonuses)} bonuses in file {bcolors.OKBLUE}{file}{bcolors.ENDC}')
+    print(f'Found {len(tossups):2} tossups and {len(bonuses):2} bonuses in file {bcolors.OKBLUE}{file}{bcolors.ENDC}')
 
     for i, tossup in enumerate(tossups):
         try:
