@@ -165,7 +165,7 @@ for file in os.listdir(INPUT_DIRECTORY):
         else:
             tossups.append(q)
 
-    print(f'{file}: parsed {len(tossups)} tossups and {len(bonuses)} bonuses')
+    print(f'parsed {" " * (2 - len(str(len(tossups))))}{len(tossups)} tossups and {" " * (2 - len(str(len(tossups))))}{len(bonuses)} bonuses in file {bcolors.OKBLUE}{file}{bcolors.ENDC}')
 
     for i, tossup in enumerate(tossups):
         try:
