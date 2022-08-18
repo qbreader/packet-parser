@@ -185,7 +185,7 @@ for file in sorted(os.listdir(INPUT_DIRECTORY)):
             answer = answer[1:].strip()
 
         if FORMATTED_ANSWERLINE:
-            data['tossups'][i]['answer_formatted'] = answer.replace('{bu}', '<b><u>').replace(
+            data['tossups'][i]['formatted_answer'] = answer.replace('{bu}', '<b><u>').replace(
                 '{/bu}', '</u></b>').replace('{u}', '<u>').replace('{/u}', '</u>')
             answer = remove_formatting(answer)
 
@@ -230,7 +230,7 @@ for file in sorted(os.listdir(INPUT_DIRECTORY)):
         bonus = bonus + '\n[10]'
         data['bonuses'][i]['answers'] = []
         if FORMATTED_ANSWERLINE:
-            data['bonuses'][i]['answers_formatted'] = []
+            data['bonuses'][i]['formatted_answers'] = []
 
         answers = regex.findall(
             REGEX_BONUS_ANSWERS, bonus, flags=REGEX_FLAGS)
@@ -239,7 +239,7 @@ for file in sorted(os.listdir(INPUT_DIRECTORY)):
             if answer.startswith(':'):
                 answer = answer[1:].strip()
             if FORMATTED_ANSWERLINE:
-                data['bonuses'][i]['answers_formatted'].append(answer.replace('{bu}', '<b><u>').replace(
+                data['bonuses'][i]['formatted_answers'].append(answer.replace('{bu}', '<b><u>').replace(
                     '{/bu}', '</u></b>').replace('{u}', '<u>').replace('{/u}', '</u>'))
                 answer = answer.replace('{bu}', '').replace(
                     '{/bu}', '').replace('{u}', '').replace('{/u}', '')

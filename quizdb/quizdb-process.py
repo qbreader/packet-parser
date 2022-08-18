@@ -48,10 +48,10 @@ for round in rounds:
             b['question'] = a['text']
             b['answer'] = a['answer']
             if ADD_UNDERLINING:
-                b['answer_formatted'] = a['formatted_answer'].replace(
+                b['formatted_answer'] = a['formatted_answer'].replace(
                     '<strong>', '<b><u>').replace('</strong>', '</u></b>')
             else:
-                b['answer_formatted'] = a['formatted_answer'].replace(
+                b['formatted_answer'] = a['formatted_answer'].replace(
                     '<strong>', '<b>').replace('</strong>', '</b>')
             if 'name' in a['subcategory']:
                 b['subcategory'] = a['subcategory']['name']
@@ -65,10 +65,10 @@ for round in rounds:
             b['leadin'] = a['leadin']
             b['answers'] = a['answers']
             if ADD_UNDERLINING:
-                b['answers_formatted'] = [_.replace('<strong>', '<b><u>').replace(
+                b['formatted_answers'] = [_.replace('<strong>', '<b><u>').replace(
                     '</strong>', '</u></b>') for _ in a['formatted_answers']]
             else:
-                b['answers_formatted'] = [_.replace('<strong>', '<b>').replace(
+                b['formatted_answers'] = [_.replace('<strong>', '<b>').replace(
                     '</strong>', '</b>') for _ in a['formatted_answers']]
             b['parts'] = a['texts']
             if 'name' in a['subcategory']:
