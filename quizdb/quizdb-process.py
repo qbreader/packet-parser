@@ -37,7 +37,6 @@ DIRECTORY = 'output/'
 os.mkdir(DIRECTORY)
 
 for round in rounds:
-    g = open(f'{DIRECTORY}{round}.json', 'w')
     output = {
         'tossups': [],
         'bonuses': []
@@ -78,4 +77,5 @@ for round in rounds:
             output['bonuses'].append(b)
 
     print(f'Found {len(output["tossups"]):2} tossups and {len(output["bonuses"]):2} bonuses in round {bcolors.OKBLUE}{round}{bcolors.ENDC}')
+    g = open(f'{DIRECTORY}{round}.json', 'w')
     json.dump(output, g)
