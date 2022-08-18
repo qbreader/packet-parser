@@ -1,6 +1,19 @@
 import json
 import os
 
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 def xyz(a):
     try:
         a['round'] = a['round'].split()[0]
@@ -8,35 +21,38 @@ def xyz(a):
     except:
         return -1 + a['number']
 
-max_round = -1
+
+ADD_UNDERLINING = (input("Add underlining to bolding (y/n) ") == "y")
 
 f = open('quizdb.json')
 data = json.load(f)['data']
-data['tossups'].sort(key=xyz)
-data['bonuses'].sort(key=xyz)
 
-directory = 'output/'
-os.mkdir(directory)
+rounds = list(set(
+    [_['round'] for _ in data['tossups']]
+    + [_['round'] for _ in data['bonuses']]
+))
 
-for a in data['tossups']:
-    try:
-        if int(a['round']) > max_round:
-            max_round = int(a['round'])
-    except:
-        1+1
 
-for i in range(max_round):
-    g = open(directory + str(i+1) + '.json', 'w')
+DIRECTORY = 'output/'
+os.mkdir(DIRECTORY)
+
+for round in rounds:
+    g = open(f'{DIRECTORY}{round}.json', 'w')
     output = {
         'tossups': [],
         'bonuses': []
     }
     for a in data['tossups']:
-        if a['round'] == str(i+1) or a['round'] == '0' + str(i+1):
+        if a['round'] == round:
             b = {}
             b['question'] = a['text']
             b['answer'] = a['answer']
-            b['answer_formatted'] = a['formatted_answer']
+            if ADD_UNDERLINING:
+                b['answer_formatted'] = a['formatted_answer'].replace(
+                    '<strong>', '<b><u>').replace('</strong>', '</u></b>')
+            else:
+                b['answer_formatted'] = a['formatted_answer'].replace(
+                    '<strong>', '<b>').replace('</strong>', '</b>')
             if 'name' in a['subcategory']:
                 b['subcategory'] = a['subcategory']['name']
             if 'name' in a['category']:
@@ -44,16 +60,22 @@ for i in range(max_round):
             output['tossups'].append(b)
 
     for a in data['bonuses']:
-        if a['round'] == str(i+1) or a['round'] == '0' + str(i+1):
+        if a['round'] == round:
             b = {}
             b['leadin'] = a['leadin']
             b['answers'] = a['answers']
-            b['answers_formatted'] = a['formatted_answers']
+            if ADD_UNDERLINING:
+                b['answers_formatted'] = [_.replace('<strong>', '<b><u>').replace(
+                    '</strong>', '</u></b>') for _ in a['formatted_answers']]
+            else:
+                b['answers_formatted'] = [_.replace('<strong>', '<b>').replace(
+                    '</strong>', '</b>') for _ in a['formatted_answers']]
             b['parts'] = a['texts']
             if 'name' in a['subcategory']:
                 b['subcategory'] = a['subcategory']['name']
             if 'name' in a['category']:
                 b['category'] = a['category']['name']
             output['bonuses'].append(b)
-    
+
+    print(f'Found {len(output["tossups"]):2} tossups and {len(output["bonuses"]):2} bonuses in round {bcolors.OKBLUE}{round}{bcolors.ENDC}')
     json.dump(output, g)
