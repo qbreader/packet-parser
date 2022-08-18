@@ -46,33 +46,34 @@ def classify_subcategory(text):
     return SUBCATEGORIES[subcategory_index]
 
 
-def remove_formatting(text):
-    return text.replace('{bu}', '').replace('{/bu}', '').replace('{u}', '').replace('{/u}', '')
-
-
-def remove_punctuation(s, punctuation='''.,!-;:'"\/?@#$%^&*_~()[]{}“”‘’'''):
-    return ''.join(ch for ch in s if ch not in punctuation)
-
-
-def get_subcategory(s):
-    s = s.lower()
-    for key in STANDARDIZE_SUBCATS:
+def get_subcategory(text: str):
+    text = text.lower()
+    for subcat in STANDARDIZE_SUBCATS:
         works = True
-        for word in regex.split(f'[\/ ]', key.lower()):
-            if word not in s:
+        for word in regex.split(f'[\/ ]', subcat.lower()):
+            if word not in text:
                 works = False
                 break
         if works:
-            return STANDARDIZE_SUBCATS[key]
+            return STANDARDIZE_SUBCATS[subcat]
 
     return ''
 
 
+def remove_formatting(text: str):
+    return text.replace('{bu}', '').replace('{/bu}', '').replace('{u}', '').replace('{/u}', '')
+
+
+def remove_punctuation(s: str, punctuation='''.,!-;:'"\/?@#$%^&*_~()[]{}“”‘’'''):
+    return ''.join(ch for ch in s if ch not in punctuation)
+
+
+INPUT_DIRECTORY = 'packets/'
+OUTPUT_DIRECTORY = 'output/'
+
 HAS_CATEGORY_TAGS = (input("Do you have category tags? (y/n) ") == "y")
 FORMATTED_ANSWERLINE = (len(sys.argv) == 2 and sys.argv[1] == '-f')
 print('Using category tags' if HAS_CATEGORY_TAGS else 'Using question classifier')
-INPUT_DIRECTORY = 'packets/'
-OUTPUT_DIRECTORY = 'output/'
 try:
     os.mkdir(OUTPUT_DIRECTORY)
 except FileExistsError:
@@ -114,18 +115,11 @@ with open('classifier/word-to-subcat-normalized.json') as f:
     WORD_TO_SUBCAT = json.load(f)
 
 
-for file in sorted(os.listdir(INPUT_DIRECTORY)):
-    if file == '.DS_Store':
+for filename in sorted(os.listdir(INPUT_DIRECTORY)):
+    if filename == '.DS_Store':
         continue
 
-    f = open(INPUT_DIRECTORY + file)
-    g = open(OUTPUT_DIRECTORY + file[:-4] + '.json', 'w')
-
-    data = {
-        'tossups': [],
-        'bonuses': []
-    }
-
+    f = open(INPUT_DIRECTORY + filename)
     packet_text = ''
     for line in f.readlines():
         packet_text += line
@@ -145,7 +139,8 @@ for file in sorted(os.listdir(INPUT_DIRECTORY)):
     packet_text = packet_text.replace('FTPE', 'For 10 points each')
     packet_text = packet_text.replace('FTP', 'For 10 points')
     packet_text = regex.sub(r'\(\d{1,2}|TB\)', '1.', packet_text)
-    packet_text = regex.sub(r'^(\d{1,2}|TB)\)', '1.', packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r'^(\d{1,2}|TB)\)',
+                            '1.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^TB[\.:]?', '21.',
                             packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^Tiebreaker[\.:]?', '21.',
@@ -159,17 +154,23 @@ for file in sorted(os.listdir(INPUT_DIRECTORY)):
     tossups = []
     bonuses = []
 
-    for q in packet_questions:
-        if regex.findall(r'\[(?:10)?[EMH]?\]', q, flags=regex.IGNORECASE):
-            bonuses.append(q)
+    for question in packet_questions:
+        if regex.findall(r'\[(?:10)?[EMH]?\]', question, flags=regex.IGNORECASE):
+            bonuses.append(question)
         else:
-            tossups.append(q)
+            tossups.append(question)
 
-    print(f'Found {len(tossups):2} tossups and {len(bonuses):2} bonuses in file {bcolors.OKBLUE}{file}{bcolors.ENDC}')
+    print(f'Found {len(tossups):2} tossups and {len(bonuses):2} bonuses in file {bcolors.OKBLUE}{filename}{bcolors.ENDC}')
+
+    data = {
+        'tossups': [],
+        'bonuses': []
+    }
 
     for i, tossup in enumerate(tossups):
         try:
-            question = regex.findall(REGEX_TOSSUP_TEXT, remove_formatting(tossup), flags=REGEX_FLAGS)
+            question = regex.findall(
+                REGEX_TOSSUP_TEXT, remove_formatting(tossup), flags=REGEX_FLAGS)
             question = question[0].strip().replace('\n', ' ')
         except:
             print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} {i+1} tossup - ', tossup)
@@ -191,41 +192,49 @@ for file in sorted(os.listdir(INPUT_DIRECTORY)):
 
         data['tossups'][i]['answer'] = answer
         if 'answer:' in answer.lower():
-            print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i+1} answer may contain the next question')
+            print(
+                f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i+1} answer may contain the next question')
 
         if HAS_CATEGORY_TAGS:
-            j = regex.findall(REGEX_CATEGORY_TAG, remove_formatting(
+            category_tag = regex.findall(REGEX_CATEGORY_TAG, remove_formatting(
                 tossup), flags=REGEX_FLAGS)[0].strip().replace('\n', ' ')
-            cat = get_subcategory(j)
+            cat = get_subcategory(category_tag)
             if len(cat) == 0:
-                print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i+1} has unrecognized subcategory', j)
+                print(
+                    f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i+1} has unrecognized subcategory', category_tag)
             else:
                 data['tossups'][i]['subcategory'] = cat
                 data['tossups'][i]['category'] = SUBCAT_TO_CAT[cat]
         else:
-            category, subcategory = classify_question(data['tossups'][i], type='tossup')
+            category, subcategory = classify_question(
+                data['tossups'][i], type='tossup')
             data['tossups'][i]['category'] = category
             data['tossups'][i]['subcategory'] = subcategory
 
     for i, bonus in enumerate(bonuses):
         try:
-            leadin = regex.findall(REGEX_BONUS_LEADIN, remove_formatting(bonus), flags=REGEX_FLAGS)
+            leadin = regex.findall(
+                REGEX_BONUS_LEADIN, remove_formatting(bonus), flags=REGEX_FLAGS)
             leadin = leadin[0].strip().replace('\n', ' ')
         except:
             print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} bonus {i+1} - ', bonus)
             exit(2)
         data['bonuses'].append({'leadin': leadin})
         if 'answer:' in leadin.lower():
-            print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i+1} leadin may contain the previous question')
+            print(
+                f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i+1} leadin may contain the previous question')
 
         data['bonuses'][i]['parts'] = []
-        parts = regex.findall(REGEX_BONUS_PARTS, remove_formatting(bonus), flags=REGEX_FLAGS)
+        parts = regex.findall(
+            REGEX_BONUS_PARTS, remove_formatting(bonus), flags=REGEX_FLAGS)
         if len(parts) > 3:
-            print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i+1} has more than 3 parts')
+            print(
+                f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i+1} has more than 3 parts')
         for part in parts:
             part = part.strip().replace('\n', ' ')
             data['bonuses'][i]['parts'].append(part)
-        data['bonuses'][i]['values'] = [10 for _ in range(len(data['bonuses'][i]['parts']))]
+        data['bonuses'][i]['values'] = [
+            10 for _ in range(len(data['bonuses'][i]['parts']))]
 
         bonus = bonus + '\n[10]'
         data['bonuses'][i]['answers'] = []
@@ -247,23 +256,27 @@ for file in sorted(os.listdir(INPUT_DIRECTORY)):
         bonus = bonus[:-5]
 
         if HAS_CATEGORY_TAGS:
-            j = regex.findall(REGEX_CATEGORY_TAG, remove_formatting(
-                bonus), flags=REGEX_FLAGS)[0].strip().replace('\n', ' ')
-            cat = get_subcategory(j)
+            category_tag = regex.findall(REGEX_CATEGORY_TAG, remove_formatting(bonus), flags=REGEX_FLAGS)[0]
+            category_tag = category_tag.strip().replace('\n', ' ')
+            cat = get_subcategory(category_tag)
             if len(cat) == 0:
-                print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i+1} has unrecognized subcategory', j)
+                print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i+1} has unrecognized subcategory', category_tag)
             else:
                 data['bonuses'][i]['subcategory'] = cat
                 data['bonuses'][i]['category'] = SUBCAT_TO_CAT[cat]
         else:
             if 'parts' not in data['bonuses'][i]:
-                print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} no parts found for bonus {i+1}')
+                print(
+                    f'{bcolors.FAIL}ERROR:{bcolors.ENDC} no parts found for bonus {i+1}')
                 continue
             if len(data['bonuses'][i]['parts']) < 3:
-                print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} bonus {i+1} has fewer than 3 parts')
+                print(
+                    f'{bcolors.FAIL}ERROR:{bcolors.ENDC} bonus {i+1} has fewer than 3 parts')
                 continue
-            category, subcategory = classify_question(data['bonuses'][i], type='bonus')
+            category, subcategory = classify_question(
+                data['bonuses'][i], type='bonus')
             data['bonuses'][i]['category'] = category
             data['bonuses'][i]['subcategory'] = subcategory
 
+    g = open(OUTPUT_DIRECTORY + filename[:-4] + '.json', 'w')
     json.dump(data, g)
