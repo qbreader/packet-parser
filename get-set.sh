@@ -19,7 +19,7 @@ case $TYPE in
     *) echo "Invalid file type" && exit 1 ;;
 esac
 echo "Getting packets from ${URL}${SET}"
-wget robots=off -nv -A.$TYPE --include-directories=$SET -r "https://${URL}"
+wget -nv -A.$TYPE --include-directories=$SET -r "https://${URL}"
 mv "${URL}${SET}/" ".packets-$TYPE"
 rm -r "${URL}"
 mkdir -p "packets"
