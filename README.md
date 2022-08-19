@@ -23,7 +23,7 @@ You can check by seeing if there are tags that look like one of the following in
 <Ed. Wu - Biology>
 <GW - Science, Biology>
 ```
-5. If any errors apeear text->json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `parser.py -f`. **If you specified txt files when running ./get-set.sh, do not include the -f flag.**
+5. If any errors appear during the text->json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `parser.py -f`. **If you specified txt files when running ./get-set.sh, do not include the -f flag.**
     - The -f flag tells the parser to look for the following sequences: {bu}, {/bu}, {u}, {/u} which indicate where in the answerline there should be bolding/underlining.
 
 ## Preprocessing
@@ -38,11 +38,13 @@ If the bonus parts don't have the [10] in front of them, try adding them by matc
 
 Remove first 7 characters from each file name:
 ```bash
+cd output
 for f in *; do mv "$f" "${f:6}"; done
 ```
 
 Rename files from x.json to 0x.json:
 ```bash
+cd output
 for f in *; do if [ ${#f} = 6 ] ; then mv "$f" "0${f}"; fi; done
 ```
 
