@@ -20,8 +20,7 @@ def classify_question(question, type='tossup'):
     if type == 'tossup':
         prediction = classify_subcategory(question['question'])
     elif type == 'bonus':
-        prediction = classify_subcategory(
-            question['leadin'] + ' ' + question['parts'][0] + ' ' + question['parts'][1] + ' ' + question['parts'][2])
+        prediction = classify_subcategory(question['leadin'] + ' '.join(question['parts']))
     else:
         raise ValueError('type must be tossup or bonus')
 
@@ -93,6 +92,7 @@ REGEX_BONUS_LEADIN = r'(?<=^\d{1,2}\.)(?:.|\n)*?(?=\[(?:10)?[EMH]?\])'
 REGEX_BONUS_PARTS = r'(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?= ?ANSWER|ANSWER:)'
 REGEX_BONUS_ANSWERS = r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<[^>]*>)'
 
+EXPECTED_BONUS_LENGTH = 3
 
 with open('standardize-subcats.json') as f:
     STANDARDIZE_SUBCATS = json.load(f)
@@ -227,9 +227,9 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         data['bonuses'][i]['parts'] = []
         parts = regex.findall(
             REGEX_BONUS_PARTS, remove_formatting(bonus), flags=REGEX_FLAGS)
-        if len(parts) > 3:
+        if len(parts) > EXPECTED_BONUS_LENGTH:
             print(
-                f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i+1} has more than 3 parts')
+                f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i+1} has more than {EXPECTED_BONUS_LENGTH} parts')
         for part in parts:
             part = part.strip().replace('\n', ' ')
             data['bonuses'][i]['parts'].append(part)
@@ -269,9 +269,9 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                 print(
                     f'{bcolors.FAIL}ERROR:{bcolors.ENDC} no parts found for bonus {i+1}')
                 continue
-            if len(data['bonuses'][i]['parts']) < 3:
+            if len(data['bonuses'][i]['parts']) < EXPECTED_BONUS_LENGTH:
                 print(
-                    f'{bcolors.FAIL}ERROR:{bcolors.ENDC} bonus {i+1} has fewer than 3 parts')
+                    f'{bcolors.FAIL}ERROR:{bcolors.ENDC} bonus {i+1} has fewer than {EXPECTED_BONUS_LENGTH} parts')
                 continue
             category, subcategory = classify_question(
                 data['bonuses'][i], type='bonus')
