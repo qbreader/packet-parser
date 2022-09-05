@@ -4,7 +4,7 @@ A complete program to automatically download and parse a set of packets from qui
 Can also be used to parse individual packets.
 Designed to work well with a variety of packet formats - can parse packets "as-is".
 
-WARNING: Although the program can parse pdf files, results may vary - pdf parsing is notoriously inconsistent.
+**WARNING:** Although the program can parse pdf files, results may vary - pdf parsing is notoriously inconsistent.
 
 ## How to Use
 
@@ -48,8 +48,18 @@ cd output
 for f in *; do if [ ${#f} = 6 ] ; then mv "$f" "0${f}"; fi; done
 ```
 
+## QuizDB
+
+The QuizDB folder contains appropriate files to convert questions from the QuizDB JSON format to the QB Reader format.
+Not recommended since most questions on QuizDB are not particularly well formatted and it may introduce a [high amount of load on the QuizDB server](https://www.quizdb.org/about#:~:text=%5BNOT%20RECOMMENDED%20EXCEPT,year%2C%20or%20tournament.).
+
+1) Make a [QuizDB query](https://www.quizdb.org/) by selecting a tournament, clearing all other fields, and pressing search.
+2) Click the JSON button and move the downloaded file to the quizdb folder.
+3) Run quizdb-process.py.
+4) Run change_cat_names.py.
+
 ## Background:
 
-I needed a way to automatically download and parse packets for [qbreader](https://www.qbreader.org/).
+I needed a way to automatically download and parse packets for [QB Reader](https://www.qbreader.org/).
 I wrote this program after running into issues with formatting requirements and lack of category support when using, [YAPP](https://github.com/alopezlago/YetAnotherPacketParser).
 YAPP is awesome and powers an awesome moderation tool, [MODAQ](https://www.quizbowlreader.com/demo.html).
