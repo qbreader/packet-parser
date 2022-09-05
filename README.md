@@ -1,6 +1,6 @@
 # qbreader/packet-parser
 
-A complete program to automatically download and parse a set of packets from quizbowlpackets.com for use in the qbreader/website.
+A complete program to automatically download and parse a set of packets from [quizbowlpackets.com](https://quizbowlpackets.com/) for use in the qbreader/website.
 Can also be used to parse individual packets.
 Designed to work well with a variety of packet formats - can parse packets "as-is".
 
