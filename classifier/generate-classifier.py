@@ -4,7 +4,10 @@ It should contain all of the questions in the database dumped from mongodb.
 """
 
 import json
+import numpy as np
 from tqdm import tqdm
+
+np.random.seed(0)
 
 def hhi(arr):
     return sum([_**2 for _ in arr]) / sum(arr) ** 2
@@ -19,6 +22,9 @@ def removePunctuation(s, punctuation='''.,!-;:'"\/?@#$%^&*_~()[]{}“”‘’''
 
 
 questions = open('questions.json')
+questions = questions.readlines()
+np.random.shuffle(questions)
+print('Number of questions:', len(questions))
 with open('../stop-words.txt') as f:
     stop_words = set(f.readlines())
     stop_words = set([word.strip() for word in stop_words])
@@ -28,7 +34,7 @@ with open('../subcategories.txt') as f:
 
 word_to_subcat = {}
 
-for line in tqdm(questions):
+for line in tqdm(questions[int(0.2*len(questions)):]):
     data = json.loads(line)
     if 'subcategory' not in data: continue
 
