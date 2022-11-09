@@ -40,10 +40,10 @@ If the bonus parts don't have the [10] in front of them, try adding them by matc
 Remove first 7 characters from each file name:
 ```bash
 cd output
-for f in *; do mv "$f" "${f:6}"; done
+for f in *; do mv "$f" "${f:7}"; done
 ```
 
-Rename files from x.json to 0x.json:
+Rename files from x.json to 0x.json:[^1]
 ```bash
 cd output
 for f in *; do if [ ${#f} = 6 ] ; then mv "$f" "0${f}"; fi; done
@@ -65,7 +65,7 @@ I benchmarked this model against a vanilla Naive Bayes classifier.
 The two models have a similar accuracy and confusion matrix, but I chose the modified model due to its speed.
 
 **Methodology:** The data was shuffled using numpy with a set seed, and the split into an 80/20 train/test split.
-Below is the accuracy and time[^1] for a 20% test set of each type of classifier.
+Below is the accuracy and time[^2] for a 20% test set of each type of classifier.
 ```
 HHI accuracy / time:         71.32% (23702/33234) / 11.44 seconds
 Naive Bayes accuracy / time: 67.27% (22358/33234) / 66.06 seconds
@@ -87,4 +87,6 @@ I needed a way to automatically download and parse packets for [QB Reader](https
 I wrote this program after running into issues with formatting requirements and lack of category support when using, [YAPP](https://github.com/alopezlago/YetAnotherPacketParser).
 YAPP is awesome and powers an awesome moderation tool, [MODAQ](https://www.quizbowlreader.com/demo.html).
 
-[^1]: The amount of time it took to classify all of the test samples.
+[^1]: The number 6 comes from the fact that the length of `x.json` is 6 characters long.
+Modify as you please for other extensions and use cases.
+[^2]: The amount of time it took to classify all of the test samples.
