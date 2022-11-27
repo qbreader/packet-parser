@@ -17,5 +17,5 @@ for para in document.paragraphs:
 
         else:
             text += runs.text
-    
+
     print(text)

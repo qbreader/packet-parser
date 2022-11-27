@@ -14,22 +14,25 @@ Make sure you have python3 installed on your computer.
 1. Clone the repository and cd into the folder.
 2. Install pdf2docx, regex, and python-docx with `pip install -r requirements.txt`.
 3. Run the command `./get-set.sh` (equivalent to calling `bash get-set.sh`).
-Packets will automatically be downloaded and parsed and appear in the folder `output/`.
+   Packets will automatically be downloaded and parsed and appear in the folder `output/`.
 4. The script will prompt you if the packets have category tags.
-You can check by seeing if there are tags that look like one of the following in the packets:
-(If unsure, reply with "n").
+   You can check by seeing if there are tags that look like one of the following in the packets:
+   (If unsure, reply with "n").
+
 ```
 <Science - Biology>
 <Biology>
 <Ed. Wu - Biology>
 <GW - Science, Biology>
 ```
+
 5. If any errors appear during the text->json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `parser.py -f`. **If you specified txt files when running ./get-set.sh, do not include the -f flag.**
-    - The -f flag tells the parser to look for the following sequences: {bu}, {/bu}, {u}, {/u} which indicate where in the answerline there should be bolding/underlining.
+   - The -f flag tells the parser to look for the following sequences: {bu}, {/bu}, {u}, {/u} which indicate where in the answerline there should be bolding/underlining.
 
 ## Preprocessing
 
 If the bonus parts don't have the [10] in front of them, try adding them by matching using one of the two regexes below:
+
 ```re
 (?=^[^(].*\nANSWER:)
 (?=^[^0-9].*\nANSWER:)
@@ -38,12 +41,14 @@ If the bonus parts don't have the [10] in front of them, try adding them by matc
 ## Postprocessing Packet Names
 
 Remove first 7 characters from each file name:
+
 ```bash
 cd output
 for f in *; do mv "$f" "${f:7}"; done
 ```
 
 Rename files from x.json to 0x.json:[^1]
+
 ```bash
 cd output
 for f in *; do if [ ${#f} = 6 ] ; then mv "$f" "0${f}"; fi; done
@@ -53,6 +58,7 @@ for f in *; do if [ ${#f} = 6 ] ; then mv "$f" "0${f}"; fi; done
 
 This repository includes a classifier located in the `classifier/` directory, which is a modified Naive Bayes classifier that uses a modified version of normalized hhi.
 In particular, the formula used is
+
 $$
 \argmax_{y \in \text{subcats}} f(\text{word}) P(\text{word} | y)
 $$
@@ -66,6 +72,7 @@ The two models have a similar accuracy and confusion matrix, but I chose the mod
 
 **Methodology:** The data was shuffled using numpy with a set seed, and the split into an 80/20 train/test split.
 Below is the accuracy and time[^2] for a 20% test set of each type of classifier.
+
 ```
 HHI accuracy / time:         71.32% (23702/33234) / 11.44 seconds
 Naive Bayes accuracy / time: 67.27% (22358/33234) / 66.06 seconds
@@ -76,10 +83,10 @@ Naive Bayes accuracy / time: 67.27% (22358/33234) / 66.06 seconds
 The QuizDB folder contains appropriate files to convert questions from the QuizDB JSON format to the QB Reader format.
 Not recommended since most questions on QuizDB are not particularly well formatted and it may introduce a [high amount of load on the QuizDB server](https://www.quizdb.org/about#:~:text=%5BNOT%20RECOMMENDED%20EXCEPT,year%2C%20or%20tournament.).
 
-1) Make a [QuizDB query](https://www.quizdb.org/) by selecting a tournament, clearing all other fields, and pressing search.
-2) Click the JSON button and move the downloaded file to the quizdb folder.
-3) Run quizdb-process.py.
-4) Run change_cat_names.py.
+1. Make a [QuizDB query](https://www.quizdb.org/) by selecting a tournament, clearing all other fields, and pressing search.
+2. Click the JSON button and move the downloaded file to the quizdb folder.
+3. Run quizdb-process.py.
+4. Run change_cat_names.py.
 
 ## Background:
 
@@ -88,5 +95,6 @@ I wrote this program after running into issues with formatting requirements and 
 YAPP is awesome and powers an awesome moderation tool, [MODAQ](https://www.quizbowlreader.com/demo.html).
 
 [^1]: The number 6 comes from the fact that the length of `x.json` is 6 characters long.
+
 Modify as you please for other extensions and use cases.
 [^2]: The amount of time it took to classify all of the test samples.
