@@ -55,8 +55,8 @@ for line in tqdm(questions[int(0.2*len(questions)):]):
 
         word_to_subcat[token][subcategory_index] += 1
 
-with open('word-to-subcat.json', 'w') as f:
-    json.dump(word_to_subcat, f)
+# with open('word-to-subcat.json', 'w') as f:
+#     json.dump(word_to_subcat, f)
 
 for word in word_to_subcat:
     factor = normalized_hhi(word_to_subcat[word])**4 / sum(word_to_subcat[word])
