@@ -43,8 +43,8 @@ echo "Parsed ${counter} ${TYPE}s."
 echo "Parsing text to json..."
 rm -fr output
 case $TYPE in
-    pdf) python3 parser.py -f ;;
-    docx) python3 parser.py -f ;;
-    txt) python3 parser.py ;;
+    pdf) python3 packet-parser.py -f ;;
+    docx) python3 packet-parser.py -f ;;
+    txt) python3 packet-parser.py ;;
 esac
 echo "Done."
