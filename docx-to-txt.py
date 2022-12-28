@@ -7,15 +7,21 @@ document = Document(sys.argv[1])
 for para in document.paragraphs:
     text = ''
     for runs in para.runs:
+        run = ''
         if len(runs.text.strip()) == 0:
-            text += runs.text
+            run = runs.text
         elif runs.bold and runs.underline:
-            text += '{bu}' + runs.text + '{/bu}'
+            run = '{bu}' + runs.text + '{/bu}'
 
         elif runs.underline:
-            text += '{u}' + runs.text + '{/u}'
+            run = '{u}' + runs.text + '{/u}'
 
         else:
-            text += runs.text
+            run = runs.text
+
+        if runs.italic:
+            run = '{i}' + run + '{/i}'
+
+        text += run
 
     print(text)
