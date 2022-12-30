@@ -27,7 +27,17 @@ Make sure you have python3 installed on your computer.
 ```
 
 5. If any errors appear during the text->json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `packet-parser.py -f`. **If you specified txt files when running ./get-set.sh, do not include the -f flag.**
-   - The -f flag tells the parser to look for the following sequences: {bu}, {/bu}, {u}, {/u} which indicate where in the answerline there should be bolding/underlining.
+   - The -f flag tells the parser to look for the following sequences: {bu}, {/bu}, {u}, {/u}, {i}, {/i}, which indicate where in the answerline there should be bolding/underlining/italics.
+
+## Errors
+
+When running the packet parser, it's possible that you'll run into WARNINGS and ERRORS. This is due to errors in formatting of the packets. Common errors include:
+
+- WARNING: tossup `{question #}` answer may contain the next question
+- WARNING: bonus `{question #}` leadin may contain the previous question
+  - These two errors likely means that you're missing a question number. Try adding a 1. in front of the next question.
+- ERROR: bonus `{question #}` has fewer than `{EXPECTED_BONUS_LENGTH}` parts
+  - This likely means you're missing a [10] somewhere, or it's mistyped (such as [10[)
 
 ## Preprocessing
 
@@ -39,6 +49,42 @@ If the bonus parts don't have the [10] in front of them, try adding them by matc
 ```
 
 ## Postprocessing Packet Names
+
+**UPDATE:** I now recommend using the [Batch Rename](https://marketplace.visualstudio.com/items?itemName=JannisX11.batch-rename-extension) extension for VSCode and using multiline editing to rename the files.
+
+Although most modern file explorers (including VS Code) are smart enough to figure out the order of the packet numbers to order the number part numerically, the program to upload the packets is not. Instead, they order them lexically, like so:
+
+```
+Packet 1.json
+Packet 10.json
+Packet 11.json
+Packet 12.json
+Packet 2.json
+Packet 3.json
+Packet 4.json
+Packet 5.json
+Packet 6.json
+Packet 7.json
+Packet 8.json
+Packet 9.json
+```
+
+It's a good idea to add 0's in front of all the single-digit names to make sure that they are ordered correctly. Furthermore, it's a good idea to remove the "Packet" part of all the names or any other redundant info (such as set names), since they're unnecessary. Generally speaking, this includes phrases that appear in every packet name, and does NOT include the list of schools that wrote the packet (which is commonly the case for ACF packets). The final result will look like this:
+
+```
+01.json
+02.json
+03.json
+04.json
+05.json
+06.json
+07.json
+08.json
+09.json
+10.json
+11.json
+12.json
+```
 
 Remove first 7 characters from each file name:
 
@@ -57,13 +103,13 @@ for f in *; do if [ ${#f} = 6 ] ; then mv "$f" "0${f}"; fi; done
 ## Classifier
 
 This repository includes a classifier located in the `classifier/` directory, which is a modified Naive Bayes classifier that uses a modified version of normalized hhi.
-In particular, the formula used is
+In particular, the (Bayes theorem-inspired) formula used is
 
 $$
-\argmax_{y \in \text{subcats}} f(\text{word}) P(\text{word} | y)
+\argmax_{y \in S} \sum_{\text{word} \in W} f(\text{word}) P(y | \text{word})
 $$
 
-where the factor f is given as the 4th power of the [normalized hhi](https://en.wikipedia.org/wiki/Herfindahl–Hirschman_index#Formula) of the counts of the word in all 20 categories.
+where $S$ is the set of subcategories, $W$ is the set of words in the question that are not in the `stop-words.txt` list, and the factor $f$ is given as the 4th power of the [normalized hhi](https://en.wikipedia.org/wiki/Herfindahl–Hirschman_index#Formula) of the counts of the word in all 20 categories.
 
 ### Performance
 
@@ -74,11 +120,13 @@ The two models have a similar accuracy and confusion matrix, but I chose the mod
 Below is the accuracy and time[^2] for a 20% test set of each type of classifier.
 
 ```
-HHI accuracy / time:         71.32% (23702/33234) / 11.44 seconds
+HHI accuracy / time:         71.82% (24769/34487) / 11.65 seconds
 Naive Bayes accuracy / time: 67.27% (22358/33234) / 66.06 seconds
 ```
 
 ## QuizDB
+
+**UPDATE:** As of November 28th, 2022, [QuizDB has been shut down](https://hsquizbowl.org/forums/viewtopic.php?t=26489). [nocard.org](https://nocard.org) is the closest replacement, but it does not support exporting questions to text, csv, or json.
 
 The QuizDB folder contains appropriate files to convert questions from the QuizDB JSON format to the QB Reader format.
 Not recommended since most questions on QuizDB are not particularly well formatted and it may introduce a [high amount of load on the QuizDB server](https://www.quizdb.org/about#:~:text=%5BNOT%20RECOMMENDED%20EXCEPT,year%2C%20or%20tournament.).
@@ -91,7 +139,7 @@ Not recommended since most questions on QuizDB are not particularly well formatt
 ## Background:
 
 I needed a way to automatically download and parse packets for [QB Reader](https://www.qbreader.org/).
-I wrote this program after running into issues with formatting requirements and lack of category support when using, [YAPP](https://github.com/alopezlago/YetAnotherPacketParser).
+I wrote this program after running into issues with formatting requirements and lack of category support when using [YAPP](https://github.com/alopezlago/YetAnotherPacketParser).
 YAPP is awesome and powers an awesome moderation tool, [MODAQ](https://www.quizbowlreader.com/demo.html).
 
 [^1]: The number 6 comes from the fact that the length of `x.json` is 6 characters long.
