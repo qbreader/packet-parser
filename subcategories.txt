@@ -1,14 +1,11 @@
 American Literature
 British Literature
-Classical Literature
 European Literature
 World Literature
-Other Literature
 American History
 Ancient History
 European History
 World History
-Other History
 Biology
 Chemistry
 Physics
@@ -23,5 +20,4 @@ Philosophy
 Social Science
 Current Events
 Geography
-Other Academic
 Trash

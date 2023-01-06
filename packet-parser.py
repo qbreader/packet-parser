@@ -1,7 +1,10 @@
 import json
+import math
 import os
 import regex
 import sys
+
+import numpy as np
 
 
 class bcolors:
@@ -18,9 +21,11 @@ class bcolors:
 
 def classify_question(question, type='tossup'):
     if type == 'tossup':
-        prediction = classify_subcategory(question['question'])
+        prediction = classify_subcategory(question['question'] + ' ' + question['answer'])
     elif type == 'bonus':
-        prediction = classify_subcategory(question['leadin'] + ' '.join(question['parts']))
+        prediction = classify_subcategory(
+            question['leadin'] + ' ' + ' '.join(question['parts']) + ' '.join(question['answers'])
+        )
     else:
         raise ValueError('type must be tossup or bonus')
 
@@ -36,13 +41,15 @@ def classify_subcategory(text):
 
         if token in WORD_TO_SUBCAT:
             for i in range(len(SUBCATEGORIES)):
-                likelihoods[i] += WORD_TO_SUBCAT[token][i]
+                likelihoods[i] += math.log(WORD_TO_SUBCAT[token][i] + 0.00000001)
         else:
-            pass
             # print('Token not in word-to-subcat:', token)
+            pass
 
-    subcategory_index = likelihoods.index(max(likelihoods))
-    return SUBCATEGORIES[subcategory_index]
+    max_likelihood = max(likelihoods)
+    # as far as I can tell, there's always only one valid index
+    valid_indices = [i for i, likelihood in enumerate(likelihoods) if likelihood == max_likelihood]
+    return SUBCATEGORIES[np.random.choice(valid_indices)]
 
 
 def format_text(text):

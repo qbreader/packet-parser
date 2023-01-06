@@ -106,10 +106,12 @@ This repository includes a classifier located in the `classifier/` directory, wh
 In particular, the (Bayes theorem-inspired) formula used is
 
 $$
-\argmax_{y \in S} \sum_{\text{word} \in W} f(\text{word}) P(y | \text{word})
+\argmax_{y \in S} \sum_{\text{word} \in W} \ln(f(\text{word}) P(y | \text{word}) + \epsilon)
 $$
 
 where $S$ is the set of subcategories, $W$ is the set of words in the question that are not in the `stop-words.txt` list, and the factor $f$ is given as the 4th power of the [normalized hhi](https://en.wikipedia.org/wiki/Herfindahl–Hirschman_index#Formula) of the counts of the word in all 20 categories.
+
+$\epsilon$ is a smoothing parameter (to avoid taking the natural log of 0), and is equal to $0.00000001$.
 
 ### Performance
 
@@ -120,7 +122,7 @@ The two models have a similar accuracy and confusion matrix, but I chose the mod
 Below is the accuracy and time[^2] for a 20% test set of each type of classifier.
 
 ```
-HHI accuracy / time:         71.82% (24769/34487) / 11.65 seconds
+HHI accuracy / time:         79.14% (25852/32667) / 17.74 seconds
 Naive Bayes accuracy / time: 67.27% (22358/33234) / 66.06 seconds
 ```
 
@@ -133,8 +135,8 @@ Not recommended since most questions on QuizDB are not particularly well formatt
 
 1. Make a [QuizDB query](https://www.quizdb.org/) by selecting a tournament, clearing all other fields, and pressing search.
 2. Click the JSON button and move the downloaded file to the quizdb folder.
-3. Run quizdb-process.py.
-4. Run change_cat_names.py.
+3. Run `quizdb-process.py`.
+4. Run `change_cat_names.py`.
 
 ## Background:
 
@@ -142,7 +144,5 @@ I needed a way to automatically download and parse packets for [QB Reader](https
 I wrote this program after running into issues with formatting requirements and lack of category support when using [YAPP](https://github.com/alopezlago/YetAnotherPacketParser).
 YAPP is awesome and powers an awesome moderation tool, [MODAQ](https://www.quizbowlreader.com/demo.html).
 
-[^1]: The number 6 comes from the fact that the length of `x.json` is 6 characters long.
-
-Modify as you please for other extensions and use cases.
+[^1]: The number 6 comes from the fact that the length of `x.json` is 6 characters long. Modify as you please for other extensions and use cases.
 [^2]: The amount of time it took to classify all of the test samples.
