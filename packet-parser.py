@@ -150,17 +150,25 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     packet_text = packet_text + '\n0.'
     packet_text = packet_text.replace('', '')
     # remove zero-width U+200b character that appears in the text
-    packet_text = packet_text.replace('​', '')
-    packet_text = packet_text.replace('{/bu}{bu}', '')
-    packet_text = packet_text.replace('{/u}{u}', '')
-    packet_text = packet_text.replace('ANWER:', 'ANSWER:')
-    packet_text = packet_text.replace('ANSER:', 'ANSWER:')
-    packet_text = packet_text.replace('ANSWR:', 'ANSWER:')
-    packet_text = packet_text.replace('Anwer:', 'Answer:')
-    packet_text = packet_text.replace('Anser:', 'Answer:')
-    packet_text = packet_text.replace('Answr:', 'Answer:')
-    packet_text = packet_text.replace('FTPE', 'For 10 points each')
-    packet_text = packet_text.replace('FTP', 'For 10 points')
+    packet_text = packet_text \
+        .replace('​', '') \
+        .replace('{/bu}{bu}', '') \
+        .replace('{/u}{u}', '') \
+        .replace('{/i}{i}', '') \
+        .replace('{i}\n{/i}', '\n') \
+        .replace('{i} {/i}', ' ') \
+        .replace('ANWER:', 'ANSWER:') \
+        .replace('ANSER:', 'ANSWER:') \
+        .replace('ANSWR:', 'ANSWER:') \
+        .replace('ASNWER:', 'ANSWER:') \
+        .replace('Anwer:', 'Answer:') \
+        .replace('Anser:', 'Answer:') \
+        .replace('Answr:', 'Answer:') \
+        .replace('Asnwer:', 'Answer:') \
+        .replace('FTPE', 'For 10 points each') \
+        .replace('FTP', 'For 10 points') \
+        .replace('[5,5]', '[10]') \
+
     packet_text = regex.sub(r'\(\d{1,2}|TB\)', '1.', packet_text)
     packet_text = regex.sub(r'^(\d{1,2}|TB)\)', '1.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^TB[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
