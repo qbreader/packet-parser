@@ -191,7 +191,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             question = regex.findall(REGEX_TOSSUP_TEXT, remove_formatting(tossup), flags=REGEX_FLAGS)
             question = question[0].strip().replace('\n', ' ')
         except:
-            print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} {i+1} tossup - ', tossup)
+            print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} {i+1} cannot find question text for tossup - ', tossup)
             exit(1)
 
         data['tossups'].append({'question': question})
@@ -206,7 +206,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             if answer.startswith(':'):
                 answer = answer[1:].strip()
         except:
-            print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} {i+1} tossup - ', tossup)
+            print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} {i+1} cannot find answer for tossup - ', tossup)
             exit(1)
 
         if FORMATTED_ANSWERLINE:
@@ -241,7 +241,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             leadin = regex.findall(REGEX_BONUS_LEADIN, remove_formatting(bonus), flags=REGEX_FLAGS)
             leadin = leadin[0].strip().replace('\n', ' ')
         except:
-            print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} bonus {i + 1} - ', bonus)
+            print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find leadin for bonus {i + 1} - ', bonus)
             exit(2)
 
         data['bonuses'].append({'leadin': leadin})
