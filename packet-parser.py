@@ -200,9 +200,14 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             skipped_tossups += 1
 
         answer = regex.findall(REGEX_TOSSUP_ANSWER, tossup, flags=REGEX_FLAGS)
-        answer = answer[0].strip().replace('\n', ' ')
-        if answer.startswith(':'):
-            answer = answer[1:].strip()
+
+        try:
+            answer = answer[0].strip().replace('\n', ' ')
+            if answer.startswith(':'):
+                answer = answer[1:].strip()
+        except:
+            print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} {i+1} tossup - ', tossup)
+            exit(1)
 
         if FORMATTED_ANSWERLINE:
             data['tossups'][i]['formatted_answer'] = format_text(answer)
