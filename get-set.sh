@@ -20,14 +20,14 @@ case $TYPE in
 esac
 echo "Getting packets from ${URL}${SET}"
 wget -nv -A.$TYPE --include-directories=$SET -r "https://${URL}"
-mv "${URL}${SET}/" ".packets-$TYPE"
+mv "${URL}${SET}/" ".p-$TYPE"
 rm -r "${URL}"
 mkdir -p "packets"
 
 ##### Convert all files to .txt, and for .docx and .pdf also get the answerline formatting #####
 echo "Parsing ${TYPE} to text..."
 counter=0
-for filename in .packets-$TYPE/*.$TYPE; do
+for filename in .p-$TYPE/*.$TYPE; do
     echo "Parsing ${filename}..."
     counter=$((counter+1))
     BASENAME=$(echo "${filename}" | cut -d'/' -f 2)
@@ -37,7 +37,7 @@ for filename in .packets-$TYPE/*.$TYPE; do
         txt) mv "$filename" "packets/${BASENAME%.txt}.txt" ;;
     esac
 done
-rm -r .packets-$TYPE
+rm -r .p-$TYPE
 echo "Parsed ${counter} ${TYPE}s."
 
 echo "Parsing text to json..."
