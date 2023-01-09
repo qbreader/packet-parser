@@ -161,13 +161,17 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace('ANSER:', 'ANSWER:') \
         .replace('ANSWR:', 'ANSWER:') \
         .replace('ASNWER:', 'ANSWER:') \
+        .replace('ANSEWR:', 'ANSWER:') \
         .replace('Anwer:', 'Answer:') \
         .replace('Anser:', 'Answer:') \
         .replace('Answr:', 'Answer:') \
         .replace('Asnwer:', 'Answer:') \
+        .replace('Ansewr:', 'ANSWER:') \
         .replace('FTPE', 'For 10 points each') \
         .replace('FTP', 'For 10 points') \
         .replace('[5,5]', '[10]') \
+        .replace('[5, 5]', '[10]') \
+        .replace('\n[5]', '\n[10]') \
 
     packet_text = regex.sub(r'\(\d{1,2}|TB\)', '1.', packet_text)
     packet_text = regex.sub(r'^(\d{1,2}|TB)\)', '1.', packet_text, flags=REGEX_FLAGS)
