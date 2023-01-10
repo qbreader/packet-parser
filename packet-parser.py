@@ -172,6 +172,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace('[5,5]', '[10]') \
         .replace('[5, 5]', '[10]') \
         .replace('\n[5]', '\n[10]') \
+        .replace('\n(10)', '\n[10]') \
 
     packet_text = regex.sub(r'\(\d{1,2}|TB\)', '1.', packet_text)
     packet_text = regex.sub(r'^(\d{1,2}|TB)\)', '1.', packet_text, flags=REGEX_FLAGS)
