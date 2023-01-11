@@ -92,20 +92,31 @@ def remove_punctuation(s: str, punctuation='''.,!-;:'"\/?@#$%^&*_~()[]{}“”�
 INPUT_DIRECTORY = 'packets/'
 OUTPUT_DIRECTORY = 'output/'
 
-HAS_CATEGORY_TAGS = (input("Do you have category tags? (y/n) ") == "y")
 FORMATTED_ANSWERLINE = (len(sys.argv) == 2 and sys.argv[1] == '-f')
+
+HAS_CATEGORY_TAGS = (input('Do you have category tags? (y/n) ') == 'y')
 print('Using category tags' if HAS_CATEGORY_TAGS else 'Using question classifier')
+
+HAS_QUESTION_NUMBERS = (input('Do you have question numbers? (y/n) ') == 'y')
 
 try:
     os.mkdir(OUTPUT_DIRECTORY)
 except FileExistsError:
     print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} Output directory already exists')
-    if not input("Continue? (y/n) ") == "y":
+    if not input('Continue? (y/n) ') == 'y':
         exit(0)
 
 REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
 
-REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>' if HAS_CATEGORY_TAGS else r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)'
+if HAS_CATEGORY_TAGS and HAS_QUESTION_NUMBERS:
+    REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>'
+    # old regex for has question numbers and no category tags
+    # REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)'
+elif HAS_QUESTION_NUMBERS:
+    REGEX_QUESTION = r'\d{1,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\d{1,2}|\n$)'
+else:
+    REGEX_QUESTION = r'(?:[^\n].*\n)*[ \t]*ANSWER.*(?:\n.*)*?(?=\n$)'
+
 REGEX_CATEGORY_TAG = r'<[^>]*>'
 
 REGEX_TOSSUP_TEXT = r'(?<=\d{1,2}\.)(?:.|\n)*?(?=^ ?ANSWER|ANSWER:)'
@@ -170,9 +181,12 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace('FTPE', 'For 10 points each') \
         .replace('FTP', 'For 10 points') \
         .replace('[5,5]', '[10]') \
+        .replace('[5/5]', '[10]') \
         .replace('[5, 5]', '[10]') \
         .replace('\n[5]', '\n[10]') \
         .replace('\n(10)', '\n[10]') \
+        .replace('[10[', '[10]') \
+        .replace(']10]', '[10]') \
 
     packet_text = regex.sub(r'\(\d{1,2}|TB\)', '1.', packet_text)
     packet_text = regex.sub(r'^(\d{1,2}|TB)\)', '1.', packet_text, flags=REGEX_FLAGS)
@@ -180,13 +194,17 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     packet_text = regex.sub(r'^Tiebreaker[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^Extra[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
+
     packet_questions = regex.findall(REGEX_QUESTION, packet_text, flags=REGEX_FLAGS)
 
     tossups = []
     bonuses = []
 
     for question in packet_questions:
-        if regex.findall(r'\[(?:10)?[EMH]?\]', question, flags=regex.IGNORECASE):
+        if not HAS_QUESTION_NUMBERS or regex.match('^\d{1,2}\. ', question) == None:
+            question = '1. ' + question
+
+        if regex.findall(r'^\[(?:10)?[EMH]?\]', question, flags=REGEX_FLAGS):
             bonuses.append(question)
         else:
             tossups.append(question)
@@ -308,11 +326,16 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                 data['bonuses'][i]['category'] = SUBCAT_TO_CAT[cat]
         else:
             if 'parts' not in data['bonuses'][i]:
-                print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} no parts found for bonus {i+1}')
-                continue
+                print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} no parts found for bonus {i+1} - ', bonus)
+                exit(2)
 
             if len(data['bonuses'][i]['parts']) < EXPECTED_BONUS_LENGTH:
-                print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} bonus {i + 1} has fewer than {EXPECTED_BONUS_LENGTH} parts')
+                print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} has fewer than {EXPECTED_BONUS_LENGTH} parts')
+                if not HAS_QUESTION_NUMBERS:
+                    print()
+                    print(bonus[3:])
+                    print()
+
                 continue
 
             category, subcategory = classify_question(data['bonuses'][i], type='bonus')
