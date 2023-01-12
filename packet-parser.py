@@ -188,8 +188,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace('[10[', '[10]') \
         .replace(']10]', '[10]') \
 
-    packet_text = regex.sub(r'\(\d{1,2}|TB\)', '1.', packet_text)
-    packet_text = regex.sub(r'^(\d{1,2}|TB)\)', '1.', packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r'^\(?(\d{1,2}|TB)\) ', '1. ', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^TB[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^Tiebreaker[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^Extra[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
