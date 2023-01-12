@@ -113,7 +113,7 @@ if HAS_CATEGORY_TAGS and HAS_QUESTION_NUMBERS:
     # old regex for has question numbers and no category tags
     # REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)'
 elif HAS_QUESTION_NUMBERS:
-    REGEX_QUESTION = r'\d{1,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\d{1,2}|\n$)'
+    REGEX_QUESTION = r'\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\d{1,2}|\n$)'
 else:
     REGEX_QUESTION = r'(?:[^\n].*\n)*[ \t]*ANSWER.*(?:\n.*)*?(?=\n$)'
 
@@ -155,13 +155,14 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
 
     f = open(INPUT_DIRECTORY + filename)
     packet_text = ''
+
     for line in f.readlines():
         packet_text += line
 
     packet_text = packet_text + '\n0.'
-    packet_text = packet_text.replace('', '')
     # remove zero-width U+200b character that appears in the text
     packet_text = packet_text \
+        .replace('', '') \
         .replace('​', '') \
         .replace('{/bu}{bu}', '') \
         .replace('{/u}{u}', '') \
@@ -193,6 +194,9 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     packet_text = regex.sub(r'^Tiebreaker[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^Extra[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
+
+    if not HAS_CATEGORY_TAGS:
+        packet_text = regex.sub(REGEX_CATEGORY_TAG, '', packet_text)
 
     packet_questions = regex.findall(REGEX_QUESTION, packet_text, flags=REGEX_FLAGS)
 
