@@ -1,5 +1,8 @@
 .DS_Store
+
 regex.txt
-_packets
+
+classifier/classify.py
 classifier/questions.json
+
 quizdb/quizdb.json
