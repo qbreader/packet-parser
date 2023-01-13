@@ -339,8 +339,6 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                     print(bonus[3:])
                     print()
 
-                continue
-
             category, subcategory = classify_question(data['bonuses'][i], type='bonus')
             data['bonuses'][i]['category'] = category
             data['bonuses'][i]['subcategory'] = subcategory
