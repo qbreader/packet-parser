@@ -27,15 +27,17 @@ except FileExistsError:
 
 REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
 
-ANSWER_TYPOS = ['ANWER:', 'ANSER:', 'ANSWR:', 'ASNWER:', 'ANSEWR:', 'ANWSER:',
-                'Anwer:', 'Anser:', 'Answr:', 'Asnwer:', 'Ansewr:', 'Anwser:']
+ANSWER_TYPOS = [
+    'ANWER:', 'ANSER:', 'ANSWR:', 'ASNWER:', 'ANSEWR:', 'ANWSER:', 'ANSWE:',
+    'Anwer:', 'Anser:', 'Answr:', 'Asnwer:', 'Ansewr:', 'Anwser:', 'Answe:',
+]
 
-TEN_TYPOS = ['[5,5]', '[5/5]', '[5, 5]', '[10[', ']10]', '[10}', '{10]']
+TEN_TYPOS = ['[5,5]', '[5/5]', '[5, 5]', '[10[', ']10]', '[10}', '{10]', '[10 ]']
 
 if HAS_CATEGORY_TAGS and HAS_QUESTION_NUMBERS:
     REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>'
 elif HAS_QUESTION_NUMBERS:
-    REGEX_QUESTION = r'\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\d{1,2}|\n$)'
+    REGEX_QUESTION = r'\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)'
 else:
     REGEX_QUESTION = r'(?:[^\n].*\n)*[ \t]*ANSWER.*(?:\n.*)*?(?=\n$)'
 
@@ -157,6 +159,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     packet_text = packet_text \
         .replace('', '') \
         .replace('​', '') \
+        .replace('\u00a0', ' ') \
         .replace('{/bu}{bu}', '') \
         .replace('{/u}{u}', '') \
         .replace('{/i}{i}', '') \
@@ -166,6 +169,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace('FTP', 'For 10 points') \
         .replace('\n[5]', '\n[10]') \
         .replace('\n(10)', '\n[10]') \
+        .replace('[10 ', '[10] ')
 
     for typo in ANSWER_TYPOS:
         packet_text = packet_text.replace(typo, 'ANSWER:')
@@ -177,6 +181,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     packet_text = regex.sub(r'^TB[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^Tiebreaker[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^Extra[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r'^[ABC][.:] *', '[10] ', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
 
     if not HAS_CATEGORY_TAGS:
