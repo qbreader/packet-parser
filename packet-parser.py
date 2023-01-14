@@ -1,22 +1,75 @@
 import json
 import math
+import numpy as np
 import os
 import regex
 import sys
 
-import numpy as np
+from bcolors import bcolors
 
 
-class bcolors:
-    HEADER = '\x1b[95m'
-    OKBLUE = '\x1b[94m'
-    OKCYAN = '\x1b[96m'
-    OKGREEN = '\x1b[92m'
-    WARNING = '\x1b[93m'
-    FAIL = '\x1b[91m'
-    ENDC = '\x1b[0m'
-    BOLD = '\x1b[1m'
-    UNDERLINE = '\x1b[4m'
+INPUT_DIRECTORY = 'packets/'
+OUTPUT_DIRECTORY = 'output/'
+
+FORMATTED_ANSWERLINE = (len(sys.argv) == 2 and sys.argv[1] == '-f')
+
+HAS_CATEGORY_TAGS = (input('Do you have category tags? (y/n) ') == 'y')
+print('Using category tags' if HAS_CATEGORY_TAGS else 'Using question classifier')
+
+HAS_QUESTION_NUMBERS = (input('Do you have question numbers? (y/n) ') == 'y')
+
+try:
+    os.mkdir(OUTPUT_DIRECTORY)
+except FileExistsError:
+    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} Output directory already exists')
+    if not input('Continue? (y/n) ') == 'y':
+        exit(0)
+
+REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
+
+ANSWER_TYPOS = ['ANWER:', 'ANSER:', 'ANSWR:', 'ASNWER:', 'ANSEWR:', 'ANWSER:',
+                'Anwer:', 'Anser:', 'Answr:', 'Asnwer:', 'Ansewr:', 'Anwser:']
+
+TEN_TYPOS = ['[5,5]', '[5/5]', '[5, 5]', '[10[', ']10]', '[10}', '{10]']
+
+if HAS_CATEGORY_TAGS and HAS_QUESTION_NUMBERS:
+    REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>'
+elif HAS_QUESTION_NUMBERS:
+    REGEX_QUESTION = r'\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\d{1,2}|\n$)'
+else:
+    REGEX_QUESTION = r'(?:[^\n].*\n)*[ \t]*ANSWER.*(?:\n.*)*?(?=\n$)'
+
+REGEX_CATEGORY_TAG = r'<[^>]*>'
+
+REGEX_TOSSUP_TEXT = r'(?<=\d{1,2}\.)(?:.|\n)*?(?=^ ?ANSWER|ANSWER:)'
+REGEX_TOSSUP_ANSWER = r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*(?=<[^>]*>)' if HAS_CATEGORY_TAGS else r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*'
+
+REGEX_BONUS_LEADIN = r'(?<=^ *\d{1,2}\.)(?:.|\n)*?(?=\[(?:10)?[EMH]?\])'
+REGEX_BONUS_PARTS = r'(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?= ?ANSWER|ANSWER:)'
+REGEX_BONUS_ANSWERS = r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<[^>]*>)'
+
+EXPECTED_BONUS_LENGTH = 3
+
+
+with open('standardize-subcats.json') as f:
+    STANDARDIZE_SUBCATS = json.load(f)
+
+
+with open('stop-words.txt') as f:
+    STOP_WORDS = set(f.readlines())
+    STOP_WORDS = set([word.strip() for word in STOP_WORDS])
+
+
+with open('subcat-to-cat.json') as f:
+    SUBCAT_TO_CAT = json.load(f)
+
+
+with open('subcategories.txt') as f:
+    SUBCATEGORIES = [line.strip() for line in f.readlines()]
+
+
+with open('classifier/word-to-subcat-normalized.json') as f:
+    WORD_TO_SUBCAT = json.load(f)
 
 
 def classify_question(question, type='tossup'):
@@ -89,66 +142,6 @@ def remove_punctuation(s: str, punctuation='''.,!-;:'"\/?@#$%^&*_~()[]{}“”�
     return ''.join(ch for ch in s if ch not in punctuation)
 
 
-INPUT_DIRECTORY = 'packets/'
-OUTPUT_DIRECTORY = 'output/'
-
-FORMATTED_ANSWERLINE = (len(sys.argv) == 2 and sys.argv[1] == '-f')
-
-HAS_CATEGORY_TAGS = (input('Do you have category tags? (y/n) ') == 'y')
-print('Using category tags' if HAS_CATEGORY_TAGS else 'Using question classifier')
-
-HAS_QUESTION_NUMBERS = (input('Do you have question numbers? (y/n) ') == 'y')
-
-try:
-    os.mkdir(OUTPUT_DIRECTORY)
-except FileExistsError:
-    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} Output directory already exists')
-    if not input('Continue? (y/n) ') == 'y':
-        exit(0)
-
-REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
-
-if HAS_CATEGORY_TAGS and HAS_QUESTION_NUMBERS:
-    REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>'
-    # old regex for has question numbers and no category tags
-    # REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)'
-elif HAS_QUESTION_NUMBERS:
-    REGEX_QUESTION = r'\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\d{1,2}|\n$)'
-else:
-    REGEX_QUESTION = r'(?:[^\n].*\n)*[ \t]*ANSWER.*(?:\n.*)*?(?=\n$)'
-
-REGEX_CATEGORY_TAG = r'<[^>]*>'
-
-REGEX_TOSSUP_TEXT = r'(?<=\d{1,2}\.)(?:.|\n)*?(?=^ ?ANSWER|ANSWER:)'
-REGEX_TOSSUP_ANSWER = r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*(?=<[^>]*>)' if HAS_CATEGORY_TAGS else r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*'
-
-REGEX_BONUS_LEADIN = r'(?<=^ *\d{1,2}\.)(?:.|\n)*?(?=\[(?:10)?[EMH]?\])'
-REGEX_BONUS_PARTS = r'(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?= ?ANSWER|ANSWER:)'
-REGEX_BONUS_ANSWERS = r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<[^>]*>)'
-
-EXPECTED_BONUS_LENGTH = 3
-
-with open('standardize-subcats.json') as f:
-    STANDARDIZE_SUBCATS = json.load(f)
-
-
-with open('stop-words.txt') as f:
-    STOP_WORDS = set(f.readlines())
-    STOP_WORDS = set([word.strip() for word in STOP_WORDS])
-
-
-with open('subcat-to-cat.json') as f:
-    SUBCAT_TO_CAT = json.load(f)
-
-
-with open('subcategories.txt') as f:
-    SUBCATEGORIES = [line.strip() for line in f.readlines()]
-
-
-with open('classifier/word-to-subcat-normalized.json') as f:
-    WORD_TO_SUBCAT = json.load(f)
-
-
 for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     if filename == '.DS_Store':
         continue
@@ -169,25 +162,16 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace('{/i}{i}', '') \
         .replace('{i}\n{/i}', '\n') \
         .replace('{i} {/i}', ' ') \
-        .replace('ANWER:', 'ANSWER:') \
-        .replace('ANSER:', 'ANSWER:') \
-        .replace('ANSWR:', 'ANSWER:') \
-        .replace('ASNWER:', 'ANSWER:') \
-        .replace('ANSEWR:', 'ANSWER:') \
-        .replace('Anwer:', 'Answer:') \
-        .replace('Anser:', 'Answer:') \
-        .replace('Answr:', 'Answer:') \
-        .replace('Asnwer:', 'Answer:') \
-        .replace('Ansewr:', 'ANSWER:') \
         .replace('FTPE', 'For 10 points each') \
         .replace('FTP', 'For 10 points') \
-        .replace('[5,5]', '[10]') \
-        .replace('[5/5]', '[10]') \
-        .replace('[5, 5]', '[10]') \
         .replace('\n[5]', '\n[10]') \
         .replace('\n(10)', '\n[10]') \
-        .replace('[10[', '[10]') \
-        .replace(']10]', '[10]') \
+
+    for typo in ANSWER_TYPOS:
+        packet_text = packet_text.replace(typo, 'ANSWER:')
+
+    for typo in TEN_TYPOS:
+        packet_text = packet_text.replace(typo, '[10]')
 
     packet_text = regex.sub(r'^\(?(\d{1,2}|TB)\) ', '1. ', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^TB[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
@@ -204,7 +188,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     bonuses = []
 
     for question in packet_questions:
-        if not HAS_QUESTION_NUMBERS or regex.match('^\d{1,2}\. ', question) == None:
+        if not HAS_QUESTION_NUMBERS or regex.match('^\d{1,2}\.', question) == None:
             question = '1. ' + question
 
         if regex.findall(r'^\[(?:10)?[EMH]?\]', question, flags=REGEX_FLAGS):
