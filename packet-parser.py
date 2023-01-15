@@ -169,7 +169,9 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace('FTP', 'For 10 points') \
         .replace('\n[5]', '\n[10]') \
         .replace('\n(10)', '\n[10]') \
-        .replace('[10 ', '[10] ')
+        .replace('[10 ', '[10] ') \
+        .replace('BONUS: ', '\n') \
+        .replace('Bonus: ', '\n') \
 
     for typo in ANSWER_TYPOS:
         packet_text = packet_text.replace(typo, 'ANSWER:')
