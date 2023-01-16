@@ -8,6 +8,11 @@ import sys
 from bcolors import bcolors
 
 
+CONSTANT_CATEGORY = ''
+CONSTANT_SUBCATEGORY = ''
+
+EXPECTED_BONUS_LENGTH = 3
+
 INPUT_DIRECTORY = 'packets/'
 OUTPUT_DIRECTORY = 'output/'
 
@@ -18,28 +23,18 @@ print('Using category tags' if HAS_CATEGORY_TAGS else 'Using question classifier
 
 HAS_QUESTION_NUMBERS = (input('Do you have question numbers? (y/n) ') == 'y')
 
-try:
-    os.mkdir(OUTPUT_DIRECTORY)
-except FileExistsError:
-    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} Output directory already exists')
-    if not input('Continue? (y/n) ') == 'y':
-        exit(0)
-
 REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
-
-ANSWER_TYPOS = [
-    'ANWER:', 'ANSER:', 'ANSWR:', 'ASNWER:', 'ANSEWR:', 'ANWSER:', 'ANSWE:',
-    'Anwer:', 'Anser:', 'Answr:', 'Asnwer:', 'Ansewr:', 'Anwser:', 'Answe:',
-]
-
-TEN_TYPOS = ['[5,5]', '[5/5]', '[5, 5]', '[10[', ']10]', '[10}', '{10]', '[10 ]']
 
 if HAS_CATEGORY_TAGS and HAS_QUESTION_NUMBERS:
     REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>'
 elif HAS_QUESTION_NUMBERS:
-    REGEX_QUESTION = r'\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)'
+    REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)'
+    # REGEX_QUESTION = r'\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)'
 else:
     REGEX_QUESTION = r'(?:[^\n].*\n)*[ \t]*ANSWER.*(?:\n.*)*?(?=\n$)'
+
+if not HAS_CATEGORY_TAGS and ((not CONSTANT_CATEGORY == '') or (not CONSTANT_SUBCATEGORY == '')):
+    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} using fixed category and subcategory')
 
 REGEX_CATEGORY_TAG = r'<[^>]*>'
 
@@ -50,7 +45,20 @@ REGEX_BONUS_LEADIN = r'(?<=^ *\d{1,2}\.)(?:.|\n)*?(?=\[(?:10)?[EMH]?\])'
 REGEX_BONUS_PARTS = r'(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?= ?ANSWER|ANSWER:)'
 REGEX_BONUS_ANSWERS = r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<[^>]*>)'
 
-EXPECTED_BONUS_LENGTH = 3
+ANSWER_TYPOS = [
+    'ASWER:', 'ANWER:', 'ANSER:', 'ANSWR:', 'ASNWER:', 'ANSEWR:', 'ANWSER:', 'ANSWE:',
+    'Aswer:', 'Anwer:', 'Anser:', 'Answr:', 'Asnwer:', 'Ansewr:', 'Anwser:', 'Answe:',
+]
+
+TEN_TYPOS = ['[5,5]', '[5/5]', '[5, 5]', '[10[', ']10]', '[10}', '{10]', '[10 ]', '[5]']
+
+
+try:
+    os.mkdir(OUTPUT_DIRECTORY)
+except FileExistsError:
+    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} Output directory already exists')
+    if not input('Continue? (y/n) ') == 'y':
+        exit(0)
 
 
 with open('standardize-subcats.json') as f:
@@ -160,6 +168,9 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace('', '') \
         .replace('​', '') \
         .replace('\u00a0', ' ') \
+        .replace(' {/bu}', '{/bu} ') \
+        .replace(' {/u}', '{/u} ') \
+        .replace(' {/i}', '{/i} ') \
         .replace('{/bu}{bu}', '') \
         .replace('{/u}{u}', '') \
         .replace('{/i}{i}', '') \
@@ -168,7 +179,9 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace('FTPE', 'For 10 points each') \
         .replace('FTP', 'For 10 points') \
         .replace('\n[5]', '\n[10]') \
+        .replace('\n[15]', '\n[10]') \
         .replace('\n(10)', '\n[10]') \
+        .replace('\n10]', '[10]') \
         .replace('[10 ', '[10] ') \
         .replace('BONUS: ', '\n') \
         .replace('Bonus: ', '\n') \
@@ -256,7 +269,11 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                 data['tossups'][i]['subcategory'] = cat
                 data['tossups'][i]['category'] = SUBCAT_TO_CAT[cat]
         else:
-            category, subcategory = classify_question(data['tossups'][i], type='tossup')
+            if CONSTANT_CATEGORY == '' and CONSTANT_SUBCATEGORY == '':
+                category, subcategory = classify_question(data['tossups'][i], type='tossup')
+            else:
+                category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
+
             data['tossups'][i]['category'] = category
             data['tossups'][i]['subcategory'] = subcategory
 
@@ -330,7 +347,11 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                     print(bonus[3:])
                     print()
 
-            category, subcategory = classify_question(data['bonuses'][i], type='bonus')
+            if CONSTANT_CATEGORY == '' and CONSTANT_SUBCATEGORY == '':
+                category, subcategory = classify_question(data['bonuses'][i], type='bonus')
+            else:
+                category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
+
             data['bonuses'][i]['category'] = category
             data['bonuses'][i]['subcategory'] = subcategory
 
