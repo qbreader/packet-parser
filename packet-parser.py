@@ -28,8 +28,8 @@ REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
 if HAS_CATEGORY_TAGS and HAS_QUESTION_NUMBERS:
     REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>'
 elif HAS_QUESTION_NUMBERS:
-    REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)'
-    # REGEX_QUESTION = r'\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)'
+    # REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)'
+    REGEX_QUESTION = r'\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)'
 else:
     REGEX_QUESTION = r'(?:[^\n].*\n)*[ \t]*ANSWER.*(?:\n.*)*?(?=\n$)'
 
