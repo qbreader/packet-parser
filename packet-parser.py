@@ -7,7 +7,8 @@ import sys
 
 from bcolors import bcolors
 
-
+# Make sure to specify both, if they are not empty strings.
+# Only specifying the category will cause the program to use the question classifier.
 CONSTANT_CATEGORY = ''
 CONSTANT_SUBCATEGORY = ''
 
