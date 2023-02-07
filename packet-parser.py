@@ -199,6 +199,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     packet_text = regex.sub(r'^Extra[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^[ABC][.:] *', '[10] ', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
+    packet_text = regex.sub(r'^ *$', '', packet_text, flags=REGEX_FLAGS)
 
     if not HAS_CATEGORY_TAGS:
         packet_text = regex.sub(REGEX_CATEGORY_TAG, '', packet_text)
