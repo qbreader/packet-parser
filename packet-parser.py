@@ -222,7 +222,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
 
     data = {
         'tossups': [],
-        'bonuses': []
+        'bonuses': [],
     }
 
     skipped_tossups = 0
@@ -231,12 +231,16 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             question = regex.findall(REGEX_TOSSUP_TEXT, remove_formatting(tossup), flags=REGEX_FLAGS)
             question = question[0].strip().replace('\n', ' ')
         except:
-            print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} {i+1} cannot find question text for tossup - ', tossup)
+            print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find question text for tossup {i + 1} - ', tossup)
             exit(1)
 
         data['tossups'].append({'question': question})
+
+        if len(question) == 0:
+            print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} tossup {i + 1} question text is empty - ', tossup)
+
         if 'answer:' in question.lower() or len(regex.findall(r'\(\*\)', question)) == 2:
-            print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1 + skipped_tossups} question may contain the next question')
+            print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1 + skipped_tossups} question text may contain the answer')
             skipped_tossups += 1
 
         answer = regex.findall(REGEX_TOSSUP_ANSWER, tossup, flags=REGEX_FLAGS)
@@ -246,7 +250,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             if answer.startswith(':'):
                 answer = answer[1:].strip()
         except:
-            print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} {i+1} cannot find answer for tossup - ', tossup)
+            print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find answer for tossup {i + 1} - ', tossup)
             exit(1)
 
         if FORMATTED_ANSWERLINE:
@@ -291,7 +295,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         data['bonuses'].append({'leadin': leadin})
 
         if 'answer:' in leadin.lower():
-            print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1 + skipped_bonuses} leadin may contain the previous question')
+            print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1 + skipped_bonuses} leadin may contain the answer to the first part')
             skipped_bonuses += 1
 
         data['bonuses'][i]['parts'] = []
@@ -339,7 +343,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                 data['bonuses'][i]['category'] = SUBCAT_TO_CAT[cat]
         else:
             if 'parts' not in data['bonuses'][i]:
-                print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} no parts found for bonus {i+1} - ', bonus)
+                print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} no parts found for bonus {i + 1} - ', bonus)
                 exit(2)
 
             if len(data['bonuses'][i]['parts']) < EXPECTED_BONUS_LENGTH:
