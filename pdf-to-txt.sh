@@ -5,7 +5,7 @@ TYPE=pdf
 mkdir -p packets
 echo "Parsing ${TYPE} to text..."
 counter=0
-for filename in .p-$TYPE/*.$TYPE; do
+for filename in p-$TYPE/*.$TYPE; do
     echo "Parsing ${filename}..."
     counter=$((counter+1))
     BASENAME=$(echo "${filename}" | cut -d'/' -f 2)
@@ -15,7 +15,7 @@ for filename in .p-$TYPE/*.$TYPE; do
         txt) mv "$filename" "packets/${BASENAME%.txt}.txt" ;;
     esac
 done
-rm -r .p-$TYPE
+rm -r p-$TYPE
 echo "Parsed ${counter} ${TYPE}s."
 
 echo "Parsing text to json..."

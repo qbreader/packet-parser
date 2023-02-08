@@ -1,33 +1,11 @@
 #!/bin/bash
 
-URL="quizbowlpackets.com/"
-
-read -p "Packet level (m = middle school, c = college, t = trash; leave blank for high school): " LEVEL
-case $LEVEL in
-    c) URL="collegiate.quizbowlpackets.com/" ;;
-    m) URL="ms.quizbowlpackets.com/" ;;
-    t) URL="trash.quizbowlpackets.com/" ;;
-esac
-
-##### Download all packets in the set #####
-read -p "Set ID (number after ${URL}): " SET
-read -p "File type (p = pdf, d = docx): " TYPE
-case $TYPE in
-    p | pdf) TYPE="pdf" ;;
-    d | docx) TYPE="docx" ;;
-    t | txt) TYPE="txt" ;;
-    *) echo "Invalid file type" && exit 1 ;;
-esac
-echo "Getting packets from ${URL}${SET}"
-wget -nv -A.$TYPE --include-directories=$SET -r "https://${URL}"
-mv "${URL}${SET}/" ".p-$TYPE"
-rm -r "${URL}"
-mkdir -p "packets"
+./download-set.sh
 
 ##### Convert all files to .txt, and for .docx and .pdf also get the answerline formatting #####
 echo "Parsing ${TYPE} to text..."
 counter=0
-for filename in .p-$TYPE/*.$TYPE; do
+for filename in p-$TYPE/*.$TYPE; do
     echo "Parsing ${filename}..."
     counter=$((counter+1))
     BASENAME=$(echo "${filename}" | cut -d'/' -f 2)
@@ -37,7 +15,7 @@ for filename in .p-$TYPE/*.$TYPE; do
         txt) mv "$filename" "packets/${BASENAME%.txt}.txt" ;;
     esac
 done
-rm -r .p-$TYPE
+rm -r p-$TYPE
 echo "Parsed ${counter} ${TYPE}s."
 
 echo "Parsing text to json..."
