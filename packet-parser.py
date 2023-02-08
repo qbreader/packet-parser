@@ -47,8 +47,7 @@ REGEX_BONUS_PARTS = r'(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?=^ ?ANSWER|ANSWER:)'
 REGEX_BONUS_ANSWERS = r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<[^>]*>)'
 
 ANSWER_TYPOS = [
-    'ASWER:', 'ANWER:', 'ANSER:', 'ANSWR:', 'ASNWER:', 'ANSEWR:', 'ANWSER:', 'ANSWE:',
-    'Aswer:', 'Anwer:', 'Anser:', 'Answr:', 'Asnwer:', 'Ansewr:', 'Anwser:', 'Answe:',
+    'ASWER:', 'ANWER:', 'ANSER:', 'ANSWR:', 'ASNWER:', 'ANSEWR:', 'ANWSER:', 'ANSWE:', 'ANSWRE:',
 ]
 
 TEN_TYPOS = ['[5,5]', '[5/5]', '[5, 5]', '[10[', ']10]', '[10}', '{10]', '[10 ]', '[5]']
@@ -189,6 +188,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
 
     for typo in ANSWER_TYPOS:
         packet_text = packet_text.replace(typo, 'ANSWER:')
+        packet_text = packet_text.replace(typo.title(), 'ANSWER:')
 
     for typo in TEN_TYPOS:
         packet_text = packet_text.replace(typo, '[10]')
