@@ -47,7 +47,7 @@ REGEX_BONUS_PARTS = r'(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?=^ ?ANSWER|ANSWER:)'
 REGEX_BONUS_ANSWERS = r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<[^>]*>)'
 
 ANSWER_TYPOS = [
-    'ASWER:', 'ANWER:', 'ANSER:', 'ANSWR:', 'ASNWER:', 'ANSEWR:', 'ANWSER:', 'ANSWE:', 'ANSWRE:',
+    'ASWER:', 'ANWER:', 'ANSER:', 'ANSWR:', 'ASNWER:', 'ANSEWR:', 'ANWSER:', 'ANSWE:', 'ANSWRE:', 'ANSWER;', 'ANSWSER:',
 ]
 
 TEN_TYPOS = ['[5,5]', '[5/5]', '[5, 5]', '[10[', ']10]', '[10}', '{10]', '[10 ]', '[5]']
