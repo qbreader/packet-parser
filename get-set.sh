@@ -1,6 +1,6 @@
 #!/bin/bash
 
-./download-set.sh
+source download-set.sh
 
 ##### Convert all files to .txt, and for .docx and .pdf also get the answerline formatting #####
 echo "Parsing ${TYPE} to text..."
