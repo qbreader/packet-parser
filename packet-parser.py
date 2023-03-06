@@ -12,21 +12,37 @@ from bcolors import bcolors
 CONSTANT_CATEGORY = ''
 CONSTANT_SUBCATEGORY = ''
 
+# Uses question classifier to assign category and subcategory
+# if there are category tags, but the category in the tag is unrecognized.
+CLASSIFY_UNKNOWN_CATEGORIES = True
+
 EXPECTED_BONUS_LENGTH = 3
 
 INPUT_DIRECTORY = 'packets/'
 OUTPUT_DIRECTORY = 'output/'
 
-FORMATTED_ANSWERLINE = (len(sys.argv) == 2 and sys.argv[1] == '-f')
+########## START OF PROMPTS ##########
 
+FORMATTED_ANSWERLINE = (len(sys.argv) == 2 and sys.argv[1] == '-f')
+HAS_QUESTION_NUMBERS = (input('Do you have question numbers? (y/n) ') == 'y')
 HAS_CATEGORY_TAGS = (input('Do you have category tags? (y/n) ') == 'y')
 print('Using category tags' if HAS_CATEGORY_TAGS else 'Using question classifier')
 
-HAS_QUESTION_NUMBERS = (input('Do you have question numbers? (y/n) ') == 'y')
+try:
+    os.mkdir(OUTPUT_DIRECTORY)
+except FileExistsError:
+    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} Output directory already exists')
+    if not input('Continue? (y/n) ') == 'y':
+        exit(0)
+
+########## END OF PROMPTS ##########
+
+
+########## START OF REGEX ##########
 
 REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
 
-if HAS_CATEGORY_TAGS and HAS_QUESTION_NUMBERS:
+if HAS_QUESTION_NUMBERS and HAS_CATEGORY_TAGS:
     REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>'
 elif HAS_QUESTION_NUMBERS:
     # REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)'
@@ -46,19 +62,19 @@ REGEX_BONUS_LEADIN = r'(?<=^ *\d{1,2}\.)(?:.|\n)*?(?=\[(?:10)?[EMH]?\])'
 REGEX_BONUS_PARTS = r'(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?=^ ?ANSWER|ANSWER:)'
 REGEX_BONUS_ANSWERS = r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<[^>]*>)'
 
+########## END OF REGEX ##########
+
+
 ANSWER_TYPOS = [
-    'ASWER:', 'ANWER:', 'ANSER:', 'ANSWR:', 'ASNWER:', 'ANSEWR:', 'ANWSER:', 'ANSWE:', 'ANSWRE:', 'ANSWER;', 'ANSWSER:',
+    'ASWER:', 'ANWER:', 'ANSER:', 'ANSWR:', 'ASNWER:',
+    'ANSEWR:', 'ANWSER:', 'ANSWE:', 'ANSWRE:', 'ANSWER;',
+    'ANSWSER:',
 ]
 
-TEN_TYPOS = ['[5,5]', '[5/5]', '[5, 5]', '[10[', ']10]', '[10}', '{10]', '[10 ]', '[5]']
-
-
-try:
-    os.mkdir(OUTPUT_DIRECTORY)
-except FileExistsError:
-    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} Output directory already exists')
-    if not input('Continue? (y/n) ') == 'y':
-        exit(0)
+TEN_TYPOS = [
+    '[5,5]', '[5/5]', '[5, 5]', '[10[', ']10]',
+    '[10}', '{10]', '[10 ]', '[5]',
+]
 
 
 with open('standardize-subcats.json') as f:
@@ -84,10 +100,10 @@ with open('classifier/word-to-subcat-normalized.json') as f:
 
 def classify_question(question, type='tossup'):
     if type == 'tossup':
-        prediction = classify_subcategory(question['question'] + ' ' + question['answer'])
+        prediction = classify_subcategory(f'{question["question"]} {question["answer"]}')
     elif type == 'bonus':
         prediction = classify_subcategory(
-            question['leadin'] + ' ' + ' '.join(question['parts']) + ' '.join(question['answers'])
+            f'{question["leadin"]} {" ".join(question["parts"])} {" ".join(question["answers"])}'
         )
     else:
         raise ValueError('type must be tossup or bonus')
@@ -163,10 +179,12 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         packet_text += line
 
     packet_text = packet_text + '\n0.'
-    # remove zero-width U+200b character that appears in the text
+    # remove zero-width characters
     packet_text = packet_text \
         .replace('', '') \
-        .replace('​', '') \
+        .replace('​', '')
+
+    packet_text = packet_text \
         .replace('\u00a0', ' ') \
         .replace(' {/bu}', '{/bu} ') \
         .replace(' {/u}', '{/u} ') \
@@ -218,7 +236,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         else:
             tossups.append(question)
 
-    print(f'Found {len(tossups):2} tossups and {len(bonuses):2} bonuses in file {bcolors.OKBLUE}{filename}{bcolors.ENDC}')
+    print(f'Found {len(tossups):2} tossups and {len(bonuses):2} bonuses in {bcolors.OKBLUE}{filename}{bcolors.ENDC}')
 
     data = {
         'tossups': [],
@@ -234,18 +252,12 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find question text for tossup {i + 1} - ', tossup)
             exit(1)
 
-        data['tossups'].append({'question': question})
-
         if len(question) == 0:
             print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} tossup {i + 1} question text is empty - ', tossup)
-
-        if 'answer:' in question.lower() or len(regex.findall(r'\(\*\)', question)) == 2:
-            print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1 + skipped_tossups} question text may contain the answer')
-            skipped_tossups += 1
-
-        answer = regex.findall(REGEX_TOSSUP_ANSWER, tossup, flags=REGEX_FLAGS)
+            exit(1)
 
         try:
+            answer = regex.findall(REGEX_TOSSUP_ANSWER, tossup, flags=REGEX_FLAGS)
             answer = answer[0].strip().replace('\n', ' ')
             if answer.startswith(':'):
                 answer = answer[1:].strip()
@@ -253,14 +265,21 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find answer for tossup {i + 1} - ', tossup)
             exit(1)
 
+        if 'answer:' in question.lower() or len(regex.findall(r'\(\*\)', question)) == 2:
+            print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1 + skipped_tossups} question text may contain the answer')
+            skipped_tossups += 1
+
+        if 'answer:' in answer.lower():
+            print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1 + skipped_tossups} answer may contain the next question')
+            skipped_tossups += 1
+
+        data['tossups'].append({'question': question})
+
         if FORMATTED_ANSWERLINE:
             data['tossups'][i]['formatted_answer'] = format_text(answer)
             answer = remove_formatting(answer)
 
         data['tossups'][i]['answer'] = answer
-        if 'answer:' in answer.lower():
-            print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1 + skipped_tossups} answer may contain the next question')
-            skipped_tossups += 1
 
         if HAS_CATEGORY_TAGS:
             category_tag = regex.findall(
@@ -268,17 +287,21 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                 remove_formatting(tossup),
                 flags=REGEX_FLAGS
             )[0].strip().replace('\n', ' ')
-            cat = get_subcategory(category_tag)
-            if len(cat) == 0:
-                print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1} has unrecognized subcategory', category_tag)
-            else:
-                data['tossups'][i]['subcategory'] = cat
-                data['tossups'][i]['category'] = SUBCAT_TO_CAT[cat]
+            subcategory = get_subcategory(category_tag)
+
+            if len(subcategory) == 0:
+                if CLASSIFY_UNKNOWN_CATEGORIES:
+                    category, subcategory = classify_question(data['tossups'][i], type='tossup')
+                    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1} classified as {category} - {subcategory}')
+                    data['tossups'][i]['subcategory'] = subcategory
+                    data['tossups'][i]['category'] = SUBCAT_TO_CAT[subcategory]
+                else:
+                    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1} has unrecognized subcategory', category_tag)
         else:
-            if CONSTANT_CATEGORY == '' and CONSTANT_SUBCATEGORY == '':
-                category, subcategory = classify_question(data['tossups'][i], type='tossup')
-            else:
-                category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
+            category, subcategory \
+                = classify_question(data['tossups'][i], type='tossup') \
+                if CONSTANT_CATEGORY == '' and CONSTANT_SUBCATEGORY == '' \
+                else CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
 
             data['tossups'][i]['category'] = category
             data['tossups'][i]['subcategory'] = subcategory
@@ -292,31 +315,35 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find leadin for bonus {i + 1} - ', bonus)
             exit(2)
 
-        data['bonuses'].append({'leadin': leadin})
+        parts = regex.findall(REGEX_BONUS_PARTS, remove_formatting(bonus), flags=REGEX_FLAGS)
+        answers = regex.findall(REGEX_BONUS_ANSWERS, f'{bonus}\n[10]', flags=REGEX_FLAGS)
+
+        if len(parts) == 0:
+            print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} no parts found for bonus {i + 1} - ', bonus)
+            exit(2)
+
+        if len(parts) < EXPECTED_BONUS_LENGTH:
+            print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} has fewer than {EXPECTED_BONUS_LENGTH} parts')
+            if not HAS_QUESTION_NUMBERS:
+                print(f'\n{bonus[3:]}\n')
 
         if 'answer:' in leadin.lower():
             print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1 + skipped_bonuses} leadin may contain the answer to the first part')
             skipped_bonuses += 1
 
-        data['bonuses'][i]['parts'] = []
-        parts = regex.findall(REGEX_BONUS_PARTS, remove_formatting(bonus), flags=REGEX_FLAGS)
-
         if len(parts) > EXPECTED_BONUS_LENGTH:
             print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} has more than {EXPECTED_BONUS_LENGTH} parts')
 
-        for part in parts:
-            part = part.strip().replace('\n', ' ')
-            data['bonuses'][i]['parts'].append(part)
-
-        data['bonuses'][i]['values'] = [10 for _ in range(len(data['bonuses'][i]['parts']))]
-        data['bonuses'][i]['answers'] = []
-
-        bonus = bonus + '\n[10]'
+        data['bonuses'].append({
+            'leadin': leadin,
+            'parts': [part.strip().replace('\n', ' ') for part in parts],
+            'values': [10 for _ in parts],
+            'answers': [],
+        })
 
         if FORMATTED_ANSWERLINE:
             data['bonuses'][i]['formatted_answers'] = []
 
-        answers = regex.findall(REGEX_BONUS_ANSWERS, bonus, flags=REGEX_FLAGS)
         for answer in answers:
             answer = answer.strip().replace('\n', ' ')
 
@@ -329,34 +356,24 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
 
             data['bonuses'][i]['answers'].append(answer)
 
-        bonus = bonus[:-5]
-
         if HAS_CATEGORY_TAGS:
             category_tag = regex.findall(REGEX_CATEGORY_TAG, remove_formatting(bonus), flags=REGEX_FLAGS)[0]
             category_tag = category_tag.strip().replace('\n', ' ')
-            cat = get_subcategory(category_tag)
+            subcategory = get_subcategory(category_tag)
 
-            if len(cat) == 0:
-                print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} has unrecognized subcategory', category_tag)
-            else:
-                data['bonuses'][i]['subcategory'] = cat
-                data['bonuses'][i]['category'] = SUBCAT_TO_CAT[cat]
+            if len(subcategory) == 0:
+                if CLASSIFY_UNKNOWN_CATEGORIES:
+                    category, subcategory = classify_question(data['bonuses'][i], type='bonus')
+                    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} classified as {category} - {subcategory}')
+                    data['bonuses'][i]['subcategory'] = subcategory
+                    data['bonuses'][i]['category'] = SUBCAT_TO_CAT[subcategory]
+                else:
+                    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} has unrecognized subcategory', category_tag)
         else:
-            if 'parts' not in data['bonuses'][i]:
-                print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} no parts found for bonus {i + 1} - ', bonus)
-                exit(2)
-
-            if len(data['bonuses'][i]['parts']) < EXPECTED_BONUS_LENGTH:
-                print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} has fewer than {EXPECTED_BONUS_LENGTH} parts')
-                if not HAS_QUESTION_NUMBERS:
-                    print()
-                    print(bonus[3:])
-                    print()
-
-            if CONSTANT_CATEGORY == '' and CONSTANT_SUBCATEGORY == '':
-                category, subcategory = classify_question(data['bonuses'][i], type='bonus')
-            else:
-                category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
+            category, subcategory \
+                = classify_question(data['bonuses'][i], type='bonus') \
+                if CONSTANT_CATEGORY == '' and CONSTANT_SUBCATEGORY == '' \
+                else CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
 
             data['bonuses'][i]['category'] = category
             data['bonuses'][i]['subcategory'] = subcategory
