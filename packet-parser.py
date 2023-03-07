@@ -293,18 +293,19 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                 if CLASSIFY_UNKNOWN_CATEGORIES:
                     category, subcategory = classify_question(data['tossups'][i], type='tossup')
                     print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1} classified as {category} - {subcategory}')
-                    data['tossups'][i]['subcategory'] = subcategory
-                    data['tossups'][i]['category'] = SUBCAT_TO_CAT[subcategory]
                 else:
                     print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1} has unrecognized subcategory', category_tag)
+                    continue
+            else:
+                category = SUBCAT_TO_CAT[subcategory]
         else:
-            category, subcategory \
-                = classify_question(data['tossups'][i], type='tossup') \
-                if CONSTANT_CATEGORY == '' and CONSTANT_SUBCATEGORY == '' \
-                else CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
+            if CONSTANT_CATEGORY == '' and CONSTANT_SUBCATEGORY == '':
+                category, subcategory = classify_question(data['tossups'][i], type='tossup')
+            else:
+                category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
 
-            data['tossups'][i]['category'] = category
-            data['tossups'][i]['subcategory'] = subcategory
+        data['tossups'][i]['category'] = category
+        data['tossups'][i]['subcategory'] = subcategory
 
     skipped_bonuses = 0
     for i, bonus in enumerate(bonuses):
@@ -365,18 +366,19 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                 if CLASSIFY_UNKNOWN_CATEGORIES:
                     category, subcategory = classify_question(data['bonuses'][i], type='bonus')
                     print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} classified as {category} - {subcategory}')
-                    data['bonuses'][i]['subcategory'] = subcategory
-                    data['bonuses'][i]['category'] = SUBCAT_TO_CAT[subcategory]
                 else:
                     print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} has unrecognized subcategory', category_tag)
+                    continue
+            else:
+                category = SUBCAT_TO_CAT[subcategory]
         else:
-            category, subcategory \
-                = classify_question(data['bonuses'][i], type='bonus') \
-                if CONSTANT_CATEGORY == '' and CONSTANT_SUBCATEGORY == '' \
-                else CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
+            if CONSTANT_CATEGORY == '' and CONSTANT_SUBCATEGORY == '':
+                category, subcategory = classify_question(data['bonuses'][i], type='bonus')
+            else:
+                category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
 
-            data['bonuses'][i]['category'] = category
-            data['bonuses'][i]['subcategory'] = subcategory
+        data['bonuses'][i]['category'] = category
+        data['bonuses'][i]['subcategory'] = subcategory
 
     g = open(OUTPUT_DIRECTORY + filename[:-4] + '.json', 'w')
     json.dump(data, g)
