@@ -4,5 +4,7 @@ __pycache__
 regex.txt
 
 classifier/questions.json
+classifier/tossups.json
+classifier/bonuses.json
 
 quizdb/quizdb.json

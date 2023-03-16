@@ -10,8 +10,7 @@ from tqdm import tqdm
 
 np.random.seed(0)
 
-questions = open('questions.json')
-questions = questions.readlines()
+questions = open('tossups.json').readlines() + open('bonuses.json').readlines()
 np.random.shuffle(questions)
 print('Number of questions:', len(questions))
 
@@ -35,11 +34,11 @@ def round_to_n(x, n=5):
     return round(x, -int(math.floor(math.log10(abs(x)))) + (n - 1))
 
 
-with open('../stop-words.txt') as f:
+with open('stop-words.txt') as f:
     stop_words = set(f.readlines())
     stop_words = set([word.strip() for word in stop_words])
 
-with open('../subcategories.txt') as f:
+with open('subcategories.txt') as f:
     SUBCATEGORIES = [line.strip() for line in f.readlines()]
 
 word_to_subcat = {}
@@ -58,9 +57,9 @@ for line in tqdm(questions[int(0.2*len(questions)):]):
 
     subcategory_index = SUBCATEGORIES.index(subcategory)
 
-    if data['type'] == 'tossup':
+    if data['type'] == 'tossup' and 'question' in data and 'answer' in data:
         tokens = removePunctuation(data['question'] + ' ' + data['answer']).lower().split()
-    if data['type'] == 'bonus' and 'parts' in data and len(data['parts']) == 3:
+    if data['type'] == 'bonus' and 'leadin' in data and 'parts' in data and 'answers' in data:
         tokens = removePunctuation(data['leadin'] + ' ' + ' '.join(data['parts']) + ' ' +
                                    ' '.join(data['answers'])).lower().split()
 
