@@ -124,8 +124,23 @@ $\epsilon$ is a smoothing parameter (to avoid taking the natural log of 0), and 
 Below is the accuracy and time[^2] for a 20% test set:
 
 ```
-Modified Naive Bayes accuracy / time:         82.10% (26818/32667) / 19.42 seconds
+Modified Naive Bayes accuracy / time:  82.10% (26818/32667) / 19.42 seconds
 ```
+
+Some more results:
+
+**Note:** `set` refers to calling the python `set` function on the list of tokens
+
+- `set` on prediction, no `set` on generation: 26572
+- no `set` on prediction, no `set` on generation: 26639
+- no `set` on prediction, `set` on generation: 26624
+- `set` on prediction, `set` on generation: 26550
+
+| epsilon  | values |
+| -------- | ------ |
+| 0.0001   | 26681  |
+| 0.00001  | 26818  |
+| 0.000001 | 26807  |
 
 ## QuizDB
 
