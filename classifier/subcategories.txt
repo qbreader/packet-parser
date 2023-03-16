@@ -1,0 +1,23 @@
+American Literature
+British Literature
+European Literature
+World Literature
+American History
+Ancient History
+European History
+World History
+Biology
+Chemistry
+Physics
+Math
+Other Science
+Visual Fine Arts
+Auditory Fine Arts
+Other Fine Arts
+Religion
+Mythology
+Philosophy
+Social Science
+Current Events
+Geography
+Trash

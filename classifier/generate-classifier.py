@@ -43,6 +43,7 @@ with open('../subcategories.txt') as f:
     SUBCATEGORIES = [line.strip() for line in f.readlines()]
 
 word_to_subcat = {}
+subcat_frequencies = [0 for subcat in SUBCATEGORIES]
 
 for line in tqdm(questions[int(0.2*len(questions)):]):
     data = json.loads(line)
@@ -70,14 +71,24 @@ for line in tqdm(questions[int(0.2*len(questions)):]):
 
         word_to_subcat[token][subcategory_index] += 1
 
-# with open('word-to-subcat.json', 'w') as f:
-#     json.dump(word_to_subcat, f)
+    subcat_frequencies[subcategory_index] += 1
 
-for word in word_to_subcat:
-    hhi_value = normalized_hhi(word_to_subcat[word])
-    factor = hhi_value**4 / sum(word_to_subcat[word])
-    word_to_subcat[word] = [factor * i for i in word_to_subcat[word]]
-    word_to_subcat[word] = [round_to_n(i, 5) for i in word_to_subcat[word]]
-
-with open('word-to-subcat-normalized.json', 'w') as f:
+with open('word-to-subcat.json', 'w') as f:
+    for word in word_to_subcat:
+        word_to_subcat[word] = [i / frequency for i, frequency in zip(word_to_subcat[word], subcat_frequencies)]
+        word_to_subcat[word] = [round_to_n(i, 5) for i in word_to_subcat[word]]
     json.dump(word_to_subcat, f)
+
+# with open('priors.json', 'w') as f:
+#     priors = [frequency / sum(subcat_frequencies) for frequency in subcat_frequencies]
+#     priors = [round_to_n(i, 5) for i in priors]
+#     json.dump(priors, f)
+
+# for word in word_to_subcat:
+#     hhi_value = normalized_hhi(word_to_subcat[word])
+#     factor = hhi_value**4 / sum(word_to_subcat[word])
+#     word_to_subcat[word] = [factor * i for i in word_to_subcat[word]]
+#     word_to_subcat[word] = [round_to_n(i, 5) for i in word_to_subcat[word]]
+
+# with open('word-to-subcat-normalized.json', 'w') as f:
+#     json.dump(word_to_subcat, f)

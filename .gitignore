@@ -3,7 +3,6 @@ __pycache__
 
 regex.txt
 
-classifier/classify.py
 classifier/questions.json
 
 quizdb/quizdb.json

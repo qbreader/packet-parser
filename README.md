@@ -52,7 +52,8 @@ If the bonus parts don't have the [10] in front of them, try adding them by matc
 
 **UPDATE:** I now recommend using the [Batch Rename](https://marketplace.visualstudio.com/items?itemName=JannisX11.batch-rename-extension) extension for VSCode and using multiline editing to rename the files.
 
-Although most modern file explorers (including VS Code) are smart enough to figure out the order of the packet numbers to order the number part numerically, the program to upload the packets is not. Instead, they order them lexically, like so:
+Although most modern file explorers (including VS Code) are smart enough to figure out the order of the packet numbers to order the number part numerically, the program to upload the packets is not.
+Instead, they order them lexically, like so:
 
 ```
 Packet 1.json
@@ -69,7 +70,10 @@ Packet 8.json
 Packet 9.json
 ```
 
-It's a good idea to add 0's in front of all the single-digit names to make sure that they are ordered correctly. Furthermore, it's a good idea to remove the "Packet" part of all the names or any other redundant info (such as set names), since they're unnecessary. Generally speaking, this includes phrases that appear in every packet name, and does NOT include the list of schools that wrote the packet (which is commonly the case for ACF packets). The final result will look like this:
+It's a good idea to add 0's in front of all the single-digit names to make sure that they are ordered correctly.
+Furthermore, it's a good idea to remove the "Packet" part of all the names or any other redundant info (such as set names), since they're unnecessary.
+Generally speaking, this includes phrases that appear in every packet name, and does NOT include the list of schools that wrote the packet (which is commonly the case for ACF packets).
+The final result will look like this:
 
 ```
 01.json
@@ -102,33 +106,31 @@ for f in *; do if [ ${#f} = 6 ] ; then mv "$f" "0${f}"; fi; done
 
 ## Classifier
 
-This repository includes a classifier located in the `classifier/` directory, which is a modified Naive Bayes classifier that uses a modified version of normalized hhi.
-In particular, the (Bayes theorem-inspired) formula used is
+This repository includes a classifier located in the `classifier/` directory, which is a modified Naive Bayes classifier.
+In particular, the formula used is
 
 $$
-\argmax_{y \in S} \sum_{\text{word} \in W} \ln(f(\text{word}) P(y | \text{word}) + \epsilon)
+\argmax_{y \in S} \sum_{\text{word} \in W} \ln(P(\text{word} | y) + \epsilon)
 $$
 
-where $S$ is the set of subcategories, $W$ is the set of words in the question that are not in the `stop-words.txt` list, and the factor $f$ is given as the 4th power of the [normalized hhi](https://en.wikipedia.org/wiki/Herfindahl–Hirschman_index#Formula) of the counts of the word in all 20 categories.
+where $S$ is the set of subcategories and $W$ is the set of words in the question that are not in the `stop-words.txt` list.
+Note that this differs from the Naive Bayes formula in that the (class) priors are not included.
 
-$\epsilon$ is a smoothing parameter (to avoid taking the natural log of 0), and is equal to $0.00000001$.
+$\epsilon$ is a smoothing parameter (to avoid taking the natural log of 0), and is equal to $0.00001$.
 
 ### Performance
 
-I benchmarked this model against a vanilla Naive Bayes classifier.
-The two models have a similar accuracy and confusion matrix, but I chose the modified model due to its speed.
-
-**Methodology:** The data was shuffled using numpy with a set seed, and the split into an 80/20 train/test split.
-Below is the accuracy and time[^2] for a 20% test set of each type of classifier.
+**Methodology:** The data was shuffled using numpy with a set seed of `0`, and the split into an 80/20 train/test split.
+Below is the accuracy and time[^2] for a 20% test set:
 
 ```
-HHI accuracy / time:         79.14% (25852/32667) / 17.74 seconds
-Naive Bayes accuracy / time: 67.27% (22358/33234) / 66.06 seconds
+Modified Naive Bayes accuracy / time:         82.10% (26818/32667) / 19.42 seconds
 ```
 
 ## QuizDB
 
-**UPDATE:** As of November 28th, 2022, [QuizDB has been shut down](https://hsquizbowl.org/forums/viewtopic.php?t=26489). [nocard.org](https://nocard.org) is the closest replacement, but it does not support exporting questions to text, csv, or json.
+**UPDATE:** As of November 28th, 2022, [QuizDB has been shut down](https://hsquizbowl.org/forums/viewtopic.php?t=26489).
+[nocard.org](https://nocard.org) is the closest replacement, but it does not support exporting questions to text, csv, or json.
 
 The QuizDB folder contains appropriate files to convert questions from the QuizDB JSON format to the QB Reader format.
 Not recommended since most questions on QuizDB are not particularly well formatted and it may introduce a [high amount of load on the QuizDB server](https://www.quizdb.org/about#:~:text=%5BNOT%20RECOMMENDED%20EXCEPT,year%2C%20or%20tournament.).

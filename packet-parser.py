@@ -6,6 +6,7 @@ import regex
 import sys
 
 from bcolors import bcolors
+from classifier.classify import classify_question
 
 # Make sure to specify both, if they are not empty strings.
 # Only specifying the category will cause the program to use the question classifier.
@@ -45,8 +46,8 @@ REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
 if HAS_QUESTION_NUMBERS and HAS_CATEGORY_TAGS:
     REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>'
 elif HAS_QUESTION_NUMBERS:
-    # REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)'
-    REGEX_QUESTION = r'\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)'
+    REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)'
+    # REGEX_QUESTION = r'\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)'
 else:
     REGEX_QUESTION = r'(?:[^\n].*\n)*[ \t]*ANSWER.*(?:\n.*)*?(?=\n$)'
 
@@ -81,54 +82,8 @@ with open('standardize-subcats.json') as f:
     STANDARDIZE_SUBCATS = json.load(f)
 
 
-with open('stop-words.txt') as f:
-    STOP_WORDS = set(f.readlines())
-    STOP_WORDS = set([word.strip() for word in STOP_WORDS])
-
-
 with open('subcat-to-cat.json') as f:
     SUBCAT_TO_CAT = json.load(f)
-
-
-with open('subcategories.txt') as f:
-    SUBCATEGORIES = [line.strip() for line in f.readlines()]
-
-
-with open('classifier/word-to-subcat-normalized.json') as f:
-    WORD_TO_SUBCAT = json.load(f)
-
-
-def classify_question(question, type='tossup'):
-    if type == 'tossup':
-        prediction = classify_subcategory(f'{question["question"]} {question["answer"]}')
-    elif type == 'bonus':
-        prediction = classify_subcategory(
-            f'{question["leadin"]} {" ".join(question["parts"])} {" ".join(question["answers"])}'
-        )
-    else:
-        raise ValueError('type must be tossup or bonus')
-
-    return SUBCAT_TO_CAT[prediction], prediction
-
-
-def classify_subcategory(text):
-    likelihoods = [0 for _ in range(len(SUBCATEGORIES))]
-    text = set(remove_punctuation(text).lower().split())
-    for token in text:
-        if token in STOP_WORDS:
-            continue
-
-        if token in WORD_TO_SUBCAT:
-            for i in range(len(SUBCATEGORIES)):
-                likelihoods[i] += math.log(WORD_TO_SUBCAT[token][i] + 0.00000001)
-        else:
-            # print('Token not in word-to-subcat:', token)
-            pass
-
-    max_likelihood = max(likelihoods)
-    # as far as I can tell, there's always only one valid index
-    valid_indices = [i for i, likelihood in enumerate(likelihoods) if likelihood == max_likelihood]
-    return SUBCATEGORIES[np.random.choice(valid_indices)]
 
 
 def format_text(text):
