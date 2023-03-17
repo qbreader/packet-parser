@@ -220,7 +220,10 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find answer for tossup {i + 1} - ', tossup)
             exit(1)
 
-        if 'answer:' in question.lower() or len(regex.findall(r'\(\*\)', question)) == 2:
+        if len(regex.findall(r'\(\*\)', question)) >= 2:
+            print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1 + skipped_tossups} contains multiple powermarks (*)')
+
+        if 'answer:' in question.lower():
             print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1 + skipped_tossups} question text may contain the answer')
             skipped_tossups += 1
 
