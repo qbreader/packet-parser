@@ -149,8 +149,6 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace('{/i}{i}', '') \
         .replace('{i}\n{/i}', '\n') \
         .replace('{i} {/i}', ' ') \
-        .replace('FTPE', 'For 10 points each') \
-        .replace('FTP', 'For 10 points') \
         .replace('\n[5]', '\n[10]') \
         .replace('\n[15]', '\n[10]') \
         .replace('\n(10)', '\n[10]') \
@@ -158,6 +156,8 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace('[10 ', '[10] ') \
         .replace('BONUS: ', '\n') \
         .replace('Bonus: ', '\n') \
+        # .replace('FTPE', 'For 10 points each') \
+        # .replace('FTP', 'For 10 points') \
 
     for typo in ANSWER_TYPOS:
         packet_text = packet_text.replace(typo, 'ANSWER:')
