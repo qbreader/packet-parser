@@ -74,7 +74,7 @@ ANSWER_TYPOS = [
 ]
 
 TEN_TYPOS = [
-    '[5,5]', '[5/5]', '[5, 5]', '[5]',
+    '[5]',
     '[10[', ']10]', '[10}', '{10]', '[10 ]',
     '[15]',
 ]
@@ -153,6 +153,9 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace('{i} {/i}', ' ') \
         .replace('\n(10)', '\n[10]') \
         .replace('\n10]', '[10]') \
+        .replace('[5,5]', '[10]') \
+        .replace('[5/5]', '[10]') \
+        .replace('[5, 5]', '[10]') \
         .replace('[10 ', '[10] ') \
         .replace('BONUS: ', '\n') \
         .replace('Bonus: ', '\n') \
