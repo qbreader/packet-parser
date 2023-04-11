@@ -62,6 +62,7 @@ REGEX_TOSSUP_ANSWER = r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*(?=<[^>]*>)' if HAS_CATEG
 REGEX_BONUS_LEADIN = r'(?<=^ *\d{1,2}\.)(?:.|\n)*?(?=\[(?:10)?[EMH]?\])'
 REGEX_BONUS_PARTS = r'(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?=^ ?ANSWER|ANSWER:)'
 REGEX_BONUS_ANSWERS = r'(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<[^>]*>)'
+REGEX_BONUS_VALUES = r'(?<=\[)\d{1,2}(?=\])'
 
 ########## END OF REGEX ##########
 
@@ -73,8 +74,9 @@ ANSWER_TYPOS = [
 ]
 
 TEN_TYPOS = [
-    '[5,5]', '[5/5]', '[5, 5]', '[10[', ']10]',
-    '[10}', '{10]', '[10 ]', '[5]',
+    '[5,5]', '[5/5]', '[5, 5]', '[5]',
+    '[10[', ']10]', '[10}', '{10]', '[10 ]',
+    '[15]',
 ]
 
 
@@ -149,29 +151,25 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace('{/i}{i}', '') \
         .replace('{i}\n{/i}', '\n') \
         .replace('{i} {/i}', ' ') \
-        .replace('\n[5]', '\n[10]') \
-        .replace('\n[15]', '\n[10]') \
         .replace('\n(10)', '\n[10]') \
         .replace('\n10]', '[10]') \
         .replace('[10 ', '[10] ') \
         .replace('BONUS: ', '\n') \
         .replace('Bonus: ', '\n') \
         # .replace('FTPE', 'For 10 points each') \
-        # .replace('FTP', 'For 10 points') \
+    # .replace('FTP', 'For 10 points') \
 
     for typo in ANSWER_TYPOS:
         packet_text = packet_text.replace(typo, 'ANSWER:')
         packet_text = packet_text.replace(typo.title(), 'ANSWER:')
 
-    for typo in TEN_TYPOS:
-        packet_text = packet_text.replace(typo, '[10]')
-
     packet_text = regex.sub(r'^\(?(\d{1,2}|TB)\) ', '1. ', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^TB[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^Tiebreaker[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r'^T\d[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^Extra[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^[ABC][.:] *', '[10] ', packet_text, flags=REGEX_FLAGS)
-    packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
+    # packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
     packet_text = regex.sub(r'^ *$', '', packet_text, flags=REGEX_FLAGS)
 
     if not HAS_CATEGORY_TAGS:
@@ -183,10 +181,12 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     bonuses = []
 
     for question in packet_questions:
-        if not HAS_QUESTION_NUMBERS or regex.match('^\d{1,2}\.', question) == None:
+        isBonus = (regex.findall(r'^\[(5|10|15)?[EMH]?\]', question, flags=REGEX_FLAGS))
+
+        if (not HAS_QUESTION_NUMBERS) ^ (1 if regex.match('^\d{1,2}\.', question) else 0):
             question = '1. ' + question
 
-        if regex.findall(r'^\[(?:10)?[EMH]?\]', question, flags=REGEX_FLAGS):
+        if isBonus:
             bonuses.append(question)
         else:
             tossups.append(question)
@@ -267,6 +267,12 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
 
     skipped_bonuses = 0
     for i, bonus in enumerate(bonuses):
+        values = regex.findall(REGEX_BONUS_VALUES, bonus, flags=REGEX_FLAGS)
+        values = [int(value) for value in values]
+
+        for typo in TEN_TYPOS:
+            bonus = bonus.replace(typo, '[10]')
+
         try:
             leadin = regex.findall(REGEX_BONUS_LEADIN, remove_formatting(bonus), flags=REGEX_FLAGS)
             leadin = leadin[0].strip().replace('\n', ' ')
@@ -296,7 +302,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         data['bonuses'].append({
             'leadin': leadin,
             'parts': [part.strip().replace('\n', ' ') for part in parts],
-            'values': [10 for _ in parts],
+            'values': values,
             'answers': [],
         })
 
