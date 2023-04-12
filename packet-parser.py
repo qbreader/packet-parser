@@ -77,6 +77,8 @@ TEN_TYPOS = [
     '[5]',
     '[10[', ']10]', '[10}', '{10]', '[10 ]',
     '[15]',
+    '[20]',
+    '[30]',
 ]
 
 
@@ -156,9 +158,22 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace('[5,5]', '[10]') \
         .replace('[5/5]', '[10]') \
         .replace('[5, 5]', '[10]') \
+        .replace('[5,5,5,5]', '[20]') \
+        .replace('[5/5/5/5]', '[20]') \
+        .replace('[10/10]', '[20]') \
+        .replace('[2x10]', '[20]') \
+        .replace('[2x5]', '[10]') \
         .replace('[10 ', '[10] ') \
+        .replace('AUDIO RELATED BONUS: ', '\n') \
+        .replace('HANDOUT RELATED BONUS: ', '\n') \
+        .replace('RELATED BONUS: ', '\n') \
+        .replace('RELATED BONUS. ', '\n') \
+        .replace('RELATED BONUS\n', '\n\n') \
+        .replace('HANDOUT BONUS: ', '\n') \
         .replace('BONUS: ', '\n') \
         .replace('Bonus: ', '\n') \
+        .replace('BONUS. ', '\n') \
+        .replace('TOSSUP. ', '') \
         # .replace('FTPE', 'For 10 points each') \
     # .replace('FTP', 'For 10 points') \
 
@@ -169,7 +184,8 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     packet_text = regex.sub(r'^\(?(\d{1,2}|TB)\) ', '1. ', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^TB[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^Tiebreaker[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
-    packet_text = regex.sub(r'^T\d[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r'^T\d{1,2}[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r'^S\d{1,2}[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^Extra[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^[ABC][.:] *', '[10] ', packet_text, flags=REGEX_FLAGS)
     # packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
@@ -233,6 +249,8 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         if 'answer:' in answer.lower():
             print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1 + skipped_tossups} answer may contain the next question')
             skipped_tossups += 1
+            if not HAS_QUESTION_NUMBERS:
+                print(f'\n{answer}\n')
 
         data['tossups'].append({'question': question})
 
@@ -298,6 +316,8 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         if 'answer:' in leadin.lower():
             print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1 + skipped_bonuses} leadin may contain the answer to the first part')
             skipped_bonuses += 1
+            if not HAS_QUESTION_NUMBERS:
+                print(f'\n{leadin}\n')
 
         if len(parts) > EXPECTED_BONUS_LENGTH:
             print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} has more than {EXPECTED_BONUS_LENGTH} parts')
