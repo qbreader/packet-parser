@@ -227,7 +227,9 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     for i, tossup in enumerate(tossups):
         try:
             question = regex.findall(REGEX_TOSSUP_TEXT, remove_formatting(tossup), flags=REGEX_FLAGS)
-            question = question[0].strip().replace('\n', ' ')
+            question = question[0].replace('\n', ' ').strip()
+            question = regex.sub(r'^\d{1,2}\.', '', question, flags=REGEX_FLAGS)
+            question = question.strip()
         except:
             print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find question text for tossup {i + 1} - ', tossup)
             exit(1)
