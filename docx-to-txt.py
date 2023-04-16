@@ -10,11 +10,15 @@ for para in document.paragraphs:
         run = ''
         if len(runs.text.strip()) == 0:
             run = runs.text
+
         elif runs.bold and runs.underline:
             run = '{bu}' + runs.text + '{/bu}'
 
         elif runs.underline:
             run = '{u}' + runs.text + '{/u}'
+
+        elif runs.bold:
+            run = '{b}' + runs.text + '{/b}'
 
         else:
             run = runs.text

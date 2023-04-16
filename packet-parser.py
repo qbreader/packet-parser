@@ -1,6 +1,4 @@
 import json
-import math
-import numpy as np
 import os
 import regex
 import sys
@@ -94,6 +92,8 @@ def format_text(text):
     return text \
         .replace('{bu}', '<b><u>') \
         .replace('{/bu}', '</u></b>') \
+        .replace('{b}', '<b>') \
+        .replace('{/b}', '</b>') \
         .replace('{u}', '<u>') \
         .replace('{/u}', '</u>') \
         .replace('{i}', '<i>') \
@@ -115,7 +115,13 @@ def get_subcategory(text: str):
 
 
 def remove_formatting(text: str, include_italics=False):
-    text = text.replace('{bu}', '').replace('{/bu}', '').replace('{u}', '').replace('{/u}', '')
+    text = text \
+        .replace('{bu}', '') \
+        .replace('{/bu}', '') \
+        .replace('{b}', '') \
+        .replace('{/b}', '') \
+        .replace('{u}', '') \
+        .replace('{/u}', '')
 
     if not include_italics:
         text = text.replace('{i}', '').replace('{/i}', '')
