@@ -305,7 +305,9 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
 
         try:
             leadin = regex.findall(REGEX_BONUS_LEADIN, remove_formatting(bonus), flags=REGEX_FLAGS)
-            leadin = leadin[0].strip().replace('\n', ' ')
+            leadin = leadin[0].replace('\n', ' ').strip()
+            leadin = regex.sub(r'^\d{1,2}\.', '', leadin, flags=REGEX_FLAGS)
+            leadin = leadin.strip()
         except:
             print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find leadin for bonus {i + 1} - ', bonus)
             exit(2)
