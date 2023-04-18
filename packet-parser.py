@@ -66,9 +66,9 @@ REGEX_BONUS_VALUES = r'(?<=\[)\d{1,2}(?=\])'
 
 
 ANSWER_TYPOS = [
-    'ASWER:', 'ANWER:', 'ANSER:', 'ANSWR:', 'ASNWER:',
-    'ANSEWR:', 'ANWSER:', 'ANSWE:', 'ANSWRE:', 'ANSWER;',
-    'ANSWSER:',
+    'ASWER:', 'ANWER:', 'ANSER:', 'ANSWR:', 'ANSWE:',
+    'ASNWER:', 'ANSEWR:', 'ANWSER:', 'ANSWRE:', 'ANSWER;',
+    'ANSWSER:', 'ANSWERS:'
 ]
 
 TEN_TYPOS = [
