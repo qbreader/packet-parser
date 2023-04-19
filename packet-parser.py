@@ -49,7 +49,7 @@ elif HAS_QUESTION_NUMBERS:
 else:
     REGEX_QUESTION = r'(?:[^\n].*\n)*[ \t]*ANSWER.*(?:\n.*)*?(?=\n$)'
 
-if not HAS_CATEGORY_TAGS and ((not CONSTANT_CATEGORY == '') or (not CONSTANT_SUBCATEGORY == '')):
+if not HAS_CATEGORY_TAGS and ((not CONSTANT_CATEGORY == '') and (not CONSTANT_SUBCATEGORY == '')):
     print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} using fixed category and subcategory')
 
 REGEX_CATEGORY_TAG = r'<[^>]*>'
@@ -270,27 +270,26 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         data['tossups'][i]['answer'] = answer
 
         if HAS_CATEGORY_TAGS:
-            category_tag = regex.findall(
-                REGEX_CATEGORY_TAG,
-                remove_formatting(tossup),
-                flags=REGEX_FLAGS
-            )[0].strip().replace('\n', ' ')
-            subcategory = get_subcategory(category_tag)
+            try:
+                category_tag = regex.findall(REGEX_CATEGORY_TAG, remove_formatting(tossup), flags=REGEX_FLAGS)[0]
+                category_tag = category_tag.strip().replace('\n', ' ')
+                subcategory = get_subcategory(category_tag)
+            except:
+                print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find category tag for bonus {i + 1} - ', bonus)
+                exit(3)
 
-            if len(subcategory) == 0:
-                if CLASSIFY_UNKNOWN_CATEGORIES:
-                    category, subcategory = classify_question(data['tossups'][i], type='tossup')
-                    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1} classified as {category} - {subcategory}')
-                else:
-                    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1} has unrecognized subcategory', category_tag)
-                    continue
-            else:
+            if subcategory:
                 category = SUBCAT_TO_CAT[subcategory]
-        else:
-            if CONSTANT_CATEGORY == '' and CONSTANT_SUBCATEGORY == '':
+            elif CLASSIFY_UNKNOWN_CATEGORIES:
                 category, subcategory = classify_question(data['tossups'][i], type='tossup')
+                print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1} classified as {category} - {subcategory}')
             else:
-                category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
+                print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1} has unrecognized subcategory', category_tag)
+                continue
+        elif CONSTANT_CATEGORY == '' or CONSTANT_SUBCATEGORY == '':
+            category, subcategory = classify_question(data['tossups'][i], type='tossup')
+        else:
+            category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
 
         data['tossups'][i]['category'] = category
         data['tossups'][i]['subcategory'] = subcategory
@@ -356,24 +355,26 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             data['bonuses'][i]['answers'].append(answer)
 
         if HAS_CATEGORY_TAGS:
-            category_tag = regex.findall(REGEX_CATEGORY_TAG, remove_formatting(bonus), flags=REGEX_FLAGS)[0]
-            category_tag = category_tag.strip().replace('\n', ' ')
-            subcategory = get_subcategory(category_tag)
+            try:
+                category_tag = regex.findall(REGEX_CATEGORY_TAG, remove_formatting(bonus), flags=REGEX_FLAGS)[0]
+                category_tag = category_tag.strip().replace('\n', ' ')
+                subcategory = get_subcategory(category_tag)
+            except:
+                print(f'{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find category tag for bonus {i + 1} - ', bonus)
+                exit(3)
 
-            if len(subcategory) == 0:
-                if CLASSIFY_UNKNOWN_CATEGORIES:
-                    category, subcategory = classify_question(data['bonuses'][i], type='bonus')
-                    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} classified as {category} - {subcategory}')
-                else:
-                    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} has unrecognized subcategory', category_tag)
-                    continue
-            else:
+            if subcategory:
                 category = SUBCAT_TO_CAT[subcategory]
-        else:
-            if CONSTANT_CATEGORY == '' and CONSTANT_SUBCATEGORY == '':
+            elif CLASSIFY_UNKNOWN_CATEGORIES:
                 category, subcategory = classify_question(data['bonuses'][i], type='bonus')
+                print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} classified as {category} - {subcategory}')
             else:
-                category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
+                print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} has unrecognized subcategory', category_tag)
+                continue
+        elif CONSTANT_CATEGORY == '' or CONSTANT_SUBCATEGORY == '':
+            category, subcategory = classify_question(data['bonuses'][i], type='bonus')
+        else:
+            category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
 
         data['bonuses'][i]['category'] = category
         data['bonuses'][i]['subcategory'] = subcategory
