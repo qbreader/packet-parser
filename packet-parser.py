@@ -187,7 +187,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         packet_text = packet_text.replace(typo, 'ANSWER:')
         packet_text = packet_text.replace(typo.title(), 'ANSWER:')
 
-    packet_text = regex.sub(r'^\{bu?\}\d{1,2}\.', '1. {b}', packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r'^\{(bu|b|u|i)\}\d{1,2}\.', '1. {b}', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^\(?(\d{1,2}|TB)\) ', '1. ', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^TB[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^Tiebreaker[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
