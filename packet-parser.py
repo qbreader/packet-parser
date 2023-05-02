@@ -15,6 +15,10 @@ CONSTANT_SUBCATEGORY = ''
 # if there are category tags, but the category in the tag is unrecognized.
 CLASSIFY_UNKNOWN_CATEGORIES = True
 
+# insert (*) powermarks for questions that are
+# bolded in power but do not have an explicit powermark
+AUTO_INSERT_POWERMARKS = True
+
 EXPECTED_BONUS_LENGTH = 3
 
 INPUT_DIRECTORY = 'packets/'
@@ -187,7 +191,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         packet_text = packet_text.replace(typo, 'ANSWER:')
         packet_text = packet_text.replace(typo.title(), 'ANSWER:')
 
-    packet_text = regex.sub(r'^\{(bu|b|u|i)\}\d{1,2}\.', '1. {b}', packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r'^\{(bu|b|u|i)\}(\d{1,2}|TB)\.', '1. {b}', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^\(?(\d{1,2}|TB)\) ', '1. ', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^TB[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r'^Tiebreaker[\.:]?', '21.', packet_text, flags=REGEX_FLAGS)
@@ -227,6 +231,13 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     skipped_tossups = 0
     for i, tossup in enumerate(tossups):
         try:
+            if AUTO_INSERT_POWERMARKS and '{/b}' not in tossup:
+                index = tossup.rfind('{/b}')
+                if index >= 0:
+                    tossup = tossup[:index] + '{/b} (*)' + tossup[index:]
+                else:
+                    print(f'{bcolors.WARNING}WARNING:{bcolors.ENDC} Could not insert powermark for tossup {i + 1} - ', tossup)
+
             question = regex.findall(REGEX_TOSSUP_TEXT, remove_formatting(tossup), flags=REGEX_FLAGS)
             question = question[0].replace('\n', ' ').strip()
             question = regex.sub(r'^\d{1,2}\.', '', question, flags=REGEX_FLAGS)
