@@ -17,7 +17,7 @@ CLASSIFY_UNKNOWN_CATEGORIES = True
 
 # insert (*) powermarks for questions that are
 # bolded in power but do not have an explicit powermark
-AUTO_INSERT_POWERMARKS = True
+AUTO_INSERT_POWERMARKS = False
 
 EXPECTED_BONUS_LENGTH = 3
 
