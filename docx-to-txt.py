@@ -5,26 +5,26 @@ import sys
 
 document = Document(sys.argv[1])
 for para in document.paragraphs:
-    text = ''
+    text = ""
     for runs in para.runs:
-        run = ''
+        run = ""
         if len(runs.text.strip()) == 0:
             run = runs.text
 
         elif runs.bold and runs.underline:
-            run = '{bu}' + runs.text + '{/bu}'
+            run = "{bu}" + runs.text + "{/bu}"
 
         elif runs.underline:
-            run = '{u}' + runs.text + '{/u}'
+            run = "{u}" + runs.text + "{/u}"
 
         elif runs.bold:
-            run = '{b}' + runs.text + '{/b}'
+            run = "{b}" + runs.text + "{/b}"
 
         else:
             run = runs.text
 
         if runs.italic:
-            run = '{i}' + run + '{/i}'
+            run = "{i}" + run + "{/i}"
 
         text += run
 

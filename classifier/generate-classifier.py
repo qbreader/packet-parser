@@ -10,9 +10,9 @@ from tqdm import tqdm
 
 np.random.seed(0)
 
-questions = open('tossups.json').readlines() + open('bonuses.json').readlines()
+questions = open("tossups.json").readlines() + open("bonuses.json").readlines()
 np.random.shuffle(questions)
-print('Number of questions:', len(questions))
+print("Number of questions:", len(questions))
 
 
 def hhi(arr):
@@ -20,11 +20,11 @@ def hhi(arr):
 
 
 def normalized_hhi(arr):
-    return (hhi(arr) - 1/len(arr)) / (1 - 1/len(arr))
+    return (hhi(arr) - 1 / len(arr)) / (1 - 1 / len(arr))
 
 
-def removePunctuation(s, punctuation='''.,!-;:'"\/?@#$%^&*_~()[]{}“”‘’'''):
-    return ''.join(ch for ch in s if ch not in punctuation)
+def removePunctuation(s, punctuation=""".,!-;:'"\/?@#$%^&*_~()[]{}“”‘’"""):
+    return "".join(ch for ch in s if ch not in punctuation)
 
 
 def round_to_n(x, n=5):
@@ -34,34 +34,50 @@ def round_to_n(x, n=5):
     return round(x, -int(math.floor(math.log10(abs(x)))) + (n - 1))
 
 
-with open('stop-words.txt') as f:
+with open("stop-words.txt") as f:
     stop_words = set(f.readlines())
     stop_words = set([word.strip() for word in stop_words])
 
-with open('subcategories.txt') as f:
+with open("subcategories.txt") as f:
     SUBCATEGORIES = [line.strip() for line in f.readlines()]
 
 word_to_subcat = {}
 subcat_frequencies = [0 for subcat in SUBCATEGORIES]
 
-for line in tqdm(questions[int(0.2*len(questions)):]):
+for line in tqdm(questions[int(0.2 * len(questions)) :]):
     data = json.loads(line)
 
-    if 'subcategory' not in data:
+    if "subcategory" not in data:
         continue
 
-    subcategory = data['subcategory']
+    subcategory = data["subcategory"]
 
     if subcategory not in SUBCATEGORIES:
         continue
 
     subcategory_index = SUBCATEGORIES.index(subcategory)
 
-    if data['type'] == 'tossup' and 'question' in data and 'answer' in data:
-        tokens = removePunctuation(data['question'] + ' ' + data['answer']).lower().split()
-    if data['type'] == 'bonus' and 'leadin' in data and 'parts' in data and 'answers' in data:
-        tokens = removePunctuation(data['leadin'] + ' ' + ' '.join(data['parts']) + ' ' +
-                                   ' '.join(data['answers'])).lower().split()
+    if data["type"] == "tossup" and "question" in data and "answer" in data:
+        tokens = (
+            removePunctuation(data["question"] + " " + data["answer"]).lower().split()
+        )
+    if (
+        data["type"] == "bonus"
+        and "leadin" in data
+        and "parts" in data
+        and "answers" in data
+    ):
+        tokens = (
+            removePunctuation(
+                data["leadin"]
+                + " "
+                + " ".join(data["parts"])
+                + " "
+                + " ".join(data["answers"])
+            )
+            .lower()
+            .split()
+        )
 
     tokens = [token for token in tokens if token not in stop_words]
     for token in tokens:
@@ -72,9 +88,12 @@ for line in tqdm(questions[int(0.2*len(questions)):]):
 
     subcat_frequencies[subcategory_index] += 1
 
-with open('word-to-subcat.json', 'w') as f:
+with open("word-to-subcat.json", "w") as f:
     for word in word_to_subcat:
-        word_to_subcat[word] = [i / frequency for i, frequency in zip(word_to_subcat[word], subcat_frequencies)]
+        word_to_subcat[word] = [
+            i / frequency
+            for i, frequency in zip(word_to_subcat[word], subcat_frequencies)
+        ]
         word_to_subcat[word] = [round_to_n(i, 5) for i in word_to_subcat[word]]
     json.dump(word_to_subcat, f)
 
