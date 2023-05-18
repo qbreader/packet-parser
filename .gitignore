@@ -6,5 +6,6 @@ regex.txt
 classifier/questions.json
 classifier/tossups.json
 classifier/bonuses.json
+classifier/*-old.json
 
 quizdb/quizdb.json
