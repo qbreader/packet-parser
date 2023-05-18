@@ -74,7 +74,7 @@ REGEX_TOSSUP_ANSWER = (
 REGEX_BONUS_LEADIN = r"(?<=^ *\d{1,2}\.)(?:.|\n)*?(?=\[(?:10)?[EMH]?\])"
 REGEX_BONUS_PARTS = r"(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?=^ ?ANSWER|ANSWER:)"
 REGEX_BONUS_ANSWERS = r"(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<[^>]*>)"
-REGEX_BONUS_VALUES = r"(?<=\[)\d{1,2}(?=\])"
+REGEX_BONUS_TAGS = r"(?<=\[)(?:10)?[EMH]?(?=\])"
 
 ########## END OF REGEX ##########
 
@@ -370,8 +370,26 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
 
     skipped_bonuses = 0
     for i, bonus in enumerate(bonuses):
-        values = regex.findall(REGEX_BONUS_VALUES, bonus, flags=REGEX_FLAGS)
-        values = [int(value) for value in values]
+        tags = regex.findall(REGEX_BONUS_TAGS, bonus, flags=REGEX_FLAGS)
+        values = []
+        for tag in tags:
+            if '10' in tag:
+                values.append(10)
+            elif '15' in tag:
+                values.append(15)
+            elif '20' in tag:
+                values.append(20)
+            elif '5' in tag:
+                values.append(5)
+
+        difficulties = []
+        for tag in tags:
+            if 'E' in tag or 'e' in tag:
+                difficulties.append('e')
+            elif 'M' in tag or 'm' in tag:
+                difficulties.append('m')
+            elif 'H' in tag or 'h' in tag:
+                difficulties.append('h')
 
         for typo in TEN_TYPOS:
             bonus = bonus.replace(typo, "[10]")
@@ -429,6 +447,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                 "leadin": leadin,
                 "parts": [part.strip().replace("\n", " ") for part in parts],
                 "values": values,
+                "difficulties": difficulties,
                 "answers": [],
             }
         )
