@@ -215,12 +215,13 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         packet_text = packet_text.replace(typo.title(), "ANSWER:")
 
     packet_text = regex.sub(
-        r"^\{(bu|b|u|i)\}(\d{1,2}|TB)\.", "1. {b}", packet_text, flags=REGEX_FLAGS
+        r"^\{(bu|b|u|i)\}(\d{1,2}|TB|X)\.", "1. {b}", packet_text, flags=REGEX_FLAGS
     )
     packet_text = regex.sub(
         r"^\(?(\d{1,2}|TB)\) ", "1. ", packet_text, flags=REGEX_FLAGS
     )
     packet_text = regex.sub(r"^TB[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r"^X[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r"^Tiebreaker[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r"^T\d{1,2}[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r"^S\d{1,2}[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
