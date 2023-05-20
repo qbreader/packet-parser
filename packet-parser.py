@@ -90,6 +90,7 @@ ANSWER_TYPOS = [
     "ANWSER:",
     "ANSWRE:",
     "ANSWER;",
+    "AMSWER:",
     "ANSWSER:",
     "ANSWERS:",
 ]
