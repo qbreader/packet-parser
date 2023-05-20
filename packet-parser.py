@@ -262,7 +262,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     skipped_tossups = 0
     for i, tossup in enumerate(tossups):
         try:
-            if AUTO_INSERT_POWERMARKS and "{/b}" not in tossup:
+            if AUTO_INSERT_POWERMARKS and "(*)" not in tossup:
                 index = tossup.rfind("{/b}")
                 if index >= 0:
                     tossup = tossup[:index] + "{/b} (*)" + tossup[index:]
