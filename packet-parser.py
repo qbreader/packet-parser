@@ -48,7 +48,7 @@ REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
 if HAS_QUESTION_NUMBERS and HAS_CATEGORY_TAGS:
     REGEX_QUESTION = r"^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>"
 elif HAS_QUESTION_NUMBERS:
-    # REGEX_QUESTION = r'^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)'
+    # REGEX_QUESTION = r"^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)"
     REGEX_QUESTION = (
         r"\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)"
     )
