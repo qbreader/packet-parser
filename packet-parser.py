@@ -74,7 +74,7 @@ REGEX_TOSSUP_ANSWER = (
 REGEX_BONUS_LEADIN = r"(?<=^ *\d{1,2}\.)(?:.|\n)*?(?=\[(?:10)?[EMH]?\])"
 REGEX_BONUS_PARTS = r"(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?=^ ?ANSWER|ANSWER:)"
 REGEX_BONUS_ANSWERS = r"(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<[^>]*>)"
-REGEX_BONUS_TAGS = r"(?<=\[)(?:10)?[EMH]?(?=\])"
+REGEX_BONUS_TAGS = r"(?<=\[)\d{0,2}?[EMH]?(?=\])"
 
 ########## END OF REGEX ##########
 
