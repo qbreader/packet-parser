@@ -373,23 +373,23 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         tags = regex.findall(REGEX_BONUS_TAGS, bonus, flags=REGEX_FLAGS)
         values = []
         for tag in tags:
-            if '10' in tag:
+            if "10" in tag:
                 values.append(10)
-            elif '15' in tag:
+            elif "15" in tag:
                 values.append(15)
-            elif '20' in tag:
+            elif "20" in tag:
                 values.append(20)
-            elif '5' in tag:
+            elif "5" in tag:
                 values.append(5)
 
         difficulties = []
         for tag in tags:
-            if 'E' in tag or 'e' in tag:
-                difficulties.append('e')
-            elif 'M' in tag or 'm' in tag:
-                difficulties.append('m')
-            elif 'H' in tag or 'h' in tag:
-                difficulties.append('h')
+            if "E" in tag or "e" in tag:
+                difficulties.append("e")
+            elif "M" in tag or "m" in tag:
+                difficulties.append("m")
+            elif "H" in tag or "h" in tag:
+                difficulties.append("h")
 
         for typo in TEN_TYPOS:
             bonus = bonus.replace(typo, "[10]")
