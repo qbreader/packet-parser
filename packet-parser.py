@@ -187,7 +187,6 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace("{/i}{i}", "")
         .replace("{i}\n{/i}", "\n")
         .replace("{i} {/i}", " ")
-        .replace("\n(10)", "\n[10]")
         .replace("\n10]", "[10]")
         .replace("[5,5]", "[10]")
         .replace("[5/5]", "[10]")
@@ -208,7 +207,9 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace("Bonus: ", "\n")
         .replace("BONUS. ", "\n")
         .replace("TOSSUP. ", "")
-    )  # .replace('FTPE', 'For 10 points each') \
+    )
+    # .replace("\n(10)", "\n[10]")
+    # .replace('FTPE', 'For 10 points each') \
     # .replace('FTP', 'For 10 points') \
 
     for typo in ANSWER_TYPOS:
