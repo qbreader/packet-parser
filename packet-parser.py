@@ -268,7 +268,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             if AUTO_INSERT_POWERMARKS and "(*)" not in tossup:
                 index = tossup.rfind("{/b}")
                 if index >= 0:
-                    tossup = tossup[:index] + "{/b} (*)" + tossup[index:]
+                    tossup = tossup[:index] + "{/b} (*) " + tossup[index:]
                 else:
                     print(
                         f"{bcolors.WARNING}WARNING:{bcolors.ENDC} Could not insert powermark for tossup {i + 1} - ",
