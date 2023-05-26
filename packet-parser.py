@@ -182,9 +182,6 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace(" {/bu}", "{/bu} ")
         .replace(" {/u}", "{/u} ")
         .replace(" {/i}", "{/i} ")
-        .replace("{/bu}{bu}", "")
-        .replace("{/u}{u}", "")
-        .replace("{/i}{i}", "")
         .replace("{i}\n{/i}", "\n")
         .replace("{i} {/i}", " ")
         .replace("\n10]", "[10]")
@@ -209,28 +206,28 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         .replace("TOSSUP. ", "")
     )
     # .replace("\n(10)", "\n[10]")
-    # .replace('FTPE', 'For 10 points each') \
-    # .replace('FTP', 'For 10 points') \
 
     for typo in ANSWER_TYPOS:
         packet_text = packet_text.replace(typo, "ANSWER:")
         packet_text = packet_text.replace(typo.title(), "ANSWER:")
 
-    packet_text = regex.sub(
-        r"^\{(bu|b|u|i)\}(\d{1,2}|TB|X)\.", "1. {b}", packet_text, flags=REGEX_FLAGS
-    )
-    packet_text = regex.sub(
-        r"^\(?(\d{1,2}|TB)\) ", "1. ", packet_text, flags=REGEX_FLAGS
-    )
-    packet_text = regex.sub(r"^TB[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
-    packet_text = regex.sub(r"^X[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
-    packet_text = regex.sub(r"^Tiebreaker[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
-    packet_text = regex.sub(r"^T\d{1,2}[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
-    packet_text = regex.sub(r"^S\d{1,2}[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
-    packet_text = regex.sub(r"^Extra[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
+    # handle html formatting at start of string
+    packet_text = regex.sub(r"^\{(bu|b|u|i)\}(\d{1,2}|TB|X)\.", "1. {\g<1>}", packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r"^\{(bu|b|u|i)\}ANSWER(:?)", "ANSWER\g<2>{\g<1>}", packet_text, flags=REGEX_FLAGS)
+
+    # handle nonstandard question numbering
+    packet_text = regex.sub(r"^\(?(\d{1,2}|TB)\) ", "1. ", packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r"^(TB|X|Tiebreaker|Extra)[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r"^[TS]\d{1,2}[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
+
+    # handle nonstandard bonus part numbering
     packet_text = regex.sub(r"^[ABC][.:] *", "[10] ", packet_text, flags=REGEX_FLAGS)
-    # packet_text = regex.sub(r'ten\spoints', '10 points', packet_text)
-    packet_text = regex.sub(r"^ *$", "", packet_text, flags=REGEX_FLAGS)
+
+    # remove redundant tags
+    packet_text = regex.sub(r"{(bu|b|u|i)}{/\g<1>}", "", packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r"{/(bu|b|u|i)}{\g<1>}", "", packet_text, flags=REGEX_FLAGS)
+
+    packet_text = regex.sub(r"^\s*$", "", packet_text, flags=REGEX_FLAGS)
 
     if not HAS_CATEGORY_TAGS:
         packet_text = regex.sub(REGEX_CATEGORY_TAG, "", packet_text)
