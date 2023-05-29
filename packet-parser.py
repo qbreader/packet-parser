@@ -214,7 +214,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     packet_text = regex.sub(r"^\{(bu|b|u|i)\}ANSWER(:?)", "ANSWER\g<2>{\g<1>}", packet_text, flags=REGEX_FLAGS)
 
     # handle nonstandard question numbering
-    packet_text = regex.sub(r"^\(?(\d{1,2}|TB)\) ", "1. ", packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r"^\(?(\d{1,2}|TB)\)(?=[ {])", "1. ", packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r"^(TB|X|Tiebreaker|Extra)[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
     packet_text = regex.sub(r"^[TS]\d{1,2}[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
 
