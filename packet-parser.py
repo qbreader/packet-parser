@@ -48,8 +48,10 @@ REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
 if HAS_QUESTION_NUMBERS and HAS_CATEGORY_TAGS:
     REGEX_QUESTION = r"^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>"
 elif HAS_QUESTION_NUMBERS:
-    REGEX_QUESTION = r"^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)"
-    # REGEX_QUESTION = r"\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)"
+    # REGEX_QUESTION = r"^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)"
+    REGEX_QUESTION = (
+        r"\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)"
+    )
 else:
     REGEX_QUESTION = r"(?:[^\n].*\n)*[ \t]*ANSWER.*(?:\n.*)*?(?=\n$)"
 
@@ -210,13 +212,26 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         packet_text = packet_text.replace(typo.title(), "ANSWER:")
 
     # handle html formatting at start of string
-    packet_text = regex.sub(r"^\{(bu|b|u|i)\}(\d{1,2}|TB|X)\.", "1. {\g<1>}", packet_text, flags=REGEX_FLAGS)
-    packet_text = regex.sub(r"^\{(bu|b|u|i)\}ANSWER(:?)", "ANSWER\g<2>{\g<1>}", packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(
+        r"^\{(bu|b|u|i)\}(\d{1,2}|TB|X)\.", "1. {\g<1>}", packet_text, flags=REGEX_FLAGS
+    )
+    packet_text = regex.sub(
+        r"^\{(bu|b|u|i)\}ANSWER(:?)",
+        "ANSWER\g<2>{\g<1>}",
+        packet_text,
+        flags=REGEX_FLAGS,
+    )
 
     # handle nonstandard question numbering
-    packet_text = regex.sub(r"^\(?(\d{1,2}|TB)\)(?=[ {])", "1. ", packet_text, flags=REGEX_FLAGS)
-    packet_text = regex.sub(r"^(TB|X|Tiebreaker|Extra)[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
-    packet_text = regex.sub(r"^[TS]\d{1,2}[\.:]?", "21.", packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(
+        r"^\(?(\d{1,2}|TB)\)(?=[ {])", "1. ", packet_text, flags=REGEX_FLAGS
+    )
+    packet_text = regex.sub(
+        r"^(TB|X|Tiebreaker|Extra)[\.:]?", "21.", packet_text, flags=REGEX_FLAGS
+    )
+    packet_text = regex.sub(
+        r"^[TS]\d{1,2}[\.:]?", "21.", packet_text, flags=REGEX_FLAGS
+    )
 
     # handle nonstandard bonus part numbering
     packet_text = regex.sub(r"^[ABC][.:] *", "[10] ", packet_text, flags=REGEX_FLAGS)
