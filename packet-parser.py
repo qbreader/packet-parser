@@ -129,14 +129,17 @@ def format_text(text):
     )
 
 
-def get_subcategory(text: str):
+def get_subcategory(text: str) -> str:
     text = text.lower()
+    text_split = regex.split(r"[\/ ]", text)
+
     for subcat in STANDARDIZE_SUBCATS:
         works = True
-        for word in regex.split(f"[\/ ]", subcat.lower()):
-            if word not in text:
+        for word in subcat.lower().split(" "):
+            if word not in text_split:
                 works = False
                 break
+
         if works:
             return STANDARDIZE_SUBCATS[subcat]
 
