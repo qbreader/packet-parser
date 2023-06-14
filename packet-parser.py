@@ -93,6 +93,7 @@ ANSWER_TYPOS = [
     "AMSWER:",
     "ANSWSER:",
     "ANSWERS:",
+    "ANMSWER:",
 ]
 
 TEN_TYPOS = [
@@ -130,6 +131,9 @@ def format_text(text):
 
 
 def get_subcategory(text: str) -> str:
+    if text[0] == "<" and text[-1] == ">":
+        text = text[1:-1]
+
     text = text.lower()
     text_split = regex.split(r"[\/ ]", text)
 
