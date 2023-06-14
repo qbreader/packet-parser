@@ -214,6 +214,10 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         packet_text = packet_text.replace(typo, "ANSWER:")
         packet_text = packet_text.replace(typo.title(), "ANSWER:")
 
+    # remove redundant tags
+    packet_text = regex.sub(r"{(bu|b|u|i)}{/\g<1>}", "", packet_text, flags=REGEX_FLAGS)
+    packet_text = regex.sub(r"{/(bu|b|u|i)}{\g<1>}", "", packet_text, flags=REGEX_FLAGS)
+
     # handle html formatting at start of string
     packet_text = regex.sub(
         r"^\{(bu|b|u|i)\}(\d{1,2}|TB|X)\.", "1. {\g<1>}", packet_text, flags=REGEX_FLAGS
@@ -239,10 +243,7 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
     # handle nonstandard bonus part numbering
     packet_text = regex.sub(r"^[ABC][.:] *", "[10] ", packet_text, flags=REGEX_FLAGS)
 
-    # remove redundant tags
-    packet_text = regex.sub(r"{(bu|b|u|i)}{/\g<1>}", "", packet_text, flags=REGEX_FLAGS)
-    packet_text = regex.sub(r"{/(bu|b|u|i)}{\g<1>}", "", packet_text, flags=REGEX_FLAGS)
-
+    # clear lines that are all spaces
     packet_text = regex.sub(r"^\s*$", "", packet_text, flags=REGEX_FLAGS)
 
     if not HAS_CATEGORY_TAGS:
