@@ -135,6 +135,8 @@ def get_subcategory(text: str) -> str:
         text = text[1:-1]
 
     text = text.lower()
+    text = text.replace("–", " ")
+    text = text.replace("-", " ")
     text_split = regex.split(r"[\/ ]", text)
 
     for subcat in STANDARDIZE_SUBCATS:
@@ -361,8 +363,8 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                 subcategory = get_subcategory(category_tag)
             except:
                 print(
-                    f"{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find category tag for bonus {i + 1} - ",
-                    bonus,
+                    f"{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find category tag for tossup {i + 1} - ",
+                    tossup,
                 )
                 exit(3)
 
