@@ -64,6 +64,7 @@
     "Misc History": "Other History",
     "Zeitgeist": "Other History",
     "Other History": "Other History",
+    "Mixed History": "Other History",
     "Historiography": "Other History",
     "Historio/Archaeo": "Other History",
     "Archaeology": "Other History",
@@ -112,6 +113,7 @@
     "Auditory Fine Arts": "Auditory Fine Arts",
     "Auditory Arts": "Auditory Fine Arts",
     "Auditory Art": "Auditory Fine Arts",
+    "Classical Music": "Auditory Fine Arts",
     "Misc. FA": "Other Fine Arts",
     "Other Arts": "Other Fine Arts",
     "Other Fine Art": "Other Fine Arts",
@@ -185,6 +187,7 @@
     "Trash": "Trash",
     "Movies": "Trash",
     "Pop Culture": "Trash",
+    "Popular Culture": "Trash",
     "Sports": "Trash",
     "Other": "Other Academic"
 }
