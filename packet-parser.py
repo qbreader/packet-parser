@@ -8,8 +8,10 @@ from classifier.classify import classify_question
 
 # Make sure to specify both, if they are not empty strings.
 # Only specifying the category will cause the program to use the question classifier.
+# CONSTANT_ALTERNATE_SUBCATEGORY is optional.
 CONSTANT_CATEGORY = ""
 CONSTANT_SUBCATEGORY = ""
+CONSTANT_ALTERNATE_SUBCATEGORY = ""
 
 # Uses question classifier to assign category and subcategory
 # if there are category tags, but the category in the tag is unrecognized.
@@ -387,9 +389,12 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             category, subcategory = classify_question(data["tossups"][i], type="tossup")
         else:
             category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
+            if CONSTANT_ALTERNATE_SUBCATEGORY:
+                data["tossups"][i]["alternate_subcategory"] = CONSTANT_ALTERNATE_SUBCATEGORY
 
         data["tossups"][i]["category"] = category
         data["tossups"][i]["subcategory"] = subcategory
+
 
     skipped_bonuses = 0
     for i, bonus in enumerate(bonuses):
@@ -523,6 +528,8 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             category, subcategory = classify_question(data["bonuses"][i], type="bonus")
         else:
             category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
+            if CONSTANT_ALTERNATE_SUBCATEGORY:
+                data["bonus"][i]["alternate_subcategory"] = CONSTANT_ALTERNATE_SUBCATEGORY
 
         data["bonuses"][i]["category"] = category
         data["bonuses"][i]["subcategory"] = subcategory
