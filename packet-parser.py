@@ -474,11 +474,15 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             {
                 "leadin": leadin,
                 "parts": [part.strip().replace("\n", " ") for part in parts],
-                "values": values,
-                "difficulties": difficulties,
                 "answers": [],
             }
         )
+
+        if len(values) > 0:
+            data["bonuses"][i]["values"] = values
+
+        if len(difficulties) > 0:
+            data["bonuses"][i]["difficulties"] = difficulties
 
         if FORMATTED_ANSWERLINE:
             data["bonuses"][i]["formatted_answers"] = []
