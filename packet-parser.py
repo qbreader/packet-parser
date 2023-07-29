@@ -114,6 +114,8 @@ TEN_TYPOS = [
 with open("standardize-subcats.json") as f:
     STANDARDIZE_SUBCATS = json.load(f)
 
+with open("standardize-alternate-subcats.json") as f:
+    STANDARDIZE_ALTERNATE_SUBCATS = json.load(f)
 
 with open("subcat-to-cat.json") as f:
     SUBCAT_TO_CAT = json.load(f)
@@ -150,6 +152,28 @@ def get_subcategory(text: str) -> str:
 
         if works:
             return STANDARDIZE_SUBCATS[subcat]
+
+    return ""
+
+
+def get_alternate_subcategory(text: str) -> str:
+    if text[0] == "<" and text[-1] == ">":
+        text = text[1:-1]
+
+    text = text.lower()
+    text = text.replace("–", " ")
+    text = text.replace("-", " ")
+    text_split = regex.split(r"[\/ ]", text)
+
+    for subcat in STANDARDIZE_ALTERNATE_SUBCATS:
+        works = True
+        for word in subcat.lower().split(" "):
+            if word not in text_split:
+                works = False
+                break
+
+        if works:
+            return subcat
 
     return ""
 
@@ -363,6 +387,9 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                 )[0]
                 category_tag = category_tag.strip().replace("\n", " ")
                 subcategory = get_subcategory(category_tag)
+                alternate_subcategory = get_alternate_subcategory(category_tag)
+                if alternate_subcategory:
+                    data["tossups"][i]["alternate_subcategory"] = alternate_subcategory
             except:
                 print(
                     f"{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find category tag for tossup {i + 1} - ",
@@ -376,9 +403,10 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                 category, subcategory = classify_question(
                     data["tossups"][i], type="tossup"
                 )
-                print(
-                    f"{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1} classified as {category} - {subcategory}"
-                )
+                if not alternate_subcategory:
+                    print(
+                        f"{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1} classified as {category} - {subcategory}"
+                    )
             else:
                 print(
                     f"{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1} has unrecognized subcategory",
@@ -390,7 +418,9 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         else:
             category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
             if CONSTANT_ALTERNATE_SUBCATEGORY:
-                data["tossups"][i]["alternate_subcategory"] = CONSTANT_ALTERNATE_SUBCATEGORY
+                data["tossups"][i][
+                    "alternate_subcategory"
+                ] = CONSTANT_ALTERNATE_SUBCATEGORY
 
         data["tossups"][i]["category"] = category
         data["tossups"][i]["subcategory"] = subcategory
@@ -506,6 +536,9 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                 )[0]
                 category_tag = category_tag.strip().replace("\n", " ")
                 subcategory = get_subcategory(category_tag)
+                alternate_subcategory = get_alternate_subcategory(category_tag)
+                if alternate_subcategory:
+                    data["bonuses"][i]["alternate_subcategory"] = alternate_subcategory
             except:
                 print(
                     f"{bcolors.FAIL}ERROR:{bcolors.ENDC} cannot find category tag for bonus {i + 1} - ",
@@ -519,9 +552,10 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
                 category, subcategory = classify_question(
                     data["bonuses"][i], type="bonus"
                 )
-                print(
-                    f"{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} classified as {category} - {subcategory}"
-                )
+                if not alternate_subcategory:
+                    print(
+                        f"{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} classified as {category} - {subcategory}"
+                    )
             else:
                 print(
                     f"{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} has unrecognized subcategory",
@@ -533,7 +567,9 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
         else:
             category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
             if CONSTANT_ALTERNATE_SUBCATEGORY:
-                data["bonus"][i]["alternate_subcategory"] = CONSTANT_ALTERNATE_SUBCATEGORY
+                data["bonus"][i][
+                    "alternate_subcategory"
+                ] = CONSTANT_ALTERNATE_SUBCATEGORY
 
         data["bonuses"][i]["category"] = category
         data["bonuses"][i]["subcategory"] = subcategory

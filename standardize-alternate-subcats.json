@@ -1,0 +1,11 @@
+{
+    "Drama": "Drama",
+    "Poetry": "Poetry",
+    "Long Fiction": "Long Fiction",
+    "LongFic": "Long Fiction",
+    "Mixed Fiction": "Long Fiction",
+    "Long Form": "Long Fiction",
+    "Novel": "Long Fiction",
+    "Short Fiction": "Short Fiction",
+    "Short Form": "Short Fiction"
+}
