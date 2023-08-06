@@ -15,7 +15,7 @@ with open(os.path.join(CURRENT_PATH, "subcategories.txt")) as f:
 with open(os.path.join(CURRENT_PATH, "word-to-subcat.json")) as f:
     WORD_TO_SUBCAT_PROBABILITY = json.load(f)
 
-with open(os.path.join(CURRENT_PATH, "../subcat-to-cat.json")) as f:
+with open(os.path.join(CURRENT_PATH, "../modules/subcat-to-cat.json")) as f:
     SUBCAT_TO_CAT = json.load(f)
 
 

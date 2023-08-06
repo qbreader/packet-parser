@@ -14,42 +14,19 @@ CONSTANT_CATEGORY = ""
 CONSTANT_SUBCATEGORY = ""
 CONSTANT_ALTERNATE_SUBCATEGORY = ""
 
-ANSWER_TYPOS = [
-    "ASWER:",
-    "ANWER:",
-    "ANSER:",
-    "ANSWR:",
-    "ANSWE:",
-    "ASNWER:",
-    "ANSEWR:",
-    "ANWSER:",
-    "ANSWRE:",
-    "ANSWER;",
-    "AMSWER:",
-    "ANSWSER:",
-    "ANSWERS:",
-    "ANMSWER:",
-]
+with open("modules/answer-typos.json") as f:
+    ANSWER_TYPOS = json.load(f)
 
-TEN_TYPOS = [
-    "[5]",
-    "[10[",
-    "]10]",
-    "[10}",
-    "{10]",
-    "[10 ]",
-    "[15]",
-    "[20]",
-    "[30]",
-]
+with open("modules/ten-typos.json") as f:
+    TEN_TYPOS = json.load(f)
 
-with open("standardize-subcats.json") as f:
+with open("modules/standardize-subcats.json") as f:
     STANDARDIZE_SUBCATS = json.load(f)
 
-with open("standardize-alternate-subcats.json") as f:
+with open("modules/standardize-alternate-subcats.json") as f:
     STANDARDIZE_ALTERNATE_SUBCATS = json.load(f)
 
-with open("subcat-to-cat.json") as f:
+with open("modules/subcat-to-cat.json") as f:
     SUBCAT_TO_CAT = json.load(f)
 
 
