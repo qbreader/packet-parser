@@ -8,10 +8,11 @@ from classifier.classify import classify_question
 
 # Make sure to specify both, if they are not empty strings.
 # Only specifying the category will cause the program to use the question classifier.
-# CONSTANT_ALTERNATE_SUBCATEGORY is optional.
+# CONSTANT_ALTERNATE_SUBCATEGORY is optional,
+# and can be used even if CONSTANT_CATEGORY or CONSTANT_SUBCATEGORY is empty.
 CONSTANT_CATEGORY = ""
 CONSTANT_SUBCATEGORY = ""
-CONSTANT_ALTERNATE_SUBCATEGORY = ""
+CONSTANT_ALTERNATE_SUBCATEGORY = "Poetry"
 
 # Uses question classifier to assign category and subcategory
 # if there are category tags, but the category in the tag is unrecognized.
@@ -50,10 +51,10 @@ REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
 if HAS_QUESTION_NUMBERS and HAS_CATEGORY_TAGS:
     REGEX_QUESTION = r"^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>"
 elif HAS_QUESTION_NUMBERS:
-    # REGEX_QUESTION = r"^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)"
-    REGEX_QUESTION = (
-        r"\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)"
-    )
+    REGEX_QUESTION = r"^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)"
+    # REGEX_QUESTION = (
+    #     r"\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)"
+    # )
 else:
     REGEX_QUESTION = r"(?:[^\n].*\n)*[ \t]*ANSWER.*(?:\n.*)*?(?=\n$)"
 
@@ -417,14 +418,14 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             category, subcategory = classify_question(data["tossups"][i], type="tossup")
         else:
             category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
-            if CONSTANT_ALTERNATE_SUBCATEGORY:
-                data["tossups"][i][
-                    "alternate_subcategory"
-                ] = CONSTANT_ALTERNATE_SUBCATEGORY
+
+        if CONSTANT_ALTERNATE_SUBCATEGORY:
+            data["tossups"][i][
+                "alternate_subcategory"
+            ] = CONSTANT_ALTERNATE_SUBCATEGORY
 
         data["tossups"][i]["category"] = category
         data["tossups"][i]["subcategory"] = subcategory
-
 
     skipped_bonuses = 0
     for i, bonus in enumerate(bonuses):
@@ -566,10 +567,11 @@ for filename in sorted(os.listdir(INPUT_DIRECTORY)):
             category, subcategory = classify_question(data["bonuses"][i], type="bonus")
         else:
             category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
-            if CONSTANT_ALTERNATE_SUBCATEGORY:
-                data["bonus"][i][
-                    "alternate_subcategory"
-                ] = CONSTANT_ALTERNATE_SUBCATEGORY
+
+        if CONSTANT_ALTERNATE_SUBCATEGORY:
+            data["bonus"][i][
+                "alternate_subcategory"
+            ] = CONSTANT_ALTERNATE_SUBCATEGORY
 
         data["bonuses"][i]["category"] = category
         data["bonuses"][i]["subcategory"] = subcategory
