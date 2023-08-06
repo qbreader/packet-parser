@@ -228,7 +228,7 @@ def main(
         if filename == ".DS_Store":
             continue
 
-        f = open(input_directory + filename)
+        f = open(os.path.join(input_directory, filename))
         packet_text = ""
 
         for line in f.readlines():
