@@ -613,7 +613,7 @@ def main(
                 category, subcategory = CONSTANT_CATEGORY, CONSTANT_SUBCATEGORY
 
             if CONSTANT_ALTERNATE_SUBCATEGORY:
-                data["bonus"][i][
+                data["bonuses"][i][
                     "alternate_subcategory"
                 ] = CONSTANT_ALTERNATE_SUBCATEGORY
 
