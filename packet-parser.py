@@ -115,7 +115,9 @@ def remove_punctuation(s: str, punctuation=""".,!-;:'"\/?@#$%^&*_~()[]{}“”�
     show_default=True,
     type=click.Path(exists=True),
 )
-@click.option("-o", "--output-directory", default="output/", show_default=True, type=str)
+@click.option(
+    "-o", "--output-directory", default="output/", show_default=True, type=str
+)
 @click.option("-e", "-l", "--bonus-length", default=3, show_default=True, type=int)
 @click.option(
     "-f",
