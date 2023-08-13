@@ -50,7 +50,7 @@ def get_subcategory(text: str) -> str:
     text = text.lower()
     text = text.replace("–", " ")
     text = text.replace("-", " ")
-    text_split = regex.split(r"[\/ ]", text)
+    text_split = regex.split(r"[\/, ]", text)
 
     for subcat in STANDARDIZE_SUBCATS:
         works = True
@@ -72,7 +72,7 @@ def get_alternate_subcategory(text: str) -> str:
     text = text.lower()
     text = text.replace("–", " ")
     text = text.replace("-", " ")
-    text_split = regex.split(r"[\/ ]", text)
+    text_split = regex.split(r"[\/, ]", text)
 
     for subcat in STANDARDIZE_ALTERNATE_SUBCATS:
         works = True
