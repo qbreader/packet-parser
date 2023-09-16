@@ -281,12 +281,16 @@ def main(
             r"^(TB|X|Tiebreaker|Extra)[\.:]?", "21.", packet_text, flags=REGEX_FLAGS
         )
         packet_text = regex.sub(
-            r"^[TS]\d{1,2}[\.:]?", "21.", packet_text, flags=REGEX_FLAGS
+            r"^(T|S|TU)\d{1,2}[\.:]?", "21.", packet_text, flags=REGEX_FLAGS
         )
 
         # handle nonstandard bonus part numbering
         packet_text = regex.sub(
             r"^[ABC][.:] *", "[10] ", packet_text, flags=REGEX_FLAGS
+        )
+
+        packet_text = regex.sub(
+            r"^BS\d{1,2}[\.:]?", "21.", packet_text, flags=REGEX_FLAGS
         )
 
         # clear lines that are all spaces
