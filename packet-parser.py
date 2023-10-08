@@ -30,18 +30,22 @@ with open("modules/subcat-to-cat.json") as f:
     SUBCAT_TO_CAT = json.load(f)
 
 
-def format_text(text):
-    return (
+def format_text(text, modaq=False):
+    text = (
         text.replace("{bu}", "<b><u>")
         .replace("{/bu}", "</u></b>")
         .replace("{b}", "<b>")
         .replace("{/b}", "</b>")
         .replace("{u}", "<u>")
         .replace("{/u}", "</u>")
-        .replace("{i}", "<i>")
-        .replace("{/i}", "</i>")
     )
 
+    if modaq:
+        text = text.replace("{i}", "<em>").replace("{/i}", "</em>")
+    else:
+        text = text.replace("{i}", "<i>").replace("{/i}", "</i>")
+
+    return text
 
 def get_subcategory(text: str) -> str:
     if text[0] == "<" and text[-1] == ">":
@@ -126,6 +130,12 @@ def remove_punctuation(s: str, punctuation=""".,!-;:'"\/?@#$%^&*_~()[]{}“”�
     help="Include formatted answerline in output",
 )
 @click.option(
+    "-m",
+    "--modaq",
+    is_flag=True,
+    help="Output in a format compatible with MODAQ.",
+)
+@click.option(
     "-p",
     "--auto-insert-powermarks",
     is_flag=True,
@@ -144,6 +154,7 @@ def main(
     output_directory,
     bonus_length,
     formatted_answerline,
+    modaq,
     auto_insert_powermarks,
     classify_unknown,
 ):
@@ -341,9 +352,7 @@ def main(
                             tossup,
                         )
 
-                question = regex.findall(
-                    REGEX_TOSSUP_TEXT, remove_formatting(tossup), flags=REGEX_FLAGS
-                )
+                question = regex.findall(REGEX_TOSSUP_TEXT, tossup, flags=REGEX_FLAGS)
                 question = question[0].replace("\n", " ").strip()
                 question = regex.sub(r"^\d{1,2}\.", "", question, flags=REGEX_FLAGS)
                 question = question.strip()
@@ -360,6 +369,13 @@ def main(
                     tossup,
                 )
                 exit(1)
+
+            if modaq:
+                question = format_text(question, True)
+            else:
+                question = remove_formatting(question)
+
+            data["tossups"].append({ "question": question })
 
             try:
                 answer = regex.findall(REGEX_TOSSUP_ANSWER, tossup, flags=REGEX_FLAGS)
@@ -392,13 +408,13 @@ def main(
                 if not HAS_QUESTION_NUMBERS:
                     print(f"\n{answer}\n")
 
-            data["tossups"].append({"question": question})
-
-            if formatted_answerline:
+            if modaq:
+                data["tossups"][i]["answer"] = format_text(answer, True)
+            elif formatted_answerline:
                 data["tossups"][i]["formatted_answer"] = format_text(answer)
-                answer = remove_formatting(answer)
-
-            data["tossups"][i]["answer"] = answer
+                data["tossups"][i]["answer"] = remove_formatting(answer)
+            else:
+                data["tossups"][i]["answer"] = remove_formatting(answer)
 
             if HAS_CATEGORY_TAGS:
                 try:
@@ -418,6 +434,9 @@ def main(
                         tossup,
                     )
                     exit(3)
+
+                if modaq:
+                    data['tossups'][i]['metadata'] = category_tag[1:-1]
 
                 if subcategory:
                     category = SUBCAT_TO_CAT[subcategory]
@@ -447,8 +466,12 @@ def main(
                     "alternate_subcategory"
                 ] = CONSTANT_ALTERNATE_SUBCATEGORY
 
-            data["tossups"][i]["category"] = category
-            data["tossups"][i]["subcategory"] = subcategory
+            if not modaq:
+                data["tossups"][i]["category"] = category
+                data["tossups"][i]["subcategory"] = subcategory
+
+            if modaq and not data['tossups'][i]['metadata']:
+                data['tossups'][i]['metadata'] = category_tag[1:-1]
 
         skipped_bonuses = 0
         for i, bonus in enumerate(bonuses):
@@ -477,9 +500,7 @@ def main(
                 bonus = bonus.replace(typo, "[10]")
 
             try:
-                leadin = regex.findall(
-                    REGEX_BONUS_LEADIN, remove_formatting(bonus), flags=REGEX_FLAGS
-                )
+                leadin = regex.findall(REGEX_BONUS_LEADIN, bonus, flags=REGEX_FLAGS)
                 leadin = leadin[0].replace("\n", " ").strip()
                 leadin = regex.sub(r"^\d{1,2}\.", "", leadin, flags=REGEX_FLAGS)
                 leadin = leadin.strip()
@@ -490,12 +511,18 @@ def main(
                 )
                 exit(2)
 
-            parts = regex.findall(
-                REGEX_BONUS_PARTS, remove_formatting(bonus), flags=REGEX_FLAGS
-            )
-            answers = regex.findall(
-                REGEX_BONUS_ANSWERS, f"{bonus}\n[10]", flags=REGEX_FLAGS
-            )
+            if modaq:
+                data["bonuses"].append({
+                    "leadin": format_text(leadin, True),
+                    "leadin_sanitized": remove_formatting(leadin),
+                })
+            else:
+                data["bonuses"].append({
+                    "leadin": remove_formatting(leadin)
+                })
+
+            parts = regex.findall(REGEX_BONUS_PARTS, bonus, flags=REGEX_FLAGS)
+            parts = [part.strip().replace("\n", " ") for part in parts]
 
             if len(parts) == 0:
                 print(
@@ -511,6 +538,19 @@ def main(
                 if not HAS_QUESTION_NUMBERS:
                     print(f"\n{bonus[3:]}\n")
 
+            if len(parts) > bonus_length:
+                print(
+                    f"{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} has more than {bonus_length} parts"
+                )
+
+            if modaq:
+                data['bonuses'][i]["parts"] = [format_text(part, True) for part in parts]
+                data['bonuses'][i]["parts_sanitized"] = [remove_formatting(part) for part in parts]
+            else:
+                data['bonuses'][i]["parts"] = [remove_formatting(part) for part in parts]
+
+            answers = regex.findall(REGEX_BONUS_ANSWERS, f"{bonus}\n[10]", flags=REGEX_FLAGS)
+
             if "answer:" in leadin.lower():
                 print(
                     f"{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1 + skipped_bonuses} leadin may contain the answer to the first part"
@@ -519,39 +559,33 @@ def main(
                 if not HAS_QUESTION_NUMBERS:
                     print(f"\n{leadin}\n")
 
-            if len(parts) > bonus_length:
-                print(
-                    f"{bcolors.WARNING}WARNING:{bcolors.ENDC} bonus {i + 1} has more than {bonus_length} parts"
-                )
-
-            data["bonuses"].append(
-                {
-                    "leadin": leadin,
-                    "parts": [part.strip().replace("\n", " ") for part in parts],
-                    "answers": [],
-                }
-            )
-
-            if len(values) > 0:
-                data["bonuses"][i]["values"] = values
-
-            if len(difficulties) > 0:
-                data["bonuses"][i]["difficulties"] = difficulties
-
-            if formatted_answerline:
-                data["bonuses"][i]["formatted_answers"] = []
-
-            for answer in answers:
+            for j, answer in enumerate(answers):
                 answer = answer.strip().replace("\n", " ")
 
                 if answer.startswith(":"):
                     answer = answer[1:].strip()
 
-                if formatted_answerline:
-                    data["bonuses"][i]["formatted_answers"].append(format_text(answer))
-                    answer = remove_formatting(answer)
+                answers[j] = answer
 
-                data["bonuses"][i]["answers"].append(answer)
+            if modaq:
+                data["bonuses"][i]["answers"] = [format_text(answer, True) for answer in answers]
+                data["bonuses"][i]["answers_sanitized"] = [remove_formatting(answer) for answer in answers]
+            elif formatted_answerline:
+                data["bonuses"][i]["formatted_answers"] = [format_text(answer) for answer in answers]
+                data["bonuses"][i]["answers"] = [remove_formatting(answer) for answer in answers]
+            else:
+                data["bonuses"][i]["answers"] = [remove_formatting(answer) for answer in answers]
+
+            if len(values) > 0:
+                data["bonuses"][i]["values"] = values
+            elif modaq:
+                data["bonuses"][i]["values"] = [10 for _ in range(len(parts))]
+
+            if len(difficulties) > 0:
+                if modaq:
+                    data["bonuses"][i]["difficultyModifiers"] = difficulties
+                else:
+                    data["bonuses"][i]["difficulties"] = difficulties
 
             if HAS_CATEGORY_TAGS:
                 try:
@@ -571,6 +605,9 @@ def main(
                         bonus,
                     )
                     exit(3)
+
+                if modaq:
+                    data['bonuses'][i]['metadata'] = category_tag[1:-1]
 
                 if subcategory:
                     category = SUBCAT_TO_CAT[subcategory]
@@ -600,8 +637,12 @@ def main(
                     "alternate_subcategory"
                 ] = CONSTANT_ALTERNATE_SUBCATEGORY
 
-            data["bonuses"][i]["category"] = category
-            data["bonuses"][i]["subcategory"] = subcategory
+            if not modaq:
+                data["bonuses"][i]["category"] = category
+                data["bonuses"][i]["subcategory"] = subcategory
+
+            if modaq and not data['bonuses'][i]['metadata']:
+                data['bonuses'][i]['metadata'] = category + " - " + subcategory
 
         g = open(output_directory + filename[:-4] + ".json", "w")
         json.dump(data, g)
