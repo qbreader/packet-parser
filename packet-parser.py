@@ -394,6 +394,11 @@ def main(
                     f"{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1 + skipped_tossups} contains multiple powermarks (*)"
                 )
 
+            if '(*)' in question and ' (*) ' not in question:
+                print(
+                    f"{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1 + skipped_tossups} powermark (*) is not surrounded by spaces"
+                )
+
             if "answer:" in question.lower():
                 print(
                     f"{bcolors.WARNING}WARNING:{bcolors.ENDC} tossup {i + 1 + skipped_tossups} question text may contain the answer"
