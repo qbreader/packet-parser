@@ -1,13 +1,14 @@
+click==8.1.7
+docx==0.2.4
 fire==0.4.0
 fonttools==4.34.4
 lxml==4.9.2
-numpy~=1.25.2
+numpy==1.25.2
 opencv-python==4.6.0.66
 pdf2docx==0.5.5
+Pillow==10.0.1
 PyMuPDF==1.22.5
 python-docx==0.8.11
 regex==2023.8.8
 six==1.16.0
 termcolor==2.3.0
-click~=8.1.7
-docx~=0.2.4
