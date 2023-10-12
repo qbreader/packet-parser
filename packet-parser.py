@@ -549,9 +549,11 @@ class Parser():
 
         for tossup in tossups:
             data['tossups'].append(self.parse_tossup(tossup))
+            self.tossup_index += 1
 
         for bonus in bonuses:
             data['bonuses'].append(self.parse_bonus(bonus))
+            self.bonus_index += 1
 
         return data
 
