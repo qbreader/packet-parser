@@ -44,6 +44,7 @@ def format_text(text: str, modaq=False) -> str:
 
     return text
 
+
 def get_subcategory(text: str) -> str:
     if text[0] == "<" and text[-1] == ">":
         text = text[1:-1]
@@ -107,10 +108,22 @@ def remove_formatting(text: str, include_italics=False):
 def remove_punctuation(s: str, punctuation=""".,!-;:'"\/?@#$%^&*_~()[]{}“”‘’"""):
     return "".join(ch for ch in s if ch not in punctuation)
 
-class Parser():
+
+class Parser:
     REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
 
-    def __init__(self, has_question_numbers: bool, has_category_tags: bool, bonus_length: int, formatted_answerline: bool, modaq: bool, auto_insert_powermarks: bool, classify_unknown: bool, constant_subcategory: str = "", constant_alternate_subcategory: str = "") -> None:
+    def __init__(
+        self,
+        has_question_numbers: bool,
+        has_category_tags: bool,
+        bonus_length: int,
+        formatted_answerline: bool,
+        modaq: bool,
+        auto_insert_powermarks: bool,
+        classify_unknown: bool,
+        constant_subcategory: str = "",
+        constant_alternate_subcategory: str = "",
+    ) -> None:
         self.has_question_numbers = has_question_numbers
         self.has_category_tags = has_category_tags
 
@@ -130,14 +143,20 @@ class Parser():
         """
 
         self.constant_subcategory = constant_subcategory
-        self.constant_category = SUBCAT_TO_CAT[constant_subcategory] if constant_subcategory else ""
+        self.constant_category = (
+            SUBCAT_TO_CAT[constant_subcategory] if constant_subcategory else ""
+        )
         self.constant_alternate_subcategory = constant_alternate_subcategory
 
         if not self.has_category_tags and not self.constant_subcategory == "":
-            Parser.print_warning(f"Using fixed category {self.constant_category} and subcategory {self.constant_subcategory}")
+            Parser.print_warning(
+                f"Using fixed category {self.constant_category} and subcategory {self.constant_subcategory}"
+            )
 
         if self.constant_alternate_subcategory:
-            Parser.print_warning(f"Using fixed alternate subcategory {self.constant_alternate_subcategory}")
+            Parser.print_warning(
+                f"Using fixed alternate subcategory {self.constant_alternate_subcategory}"
+            )
 
         self.__init_regex__()
 
@@ -145,10 +164,8 @@ class Parser():
         if self.has_question_numbers and self.has_category_tags:
             self.REGEX_QUESTION = r"^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>"
         elif self.has_question_numbers:
-            # REGEX_QUESTION = r"^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)"
-            self.REGEX_QUESTION = (
-                r"\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)"
-            )
+            # self.REGEX_QUESTION = r"^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)"
+            self.REGEX_QUESTION = r"\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)"
         else:
             self.REGEX_QUESTION = r"(?:[^\n].*\n)*[ \t]*ANSWER.*(?:\n.*)*?(?=\n$)"
 
@@ -162,7 +179,9 @@ class Parser():
         )
 
         self.REGEX_BONUS_LEADIN = r"(?<=^ *\d{1,2}\.)(?:.|\n)*?(?=\[(?:10)?[EMH]?\])"
-        self.REGEX_BONUS_PARTS = r"(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?=^ ?ANSWER|ANSWER:)"
+        self.REGEX_BONUS_PARTS = (
+            r"(?<=\[(?:10)?[EMH]?\])(?:.|\n)*?(?=^ ?ANSWER|ANSWER:)"
+        )
         self.REGEX_BONUS_ANSWERS = (
             r"(?<=ANSWER:|^ ?ANSWER)(?:.|\n)*?(?=\[(?:10)?[EMH]?\]|<[^>]*>)"
         )
@@ -184,27 +203,39 @@ class Parser():
             if index >= 0:
                 text = text[:index] + "{/b} (*) " + text[index:]
             else:
-                Parser.print_warning(f"Could not insert powermark for tossup {self.tossup_index} - {text}")
+                Parser.print_warning(
+                    f"Could not insert powermark for tossup {self.tossup_index} - {text}"
+                )
 
         try:
-            question: str = regex.findall(self.REGEX_TOSSUP_TEXT, text, flags=Parser.REGEX_FLAGS)[0]
+            question: str = regex.findall(
+                self.REGEX_TOSSUP_TEXT, text, flags=Parser.REGEX_FLAGS
+            )[0]
             question = question.replace("\n", " ").strip()
             question = regex.sub(r"^\d{1,2}\.", "", question, flags=Parser.REGEX_FLAGS)
             question = question.strip()
         except:
-            Parser.print_error(f"Cannot find question text for tossup {self.tossup_index} - {text}")
+            Parser.print_error(
+                f"Cannot find question text for tossup {self.tossup_index} - {text}"
+            )
             exit(1)
 
         if len(question) == 0:
-            Parser.print_error(f"Tossup {self.tossup_index} question text is empty - {text}")
+            Parser.print_error(
+                f"Tossup {self.tossup_index} question text is empty - {text}"
+            )
             exit(1)
 
         if len(regex.findall(r"\(\*\)", question)) >= 2:
-            Parser.print_warning(f"Tossup {self.tossup_index} contains multiple powermarks (*)")
+            Parser.print_warning(
+                f"Tossup {self.tossup_index} contains multiple powermarks (*)"
+            )
 
         unformatted_question = remove_formatting(question)
-        if '(*)' in question and ' (*) ' not in unformatted_question:
-            Parser.print_warning(f"Tossup {self.tossup_index} powermark (*) is not surrounded by spaces")
+        if "(*)" in question and " (*) " not in unformatted_question:
+            Parser.print_warning(
+                f"Tossup {self.tossup_index} powermark (*) is not surrounded by spaces"
+            )
 
         if self.modaq:
             question = format_text(question, True)
@@ -214,20 +245,28 @@ class Parser():
         data["question"] = question
 
         try:
-            answer: list[str] = regex.findall(self.REGEX_TOSSUP_ANSWER, text, flags=Parser.REGEX_FLAGS)
+            answer: list[str] = regex.findall(
+                self.REGEX_TOSSUP_ANSWER, text, flags=Parser.REGEX_FLAGS
+            )
             answer = answer[0].strip().replace("\n", " ")
             if answer.startswith(":"):
                 answer = answer[1:].strip()
         except:
-            Parser.print_error(f"Cannot find answer for tossup {self.tossup_index + 1} - {text}")
+            Parser.print_error(
+                f"Cannot find answer for tossup {self.tossup_index + 1} - {text}"
+            )
             exit(1)
 
         if "answer:" in question.lower():
-            Parser.print_warning(f"Tossup {self.tossup_index} question text may contain the answer")
+            Parser.print_warning(
+                f"Tossup {self.tossup_index} question text may contain the answer"
+            )
             self.tossup_index += 1
 
         if "answer:" in answer.lower():
-            Parser.print_warning(f"Tossup {self.tossup_index} answer may contain the next question")
+            Parser.print_warning(
+                f"Tossup {self.tossup_index} answer may contain the next question"
+            )
             self.tossup_index += 1
             if not self.has_category_tags:
                 print(f"\n{answer}\n")
@@ -242,27 +281,37 @@ class Parser():
 
         if self.has_category_tags:
             try:
-                category_tag: list[str] = regex.findall(self.REGEX_CATEGORY_TAG, remove_formatting(text), flags=Parser.REGEX_FLAGS)
+                category_tag: list[str] = regex.findall(
+                    self.REGEX_CATEGORY_TAG,
+                    remove_formatting(text),
+                    flags=Parser.REGEX_FLAGS,
+                )
                 category_tag = category_tag[0].strip().replace("\n", " ")
                 subcategory = get_subcategory(category_tag)
                 alternate_subcategory = get_alternate_subcategory(category_tag)
                 if alternate_subcategory:
                     data["alternate_subcategory"] = alternate_subcategory
             except:
-                Parser.print_error(f"Cannot find category tag for tossup {self.tossup_index} - {text}")
+                Parser.print_error(
+                    f"Cannot find category tag for tossup {self.tossup_index} - {text}"
+                )
                 exit(3)
 
             if self.modaq:
-                data['metadata'] = category_tag[1:-1]
+                data["metadata"] = category_tag[1:-1]
 
             if subcategory:
                 category = SUBCAT_TO_CAT[subcategory]
             elif self.classify_unknown:
                 category, subcategory = classify_question(data, type="tossup")
                 if not alternate_subcategory:
-                    Parser.print_warning(f"Tossup {self.tossup_index} classified as {category} / {subcategory}")
+                    Parser.print_warning(
+                        f"Tossup {self.tossup_index} classified as {category} / {subcategory}"
+                    )
             else:
-                Parser.print_warning(f"Tossup {self.tossup_index} has unrecognized subcategory {category_tag}")
+                Parser.print_warning(
+                    f"Tossup {self.tossup_index} has unrecognized subcategory {category_tag}"
+                )
         elif self.constant_category == "" or self.constant_subcategory == "":
             category, subcategory = classify_question(data, type="tossup")
         else:
@@ -276,8 +325,8 @@ class Parser():
             data["category"] = category
             data["subcategory"] = subcategory
 
-        if self.modaq and not data['metadata']:
-            data['metadata'] = category + " - " + subcategory
+        if self.modaq and not data["metadata"]:
+            data["metadata"] = category + " - " + subcategory
 
         return data
 
@@ -320,12 +369,16 @@ class Parser():
             text = text.replace(typo, "[10]")
 
         try:
-            leadin = regex.findall(self.REGEX_BONUS_LEADIN, text, flags=Parser.REGEX_FLAGS)
+            leadin = regex.findall(
+                self.REGEX_BONUS_LEADIN, text, flags=Parser.REGEX_FLAGS
+            )
             leadin = leadin[0].replace("\n", " ").strip()
             leadin = regex.sub(r"^\d{1,2}\.", "", leadin, flags=Parser.REGEX_FLAGS)
             leadin = leadin.strip()
         except:
-            Parser.print_error(f"Cannot find leadin for bonus {self.bonus_index} - {text}")
+            Parser.print_error(
+                f"Cannot find leadin for bonus {self.bonus_index} - {text}"
+            )
             exit(2)
 
         if self.modaq:
@@ -334,7 +387,9 @@ class Parser():
         else:
             data["leadin"] = remove_formatting(leadin)
 
-        parts: list[str] = regex.findall(self.REGEX_BONUS_PARTS, text, flags=Parser.REGEX_FLAGS)
+        parts: list[str] = regex.findall(
+            self.REGEX_BONUS_PARTS, text, flags=Parser.REGEX_FLAGS
+        )
         parts = [part.strip().replace("\n", " ") for part in parts]
 
         if len(parts) == 0:
@@ -342,12 +397,16 @@ class Parser():
             exit(2)
 
         if len(parts) < self.bonus_length:
-            Parser.print_warning(f"Bonus {self.bonus_index} has fewer than {self.bonus_length} parts")
+            Parser.print_warning(
+                f"Bonus {self.bonus_index} has fewer than {self.bonus_length} parts"
+            )
             if not self.has_question_numbers:
                 print(f"\n{text[3:]}\n")
 
         if len(parts) > self.bonus_length:
-            Parser.print_warning(f"Bonus {self.bonus_index} has more than {self.bonus_length} parts")
+            Parser.print_warning(
+                f"Bonus {self.bonus_index} has more than {self.bonus_length} parts"
+            )
 
         if self.modaq:
             data["parts"] = [format_text(part, True) for part in parts]
@@ -355,10 +414,14 @@ class Parser():
         else:
             data["parts"] = [remove_formatting(part) for part in parts]
 
-        answers: list[str] = regex.findall(self.REGEX_BONUS_ANSWERS, f"{text}\n[10]", flags=Parser.REGEX_FLAGS)
+        answers: list[str] = regex.findall(
+            self.REGEX_BONUS_ANSWERS, f"{text}\n[10]", flags=Parser.REGEX_FLAGS
+        )
 
         if "answer:" in leadin.lower():
-            Parser.print_warning(f"Bonus {self.bonus_index} leadin may contain the answer to the first part")
+            Parser.print_warning(
+                f"Bonus {self.bonus_index} leadin may contain the answer to the first part"
+            )
             self.bonus_index += 1
             if not self.has_question_numbers:
                 print(f"\n{leadin}\n")
@@ -373,7 +436,9 @@ class Parser():
 
         if self.modaq:
             data["answers"] = [format_text(answer, True) for answer in answers]
-            data["answers_sanitized"] = [remove_formatting(answer) for answer in answers]
+            data["answers_sanitized"] = [
+                remove_formatting(answer) for answer in answers
+            ]
         elif self.formatted_answerline:
             data["formatted_answers"] = [format_text(answer) for answer in answers]
             data["answers"] = [remove_formatting(answer) for answer in answers]
@@ -383,30 +448,36 @@ class Parser():
         if self.has_category_tags:
             try:
                 category_tag = regex.findall(
-                    self.REGEX_CATEGORY_TAG, remove_formatting(text), flags=Parser.REGEX_FLAGS
+                    self.REGEX_CATEGORY_TAG,
+                    remove_formatting(text),
+                    flags=Parser.REGEX_FLAGS,
                 )[0]
                 category_tag = category_tag.strip().replace("\n", " ")
                 subcategory = get_subcategory(category_tag)
                 alternate_subcategory = get_alternate_subcategory(category_tag)
                 if alternate_subcategory:
-                    data[
-                        "alternate_subcategory"
-                    ] = alternate_subcategory
+                    data["alternate_subcategory"] = alternate_subcategory
             except:
-                Parser.print_error(f"Cannot find category tag for bonus {self.bonus_index} - {text}")
+                Parser.print_error(
+                    f"Cannot find category tag for bonus {self.bonus_index} - {text}"
+                )
                 exit(3)
 
             if self.modaq:
-                data['metadata'] = category_tag[1:-1]
+                data["metadata"] = category_tag[1:-1]
 
             if subcategory:
                 category = SUBCAT_TO_CAT[subcategory]
             elif self.classify_unknown:
                 category, subcategory = classify_question(data, type="bonus")
                 if not alternate_subcategory:
-                    Parser.print_warning(f"Bonus {self.bonus_index} classified as {category} - {subcategory}")
+                    Parser.print_warning(
+                        f"Bonus {self.bonus_index} classified as {category} - {subcategory}"
+                    )
             else:
-                Parser.print_warning(f"Bonus {self.bonus_index} has unrecognized subcategory {category_tag}")
+                Parser.print_warning(
+                    f"Bonus {self.bonus_index} has unrecognized subcategory {category_tag}"
+                )
         elif self.constant_category == "" or self.constant_subcategory == "":
             category, subcategory = classify_question(data, type="bonus")
         else:
@@ -419,8 +490,8 @@ class Parser():
             data["category"] = category
             data["subcategory"] = subcategory
 
-        if self.modaq and not data['metadata']:
-            data['metadata'] = category + " - " + subcategory
+        if self.modaq and not data["metadata"]:
+            data["metadata"] = category + " - " + subcategory
 
         return data
 
@@ -490,7 +561,10 @@ class Parser():
             r"^\(?(\d{1,2}|TB)\)(?=[ {])", "1. ", packet_text, flags=Parser.REGEX_FLAGS
         )
         packet_text = regex.sub(
-            r"^(TB|X|Tiebreaker|Extra)[\.:]?", "21.", packet_text, flags=Parser.REGEX_FLAGS
+            r"^(TB|X|Tiebreaker|Extra)[\.:]?",
+            "21.",
+            packet_text,
+            flags=Parser.REGEX_FLAGS,
         )
         packet_text = regex.sub(
             r"^(T|S|TU)\d{1,2}[\.:]?", "21.", packet_text, flags=Parser.REGEX_FLAGS
@@ -519,7 +593,9 @@ class Parser():
 
         packet_text = self.preprocess_packet(packet_text)
 
-        packet_questions = regex.findall(self.REGEX_QUESTION, packet_text, flags=Parser.REGEX_FLAGS)
+        packet_questions = regex.findall(
+            self.REGEX_QUESTION, packet_text, flags=Parser.REGEX_FLAGS
+        )
 
         tossups = []
         bonuses = []
@@ -540,7 +616,9 @@ class Parser():
                 tossups.append(question)
 
         if packet_name:
-            print(f"Found {len(tossups):2} tossups and {len(bonuses):2} bonuses in {bcolors.OKBLUE}{packet_name}{bcolors.ENDC}")
+            print(
+                f"Found {len(tossups):2} tossups and {len(bonuses):2} bonuses in {bcolors.OKBLUE}{packet_name}{bcolors.ENDC}"
+            )
 
         data = {
             "tossups": [],
@@ -548,11 +626,11 @@ class Parser():
         }
 
         for tossup in tossups:
-            data['tossups'].append(self.parse_tossup(tossup))
+            data["tossups"].append(self.parse_tossup(tossup))
             self.tossup_index += 1
 
         for bonus in bonuses:
-            data['bonuses'].append(self.parse_bonus(bonus))
+            data["bonuses"].append(self.parse_bonus(bonus))
             self.bonus_index += 1
 
         return data
@@ -622,7 +700,17 @@ def main(
 
     ########## END OF PROMPTS ##########
 
-    parser = Parser(HAS_QUESTION_NUMBERS, HAS_CATEGORY_TAGS, bonus_length, formatted_answerline, modaq, auto_insert_powermarks, classify_unknown, CONSTANT_SUBCATEGORY, CONSTANT_ALTERNATE_SUBCATEGORY)
+    parser = Parser(
+        HAS_QUESTION_NUMBERS,
+        HAS_CATEGORY_TAGS,
+        bonus_length,
+        formatted_answerline,
+        modaq,
+        auto_insert_powermarks,
+        classify_unknown,
+        CONSTANT_SUBCATEGORY,
+        CONSTANT_ALTERNATE_SUBCATEGORY,
+    )
 
     for filename in sorted(os.listdir(input_directory)):
         if filename == ".DS_Store":
