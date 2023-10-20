@@ -2,6 +2,10 @@
 
 source download-set.sh
 
+if [ $TYPE == "doc" ]; then
+    exit 0;
+fi
+
 ##### Convert all files to .txt, and for .docx and .pdf also get the answerline formatting #####
 echo "Parsing ${TYPE} to text..."
 counter=0
