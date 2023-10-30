@@ -1,4 +1,4 @@
-# Converts a docx file to a txt file while annotating the bold and underlined parts (and no other styling).
+# Converts a docx file to a txt file while annotating the bold, italic, and underlined parts (and no other styling).
 
 from docx import Document
 import sys
@@ -7,21 +7,17 @@ document = Document(sys.argv[1])
 for para in document.paragraphs:
     text = ""
     for runs in para.runs:
-        run = ""
         if len(runs.text.strip()) == 0:
-            run = runs.text
+            text += runs.text
+            continue
 
-        elif runs.bold and runs.underline:
-            run = "{bu}" + runs.text + "{/bu}"
+        run = runs.text
 
-        elif runs.underline:
-            run = "{u}" + runs.text + "{/u}"
+        if runs.underline:
+            run = "{u}" + run + "{/u}"
 
-        elif runs.bold:
-            run = "{b}" + runs.text + "{/b}"
-
-        else:
-            run = runs.text
+        if runs.bold:
+            run = "{b}" + run + "{/b}"
 
         if runs.italic:
             run = "{i}" + run + "{/i}"

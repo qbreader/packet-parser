@@ -27,7 +27,7 @@ Make sure you have python3 installed on your computer.
 ```
 
 5. If any errors appear during the text->json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `packet-parser.py -f`. **If you specified txt files when running ./get-set.sh, do not include the -f flag.**
-   - The -f flag tells the parser to look for the following sequences: {bu}, {/bu}, {u}, {/u}, {i}, {/i}, which indicate where in the answerline there should be bolding/underlining/italics.
+   - The -f flag tells the parser to look for the following sequences: {b}, {/b}, {u}, {/u}, {i}, {/i}, which indicate where in the answerline there should be bolding/underlining/italics.
 
 ## Errors
 

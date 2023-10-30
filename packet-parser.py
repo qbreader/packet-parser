@@ -29,9 +29,7 @@ with open("modules/subcat-to-cat.json") as f:
 
 def format_text(text: str, modaq=False) -> str:
     text = (
-        text.replace("{bu}", "<b><u>")
-        .replace("{/bu}", "</u></b>")
-        .replace("{b}", "<b>")
+        text.replace("{b}", "<b>")
         .replace("{/b}", "</b>")
         .replace("{u}", "<u>")
         .replace("{/u}", "</u>")
@@ -91,9 +89,7 @@ def get_alternate_subcategory(text: str) -> str:
 
 def remove_formatting(text: str, include_italics=False):
     text = (
-        text.replace("{bu}", "")
-        .replace("{/bu}", "")
-        .replace("{b}", "")
+        text.replace("{b}", "")
         .replace("{/b}", "")
         .replace("{u}", "")
         .replace("{/u}", "")
