@@ -9,7 +9,7 @@ case $LEVEL in
     t) URL="trash.quizbowlpackets.com/" ;;
 esac
 
-##### Download all packets in the set #####
+##### Download all packets in the set to folder called p-TYPE #####
 read -p "Set ID (number after ${URL}): " SET
 read -p "File type (p = pdf, d = docx, c = doc): " TYPE
 case $TYPE in
