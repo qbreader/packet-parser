@@ -492,6 +492,9 @@ class Parser:
         return data
 
     def preprocess_packet(self, packet_text: str) -> str:
+        if self.modaq:
+            packet_text = packet_text.replace('"', "\u0022")
+
         packet_text = packet_text + "\n0."
         # remove zero-width characters
         packet_text = packet_text.replace("", "").replace("​", "")
