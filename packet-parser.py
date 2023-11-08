@@ -302,7 +302,7 @@ class Parser:
                 category, subcategory = classify_question(data, type="tossup")
                 if not alternate_subcategory:
                     Parser.print_warning(
-                        f"Tossup {self.tossup_index} classified as {category} / {subcategory}"
+                        f"Tossup {self.tossup_index} classified as {category} - {subcategory}"
                     )
             else:
                 Parser.print_warning(
