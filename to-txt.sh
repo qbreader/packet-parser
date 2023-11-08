@@ -11,6 +11,7 @@ if [ -z "$TYPE" ]; then
 fi
 
 echo "Parsing ${TYPE} to text..."
+mkdir -p "packets"
 
 counter=0
 for filename in p-$TYPE/*.$TYPE; do
