@@ -353,7 +353,7 @@ class Parser:
         if len(values) > 0:
             data["values"] = values
         elif self.modaq:
-            data["values"] = [10 for _ in range(len(parts))]
+            data["values"] = [10 for _ in range(len(tags))]
 
         if len(difficulties) > 0:
             if self.modaq:
