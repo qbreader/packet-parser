@@ -648,10 +648,10 @@ class Parser:
 )
 @click.option("-e", "-l", "--bonus-length", default=3, show_default=True, type=int)
 @click.option(
-    "-f",
-    "--formatted-answerline",
+    "-u",
+    "--unformatted-answerline",
     is_flag=True,
-    help="Include formatted answerline in output",
+    help="Don't include formatted answerline in output",
 )
 @click.option(
     "-m",
@@ -666,39 +666,54 @@ class Parser:
     help="Insert powermarks for questions that are bolded in power but do not have an explicit powermark.",
 )
 @click.option(
-    "-u",
+    "-c",
     "--classify-unknown",
     is_flag=True,
     default=True,
     show_default=True,
     help="Auto classify unrecognized categories in tags.",
 )
+@click.option(
+    "-f",
+    "--force-overwrite",
+    is_flag=True,
+    help="Overwrite existing files in output/ directory.",
+)
 def main(
     input_directory,
     output_directory,
     bonus_length,
-    formatted_answerline,
+    unformatted_answerline,
     modaq,
     auto_insert_powermarks,
     classify_unknown,
+    force_overwrite,
 ):
     ########## START OF PROMPTS ##########
-
-    HAS_QUESTION_NUMBERS = input("Do you have question numbers? (y/n) ") == "y"
-    HAS_CATEGORY_TAGS = input("Do you have category tags? (y/n) ") == "y"
-    print("Using category tags" if HAS_CATEGORY_TAGS else "Using question classifier")
 
     try:
         os.mkdir(output_directory)
     except FileExistsError:
         print(
-            f"{bcolors.WARNING}WARNING:{bcolors.ENDC} Output directory already exists"
+            f"{bcolors.WARNING}WARNING:{bcolors.ENDC} Output directory already exists!"
         )
-        if not input("Continue? (y/n) ") == "y":
+        if force_overwrite:
+            print(
+                f"{bcolors.WARNING}WARNING:{bcolors.ENDC} Overwriting files in output directory"
+            )
+        else:
+            print(
+                "Use -f/--force-overwrite to overwrite existing files in output directory"
+            )
             exit(0)
+
+    HAS_QUESTION_NUMBERS = input("Do you have question numbers? (y/n) ") == "y"
+    HAS_CATEGORY_TAGS = input("Do you have category tags? (y/n) ") == "y"
+    print("Using category tags" if HAS_CATEGORY_TAGS else "Using question classifier")
 
     ########## END OF PROMPTS ##########
 
+    formatted_answerline = not unformatted_answerline
     parser = Parser(
         HAS_QUESTION_NUMBERS,
         HAS_CATEGORY_TAGS,
