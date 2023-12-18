@@ -26,8 +26,24 @@ Make sure you have python3 installed on your computer.
 <GW - Science, Biology>
 ```
 
-5. If any errors appear during the text->json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `packet-parser.py -f`. **If you specified txt files when running ./get-set.sh, do not include the -f flag.**
-   - The -f flag tells the parser to look for the following sequences: {b}, {/b}, {u}, {/u}, {i}, {/i}, which indicate where in the answerline there should be bolding/underlining/italics.
+5. If any errors appear during the text->json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `packet-parser.py`. **If you specified txt files when running ./get-set.sh, include the -u flag.**
+   - The parser looks for the following sequences: {b}, {/b}, {u}, {/u}, {i}, {/i}, which indicate where in the answerline there should be bolding/underlining/italics.
+     These sequences are produced by the step that converts pdf / docx to txt.
+   - The -u flag ignores these sequences.
+
+### Command Line Options
+
+You can more info by running `python packet-parser.py --help`.
+Here are some common flags/options:
+
+- `-m, --modaq`:
+  Output in a format compatible with MODAQ.
+- `-p, --auto-insert-powermarks`:
+  Insert powermarks for questions that are bolded in power but do not have an explicit powermark.
+  Most useful for old Chicago Open packets.
+- `-e, -l, --bonus-length INTEGER [default: 3]`:
+  The number of parts in a bonus.
+  Useful when you don't have 3-part bonuses (e.g. MUSES).
 
 ## Errors
 
