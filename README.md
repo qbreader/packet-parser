@@ -31,6 +31,10 @@ Make sure you have python3 installed on your computer.
      These sequences are produced by the step that converts pdf / docx to txt.
    - The -u flag ignores these sequences.
 
+If you are using a Mac，you can use [MacroRecorder](https://www.macrorecorder.com/) along with the provided macro file `doc-to-docx.mrf` to automatically convert doc files to docx files.
+
+**Note:** There are known issues with this macro; I've only gotten it to work on 16" Macbook Pros.
+
 ### Command Line Options
 
 You can more info by running `python packet-parser.py --help`.
