@@ -9,7 +9,6 @@ World History
 Biology
 Chemistry
 Physics
-Math
 Other Science
 Visual Fine Arts
 Auditory Fine Arts

@@ -126,17 +126,8 @@ for f in *; do if [ ${#f} = 6 ] ; then mv "$f" "0${f}"; fi; done
 
 ## Classifier
 
-This repository includes a classifier located in the `classifier/` directory, which is a modified Naive Bayes classifier.
-In particular, the formula used is
-
-$$
-\argmax_{y \in S} \sum_{\text{word} \in W} \ln(P(\text{word} | y) + \epsilon)
-$$
-
-where $S$ is the set of subcategories and $W$ is the set of words in the question that are not in the `stop-words.txt` list.
-Note that this differs from the Naive Bayes formula in that the (class) priors are not included.
-
-$\epsilon$ is a smoothing parameter (to avoid taking the natural log of 0), and is equal to $0.00001$.
+This repository includes a classifier located in the `classifier/` directory, which is a Naive Bayes classifier that uses [additive smoothing](https://en.wikipedia.org/wiki/Additive_smoothing) controlled by $\epsilon$, the smoothing parameter.
+The default value of $\epsilon$ is $0.01$.
 
 ### Performance
 
@@ -144,23 +135,8 @@ $\epsilon$ is a smoothing parameter (to avoid taking the natural log of 0), and 
 Below is the accuracy and time[^2] for a 20% test set:
 
 ```
-Modified Naive Bayes accuracy / time:  82.10% (26818/32667) / 19.42 seconds
+Naive Bayes accuracy / time:  85.35% (46053/53955) / 19.45 seconds (0.360 milliseconds per question)
 ```
-
-Some more results:
-
-**Note:** `set` refers to calling the python `set` function on the list of tokens
-
-- `set` on prediction, no `set` on generation: 26572
-- no `set` on prediction, no `set` on generation: 26639
-- no `set` on prediction, `set` on generation: 26624
-- `set` on prediction, `set` on generation: 26550
-
-| epsilon  | values |
-| -------- | ------ |
-| 0.0001   | 26681  |
-| 0.00001  | 26818  |
-| 0.000001 | 26807  |
 
 ## QuizDB
 

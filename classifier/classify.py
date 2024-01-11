@@ -13,7 +13,10 @@ with open(os.path.join(CURRENT_PATH, "subcategories.txt")) as f:
     SUBCATEGORIES = [line.strip() for line in f.readlines()]
 
 with open(os.path.join(CURRENT_PATH, "word-to-subcat.json")) as f:
-    WORD_TO_SUBCAT_PROBABILITY = json.load(f)
+    WORD_TO_SUBCAT_INFO = json.load(f)
+    WORD_TO_SUBCAT_FREQUENCIES = WORD_TO_SUBCAT_INFO["frequencies"]
+    SUBCATEGORY_FREQUENCIES = WORD_TO_SUBCAT_INFO["subcategory_frequencies"]
+    PRIORS = [math.log(x) for x in SUBCATEGORY_FREQUENCIES]
 
 with open(os.path.join(CURRENT_PATH, "../modules/subcat-to-cat.json")) as f:
     SUBCAT_TO_CAT = json.load(f)
@@ -37,21 +40,23 @@ def classify_question(question, type="tossup"):
     return SUBCAT_TO_CAT[prediction], prediction
 
 
-def classify_subcategory(text, EPSILON=0.00001):
-    likelihoods = [0 for _ in SUBCATEGORIES]
+def classify_subcategory(text, EPSILON=0.01):
+    likelihoods = [i for i in PRIORS]
+    SMOOTHED_SUBCATEGORY_FREQUENCIES = [
+        math.log(x + EPSILON * len(SUBCATEGORIES)) for x in SUBCATEGORY_FREQUENCIES
+    ]
+
     text = removePunctuation(text).lower().split()
     for token in text:
         if token in STOP_WORDS:
             continue
 
-        if token in WORD_TO_SUBCAT_PROBABILITY:
-            for i in range(len(SUBCATEGORIES)):
-                likelihoods[i] += math.log(
-                    WORD_TO_SUBCAT_PROBABILITY[token][i] + EPSILON
-                )
-        else:
-            # print('Token not in word-to-subcat:', token)
-            pass
+        if token not in WORD_TO_SUBCAT_FREQUENCIES:
+            continue
+
+        for i in range(len(SUBCATEGORIES)):
+            likelihoods[i] += math.log(WORD_TO_SUBCAT_FREQUENCIES[token][i] + EPSILON)
+            likelihoods[i] -= SMOOTHED_SUBCATEGORY_FREQUENCIES[i]
 
     max_likelihood = max(likelihoods)
     # as far as I can tell, there's always only one valid index
