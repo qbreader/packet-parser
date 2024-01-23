@@ -1,39 +1,38 @@
 # qbreader/packet-parser
 
-A complete program to automatically download and parse a set of packets from [quizbowlpackets.com](https://quizbowlpackets.com/) for use in the qbreader/website.
-Can also be used to parse individual packets.
-Includes a question category/subcategory classifier.
-Designed to work well with a variety of packet formats - can parse packets "as-is".
+A complete program to automatically parse quizbowl packets, such as from [quizbowlpackets.com](https://quizbowlpackets.com/), for use in the [qbreader/website](https://github.com/qbreader/website).
+
+- Can also be used to parse individual packets.
+- Includes a question category/subcategory classifier.
+- Designed to work well with a variety of packet formats - can parse packets "as-is".
 
 **WARNING:** Although the program can parse pdf files, results may vary - pdf parsing is notoriously inconsistent.
 
 ## How to Use
 
-Make sure you have python3 installed on your computer.
+Make sure you have python3 and pip installed on your computer.
 
 1. Clone the repository and cd into the folder.
-2. Install pdf2docx, regex, and python-docx with `pip install -r requirements.txt`.
-3. Run the command `./get-set.sh` (equivalent to calling `bash get-set.sh`).
-   Packets will automatically be downloaded and parsed and appear in the folder `output/`.
-4. The script will prompt you if the packets have category tags.
-   You can check by seeing if there are tags that look like one of the following in the packets:
-   (If unsure, reply with "n").
+2. Install necessary python libraries (e.g. pdf2docx, regex, python-docx) with `pip install -r requirements.txt`.
+3. Download the packets, either manually or using `download-set.sh`.
 
-```
-<Science - Biology>
-<Biology>
-<Ed. Wu - Biology>
-<GW - Science, Biology>
-```
+   - If the packets are `.docx` files, then place the packets in a folder called `p-docx`.
+   - If the packets are `.pdf` files, then place the packets in a folder called `p-pdf`.
+   - If the packets are `.txt` files, then place the packets in a folder called `packets`
+   - If you are using a Mac，you can use [MacroRecorder](https://www.macrorecorder.com/) along with the provided macro file `doc-to-docx.mrf` to automatically convert doc files to docx files.
+     - **Note:** There are known issues with this macro; I've only gotten it to work on 16" Macbook Pros.
 
-5. If any errors appear during the text->json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `packet-parser.py`. **If you specified txt files when running ./get-set.sh, include the -u flag.**
-   - The parser looks for the following sequences: {b}, {/b}, {u}, {/u}, {i}, {/i}, which indicate where in the answerline there should be bolding/underlining/italics.
-     These sequences are produced by the step that converts pdf / docx to txt.
-   - The -u flag ignores these sequences.
-
-If you are using a Mac，you can use [MacroRecorder](https://www.macrorecorder.com/) along with the provided macro file `doc-to-docx.mrf` to automatically convert doc files to docx files.
-
-**Note:** There are known issues with this macro; I've only gotten it to work on 16" Macbook Pros.
+4. If the packets are `.docx` or `.pdf` files, then run the `to-txt.sh` file to convert them to `.txt` files.
+5. Run the `packet-parser.py` python file.
+   Specify the `-m` flag if you want to output in a format compatible with [MODAQ](https://github.com/alopezlago/MODAQ).
+   - The script will prompt you if the packets have category tags.
+     You can check by seeing if there are tags that look like one of the following in the packets:
+     (If unsure, reply with "n").
+     - \<Science - Biology\>
+     - \<Biology\>
+     - \<Ed. Wu - Biology\>
+     - \<GW - Science, Biology\>
+   - If any errors appear during the text -> json step, delete the `output/` folder, fix any mistakes in `packets/`, and run `packet-parser.py`.
 
 ### Command Line Options
 
@@ -41,7 +40,7 @@ You can more info by running `python packet-parser.py --help`.
 Here are some common flags/options:
 
 - `-m, --modaq`:
-  Output in a format compatible with MODAQ.
+  Output in a format compatible with **MODAQ**.
 - `-p, --auto-insert-powermarks`:
   Insert powermarks for questions that are bolded in power but do not have an explicit powermark.
   Most useful for old Chicago Open packets.
