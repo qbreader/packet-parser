@@ -19,8 +19,8 @@ for filename in p-$TYPE/*.$TYPE; do
     counter=$((counter+1))
     BASENAME=$(echo "${filename}" | cut -d'/' -f 2)
     case $TYPE in
-        pdf) python3 modules/pdf-to-docx.py "$filename" && python3 modules/docx-to-txt.py "${filename%.pdf}.docx" > "packets/${BASENAME%.pdf}.txt";;
-        docx) python3 modules/docx-to-txt.py "${filename}" > "packets/${BASENAME%.docx}.txt" ;;
+        pdf) python modules/pdf-to-docx.py "$filename" && python modules/docx-to-txt.py "${filename%.pdf}.docx" > "packets/${BASENAME%.pdf}.txt";;
+        docx) python modules/docx-to-txt.py "${filename}" > "packets/${BASENAME%.docx}.txt" ;;
         txt) mv "$filename" "packets/${BASENAME%.txt}.txt" ;;
     esac
 done
