@@ -12,11 +12,26 @@ with open(os.path.join(CURRENT_PATH, "stop-words.txt")) as f:
 with open(os.path.join(CURRENT_PATH, "subcategories.txt")) as f:
     SUBCATEGORIES = [line.strip() for line in f.readlines()]
 
-with open(os.path.join(CURRENT_PATH, "word-to-subcat.json")) as f:
-    WORD_TO_SUBCAT_INFO = json.load(f)
-    WORD_TO_SUBCAT_FREQUENCIES = WORD_TO_SUBCAT_INFO["frequencies"]
-    SUBCATEGORY_FREQUENCIES = WORD_TO_SUBCAT_INFO["subcategory_frequencies"]
-    PRIORS = [math.log(x) for x in SUBCATEGORY_FREQUENCIES]
+with open(os.path.join(CURRENT_PATH, "alternate-subcategories.json")) as f:
+    ALTERNATE_SUBCATEGORIES = json.load(f)
+
+with open(os.path.join(CURRENT_PATH, "subsubcategories.json")) as f:
+    SUBSUBCATEGORIES = json.load(f)
+
+with open(os.path.join(CURRENT_PATH, "classifier-subcategory.json")) as f:
+    data = json.load(f)
+    WORD_TO_SUBCATEGORY = data["word_to_subcategory"]
+    SUBCATEGORY_FREQUENCIES = data["subcategory_frequencies"]
+
+with open(os.path.join(CURRENT_PATH, "classifier-alternate-subcategory.json")) as f:
+    data = json.load(f)
+    WORD_TO_ALTERNATE_SUBCATEGORY = data["word_to_alternate_subcategory"]
+    ALTERNATE_SUBCATEGORY_FREQUENCIES = data["alternate_subcategory_frequencies"]
+
+with open(os.path.join(CURRENT_PATH, "classifier-subsubcategory.json")) as f:
+    data = json.load(f)
+    WORD_TO_SUBSUBCATEGORY = data["word_to_subsubcategory"]
+    SUBSUBCATEGORY_FREQUENCIES = data["subsubcategory_frequencies"]
 
 with open(os.path.join(CURRENT_PATH, "../modules/subcat-to-cat.json")) as f:
     SUBCAT_TO_CAT = json.load(f)
@@ -24,11 +39,9 @@ with open(os.path.join(CURRENT_PATH, "../modules/subcat-to-cat.json")) as f:
 
 def classify_question(question, type="tossup"):
     if type == "tossup":
-        prediction = classify_subcategory(
-            question["question"] + " " + question["answer"]
-        )
+        text = question["question"] + " " + question["answer"]
     elif type == "bonus":
-        prediction = classify_subcategory(
+        text = (
             question["leadin"]
             + " "
             + " ".join(question["parts"])
@@ -37,13 +50,57 @@ def classify_question(question, type="tossup"):
     else:
         raise ValueError("type must be tossup or bonus")
 
-    return SUBCAT_TO_CAT[prediction], prediction
+    subcategory = classify(text, mode="subcategory")
+    category = SUBCAT_TO_CAT[subcategory]
+    alternate_subcategory = None
+
+    if category in ALTERNATE_SUBCATEGORIES:
+        alternate_subcategory = classify(
+            text, mode="alternate-subcategory", category=category
+        )
+
+    if subcategory in SUBSUBCATEGORIES:
+        # TODO: change to subsubcategory
+        alternate_subcategory = classify(
+            text, mode="subsubcategory", subcategory=subcategory
+        )
+
+    return SUBCAT_TO_CAT[subcategory], subcategory, alternate_subcategory
 
 
-def classify_subcategory(text, EPSILON=0.01):
-    likelihoods = [i for i in PRIORS]
-    SMOOTHED_SUBCATEGORY_FREQUENCIES = [
-        math.log(x + EPSILON * len(SUBCATEGORIES)) for x in SUBCATEGORY_FREQUENCIES
+def classify(text, mode="subcategory", category="", subcategory="", EPSILON=0.01):
+    if mode == "subcategory":
+        index = naive_bayes_classify(
+            text, WORD_TO_SUBCATEGORY, SUBCATEGORY_FREQUENCIES, EPSILON=EPSILON
+        )
+        return SUBCATEGORIES[index]
+
+    if mode == "alternate-subcategory":
+        index = naive_bayes_classify(
+            text,
+            WORD_TO_ALTERNATE_SUBCATEGORY[category],
+            ALTERNATE_SUBCATEGORY_FREQUENCIES[category],
+            EPSILON=EPSILON,
+        )
+        return ALTERNATE_SUBCATEGORIES[category][index]
+
+    if mode == "subsubcategory":
+        index = naive_bayes_classify(
+            text,
+            WORD_TO_SUBSUBCATEGORY[subcategory],
+            SUBSUBCATEGORY_FREQUENCIES[subcategory],
+            EPSILON=EPSILON,
+        )
+        return SUBSUBCATEGORIES[subcategory][index]
+
+
+def naive_bayes_classify(text, WORD_TO_FREQUENCY, CLASS_FREQUENCIES, EPSILON=0.01):
+    """
+    Returns the index of the class prediction.
+    """
+    likelihoods = [math.log(x) for x in CLASS_FREQUENCIES]
+    SMOOTHED_CLASS_FREQUENCIES = [
+        math.log(x + EPSILON * len(CLASS_FREQUENCIES)) for x in CLASS_FREQUENCIES
     ]
 
     text = removePunctuation(text).lower().split()
@@ -51,19 +108,19 @@ def classify_subcategory(text, EPSILON=0.01):
         if token in STOP_WORDS:
             continue
 
-        if token not in WORD_TO_SUBCAT_FREQUENCIES:
+        if token not in WORD_TO_FREQUENCY:
             continue
 
-        for i in range(len(SUBCATEGORIES)):
-            likelihoods[i] += math.log(WORD_TO_SUBCAT_FREQUENCIES[token][i] + EPSILON)
-            likelihoods[i] -= SMOOTHED_SUBCATEGORY_FREQUENCIES[i]
+        for i in range(len(CLASS_FREQUENCIES)):
+            likelihoods[i] += math.log(WORD_TO_FREQUENCY[token][i] + EPSILON)
+            likelihoods[i] -= SMOOTHED_CLASS_FREQUENCIES[i]
 
     max_likelihood = max(likelihoods)
     # as far as I can tell, there's always only one valid index
     valid_indices = [
         i for i, likelihood in enumerate(likelihoods) if likelihood == max_likelihood
     ]
-    return SUBCATEGORIES[np.random.choice(valid_indices)]
+    return np.random.choice(valid_indices)
 
 
 def removePunctuation(s, punctuation=""".,!-;:'"\/?@#$%^&*_~()[]{}“”‘’"""):
@@ -73,8 +130,9 @@ def removePunctuation(s, punctuation=""".,!-;:'"\/?@#$%^&*_~()[]{}“”‘’""
 if __name__ == "__main__":
     for line in open("input.txt"):
         data = json.loads(line.strip())
-        prediction = classify_subcategory(data["text"])
-        cat, subcat = SUBCAT_TO_CAT[prediction], prediction
-        data["category"] = cat
-        data["subcategory"] = subcat
+        category, subcategory, alternate_subcategory = classify(
+            data["text"], data["type"]
+        )
+        data["category"] = category
+        data["subcategory"] = subcategory
         print(json.dumps(data, indent=None))

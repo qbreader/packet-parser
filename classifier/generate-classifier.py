@@ -41,15 +41,32 @@ with open("stop-words.txt") as f:
 with open("subcategories.txt") as f:
     SUBCATEGORIES = [line.strip() for line in f.readlines()]
 
-word_to_subcat = {}
-subcat_frequencies = [0 for subcat in SUBCATEGORIES]
+with open("alternate-subcategories.json") as f:
+    ALTERNATE_SUBCATEGORIES = json.load(f)
+
+with open("subsubcategories.json") as f:
+    SUBSUBCATEGORIES = json.load(f)
+
+word_to_subcategory = {}
+word_to_alternate_subcategory = {category: {} for category in ALTERNATE_SUBCATEGORIES}
+word_to_subsubcategory = {subcategory: {} for subcategory in SUBSUBCATEGORIES}
+subcategory_frequencies = [0 for subcategory in SUBCATEGORIES]
+alternate_subcategory_frequencies = {
+    category: [0 for subcategory in ALTERNATE_SUBCATEGORIES[category]]
+    for category in ALTERNATE_SUBCATEGORIES
+}
+subsubcategory_frequencies = {
+    subcategory: [0 for subsubcategory in SUBSUBCATEGORIES[subcategory]]
+    for subcategory in SUBSUBCATEGORIES
+}
 
 for line in tqdm(questions[int(0.2 * len(questions)) :]):
     data = json.loads(line)
 
-    if "subcategory" not in data:
+    if "category" not in data or "subcategory" not in data:
         continue
 
+    category = data["category"]
     subcategory = data["subcategory"]
 
     if subcategory not in SUBCATEGORIES:
@@ -81,38 +98,73 @@ for line in tqdm(questions[int(0.2 * len(questions)) :]):
 
     tokens = [token for token in tokens if token not in stop_words]
     for token in tokens:
-        if token not in word_to_subcat:
-            word_to_subcat[token] = [0 for _ in range(len(SUBCATEGORIES))]
+        if token not in word_to_subcategory:
+            word_to_subcategory[token] = [0 for _ in range(len(SUBCATEGORIES))]
 
-        word_to_subcat[token][subcategory_index] += 1
+        word_to_subcategory[token][subcategory_index] += 1
 
-    subcat_frequencies[subcategory_index] += 1
+    subcategory_frequencies[subcategory_index] += 1
 
-with open("word-to-subcat.json", "w") as f:
-    # for word in word_to_subcat:
-    #     word_to_subcat[word] = [
-    #         i / frequency
-    #         for i, frequency in zip(word_to_subcat[word], subcat_frequencies)
-    #     ]
-    #     word_to_subcat[word] = [round_to_n(i, 5) for i in word_to_subcat[word]]
+    if (
+        category in word_to_alternate_subcategory
+        and "alternate_subcategory" in data
+        and data["alternate_subcategory"] in ALTERNATE_SUBCATEGORIES[category]
+    ):
+        alternate_subcategory = data["alternate_subcategory"]
+        index = ALTERNATE_SUBCATEGORIES[category].index(alternate_subcategory)
+
+        for token in tokens:
+            if token not in word_to_alternate_subcategory[category]:
+                word_to_alternate_subcategory[category][token] = [
+                    0 for _ in range(len(ALTERNATE_SUBCATEGORIES[category]))
+                ]
+
+            word_to_alternate_subcategory[category][token][index] += 1
+
+        alternate_subcategory_frequencies[category][index] += 1
+
+    if (
+        subcategory in word_to_subsubcategory
+        and "alternate_subcategory" in data
+        and data["alternate_subcategory"] in SUBSUBCATEGORIES[subcategory]
+    ):
+        # TODO: change this to subsubcategory
+        subsubcategory = data["alternate_subcategory"]
+        index = SUBSUBCATEGORIES[subcategory].index(subsubcategory)
+
+        for token in tokens:
+            if token not in word_to_subsubcategory[subcategory]:
+                word_to_subsubcategory[subcategory][token] = [
+                    0 for _ in range(len(SUBSUBCATEGORIES[subcategory]))
+                ]
+
+            word_to_subsubcategory[subcategory][token][index] += 1
+
+        subsubcategory_frequencies[subcategory][index] += 1
+
+with open("classifier-subcategory.json", "w") as f:
     json.dump(
         {
-            "word_to_subcat": word_to_subcat,
-            "subcategory_frequencies": subcat_frequencies,
+            "word_to_subcategory": word_to_subcategory,
+            "subcategory_frequencies": subcategory_frequencies,
         },
         f,
     )
 
-# with open('priors.json', 'w') as f:
-#     priors = [frequency / sum(subcat_frequencies) for frequency in subcat_frequencies]
-#     priors = [round_to_n(i, 5) for i in priors]
-#     json.dump(priors, f)
+with open("classifier-alternate-subcategory.json", "w") as f:
+    json.dump(
+        {
+            "word_to_alternate_subcategory": word_to_alternate_subcategory,
+            "alternate_subcategory_frequencies": alternate_subcategory_frequencies,
+        },
+        f,
+    )
 
-# for word in word_to_subcat:
-#     hhi_value = normalized_hhi(word_to_subcat[word])
-#     factor = hhi_value**4 / sum(word_to_subcat[word])
-#     word_to_subcat[word] = [factor * i for i in word_to_subcat[word]]
-#     word_to_subcat[word] = [round_to_n(i, 5) for i in word_to_subcat[word]]
-
-# with open('word-to-subcat-normalized.json', 'w') as f:
-#     json.dump(word_to_subcat, f)
+with open("classifier-subsubcategory.json", "w") as f:
+    json.dump(
+        {
+            "word_to_subsubcategory": word_to_subsubcategory,
+            "subsubcategory_frequencies": subsubcategory_frequencies,
+        },
+        f,
+    )
