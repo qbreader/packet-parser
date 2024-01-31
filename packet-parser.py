@@ -392,18 +392,6 @@ class Parser:
             Parser.print_error(f"No parts found for bonus {self.bonus_index} - {text}")
             exit(2)
 
-        if len(parts) < self.bonus_length:
-            Parser.print_warning(
-                f"Bonus {self.bonus_index} has fewer than {self.bonus_length} parts"
-            )
-            if not self.has_question_numbers:
-                print(f"\n{text[3:]}\n")
-
-        if len(parts) > self.bonus_length:
-            Parser.print_warning(
-                f"Bonus {self.bonus_index} has more than {self.bonus_length} parts"
-            )
-
         if self.modaq:
             data["parts"] = [format_text(part, True) for part in parts]
             data["parts_sanitized"] = [remove_formatting(part) for part in parts]
@@ -440,6 +428,18 @@ class Parser:
             data["answers"] = [remove_formatting(answer) for answer in answers]
         else:
             data["answers"] = [remove_formatting(answer) for answer in answers]
+
+        if len(parts) < self.bonus_length or len(answers) < self.bonus_length:
+            Parser.print_warning(
+                f"Bonus {self.bonus_index} has fewer than {self.bonus_length} parts"
+            )
+            if not self.has_question_numbers:
+                print(f"\n{text[3:]}\n")
+
+        if len(parts) > self.bonus_length or len(answers) > self.bonus_length:
+            Parser.print_warning(
+                f"Bonus {self.bonus_index} has more than {self.bonus_length} parts"
+            )
 
         if self.has_category_tags:
             try:
