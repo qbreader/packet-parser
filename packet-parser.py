@@ -243,7 +243,7 @@ class Parser:
         else:
             question = unformatted_question
 
-        data["question"] = question
+        data["question"] = question.strip()
 
         try:
             answer: list[str] = regex.findall(
