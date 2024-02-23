@@ -64,6 +64,7 @@
     "Any History": "Other History",
     "Bio": "Biology",
     "Biology": "Biology",
+    "Botany": "Biology",
     "Chem": "Chemistry",
     "Chemistry": "Chemistry",
     "Phys": "Physics",
@@ -105,6 +106,7 @@
     "Auditory FA": "Auditory Fine Arts",
     "Auditory Fine Art": "Auditory Fine Arts",
     "Auditory Fine Arts": "Auditory Fine Arts",
+    "Audial Fine Arts": "Auditory Fine Arts",
     "Auditory Arts": "Auditory Fine Arts",
     "Auditory Art": "Auditory Fine Arts",
     "Classical Music": "Auditory Fine Arts",
@@ -182,6 +184,7 @@
     "Movies": "Trash",
     "Pop Culture": "Trash",
     "Popular Culture": "Trash",
+    "Culture": "Trash",
     "Sports": "Trash",
     "Other": "Other Academic"
 }
