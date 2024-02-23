@@ -111,6 +111,16 @@ def remove_punctuation(s: str, punctuation=""".,!-;:'"\/?@#$%^&*_~()[]{}“”�
     return "".join(ch for ch in s if ch not in punctuation)
 
 
+class Logger:
+    @staticmethod
+    def error(message: str):
+        print(f"{bcolors.FAIL}ERROR:{bcolors.ENDC} {message}")
+
+    @staticmethod
+    def warning(message: str):
+        print(f"{bcolors.WARNING}WARNING:{bcolors.ENDC} {message}")
+
+
 class Parser:
     REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
 
@@ -189,14 +199,6 @@ class Parser:
         )
         self.REGEX_BONUS_TAGS = r"(?<=\[)\d{0,2}?[EMH]?(?=\])"
 
-    @staticmethod
-    def print_error(message: str):
-        print(f"{bcolors.FAIL}ERROR:{bcolors.ENDC} {message}")
-
-    @staticmethod
-    def print_warning(message: str):
-        print(f"{bcolors.WARNING}WARNING:{bcolors.ENDC} {message}")
-
     def parse_tossup(self, text: str) -> dict:
         data = {}
 
@@ -217,19 +219,17 @@ class Parser:
             question = regex.sub(r"^\d{1,2}\.", "", question, flags=Parser.REGEX_FLAGS)
             question = question.strip()
         except:
-            Parser.print_error(
+            Logger.error(
                 f"Cannot find question text for tossup {self.tossup_index} - {text}"
             )
             exit(1)
 
         if len(question) == 0:
-            Parser.print_error(
-                f"Tossup {self.tossup_index} question text is empty - {text}"
-            )
+            Logger.error(f"Tossup {self.tossup_index} question text is empty - {text}")
             exit(1)
 
         if len(regex.findall(r"\(\*\)", question)) >= 2:
-            Parser.print_warning(
+            Logger.warning(
                 f"Tossup {self.tossup_index} contains multiple powermarks (*)"
             )
 
@@ -254,7 +254,7 @@ class Parser:
             if answer.startswith(":"):
                 answer = answer[1:].strip()
         except:
-            Parser.print_error(
+            Logger.error(
                 f"Cannot find answer for tossup {self.tossup_index + 1} - {text}"
             )
             exit(1)
@@ -294,7 +294,7 @@ class Parser:
                 if alternate_subcategory:
                     data["alternate_subcategory"] = alternate_subcategory
             except:
-                Parser.print_error(
+                Logger.error(
                     f"Cannot find category tag for tossup {self.tossup_index} - {text}"
                 )
                 exit(3)
@@ -398,9 +398,7 @@ class Parser:
             leadin = regex.sub(r"^\d{1,2}\.", "", leadin, flags=Parser.REGEX_FLAGS)
             leadin = leadin.strip()
         except:
-            Parser.print_error(
-                f"Cannot find leadin for bonus {self.bonus_index} - {text}"
-            )
+            Logger.error(f"Cannot find leadin for bonus {self.bonus_index} - {text}")
             exit(2)
 
         if self.modaq:
@@ -415,7 +413,7 @@ class Parser:
         parts = [part.strip().replace("\n", " ") for part in parts]
 
         if len(parts) == 0:
-            Parser.print_error(f"No parts found for bonus {self.bonus_index} - {text}")
+            Logger.error(f"No parts found for bonus {self.bonus_index} - {text}")
             exit(2)
 
         if self.modaq:
@@ -480,7 +478,7 @@ class Parser:
                 if alternate_subcategory:
                     data["alternate_subcategory"] = alternate_subcategory
             except:
-                Parser.print_error(
+                Logger.error(
                     f"Cannot find category tag for bonus {self.bonus_index} - {text}"
                 )
                 exit(3)
