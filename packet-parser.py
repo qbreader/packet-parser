@@ -305,11 +305,13 @@ class Parser:
             if subcategory:
                 category = SUBCAT_TO_CAT[subcategory]
             elif self.classify_unknown:
-                category, subcategory = classify_question(data, type="tossup")
+                category, subcategory, temp = classify_question(data, type="tossup")
                 if not alternate_subcategory:
                     Parser.print_warning(
                         f"Tossup {self.tossup_index} classified as {category} - {subcategory}"
                     )
+                else:
+                    alternate_subcategory = temp
             else:
                 Parser.print_warning(
                     f"Tossup {self.tossup_index} has unrecognized subcategory {category_tag}"
@@ -489,11 +491,13 @@ class Parser:
             if subcategory:
                 category = SUBCAT_TO_CAT[subcategory]
             elif self.classify_unknown:
-                category, subcategory = classify_question(data, type="bonus")
+                category, subcategory, temp = classify_question(data, type="bonus")
                 if not alternate_subcategory:
                     Parser.print_warning(
                         f"Bonus {self.bonus_index} classified as {category} - {subcategory}"
                     )
+                else:
+                    alternate_subcategory = temp
             else:
                 Parser.print_warning(
                     f"Bonus {self.bonus_index} has unrecognized subcategory {category_tag}"
