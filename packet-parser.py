@@ -625,6 +625,11 @@ class Parser:
         # clear lines that are all spaces
         packet_text = regex.sub(r"^\s*$", "", packet_text, flags=Parser.REGEX_FLAGS)
 
+        # ensure ANSWER starts on a new line
+        packet_text = regex.sub(
+            r"(?<=.)(?=ANSWER:)", "\n", packet_text, flags=Parser.REGEX_FLAGS
+        )
+
         if not self.has_category_tags:
             packet_text = regex.sub(self.REGEX_CATEGORY_TAG, "", packet_text)
 
