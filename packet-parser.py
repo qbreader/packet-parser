@@ -45,7 +45,7 @@ def format_text(text: str, modaq=False) -> str:
     else:
         text = text.replace("{i}", "<i>").replace("{/i}", "</i>")
 
-    return text
+    return text.strip()
 
 
 def get_subcategory(text: str) -> str:
@@ -103,7 +103,7 @@ def remove_formatting(text: str, include_italics=False):
     if not include_italics:
         text = text.replace("{i}", "").replace("{/i}", "")
 
-    return text
+    return text.strip()
 
 
 def remove_punctuation(s: str, punctuation=""".,!-;:'"\/?@#$%^&*_~()[]{}“”‘’"""):
