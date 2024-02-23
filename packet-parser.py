@@ -503,14 +503,18 @@ class Parser:
                     f"Bonus {self.bonus_index} has unrecognized subcategory {category_tag}"
                 )
         elif self.constant_category == "" or self.constant_subcategory == "":
-            category, subcategory, alternate_subcategory = classify_question(data, type="bonus")
+            category, subcategory, alternate_subcategory = classify_question(
+                data, type="bonus"
+            )
         else:
             category, subcategory = self.constant_category, self.constant_subcategory
 
         if self.constant_alternate_subcategory:
             data["alternate_subcategory"] = self.constant_alternate_subcategory
 
-        text = data["leadin"] + " " + " ".join(data["parts"]) + " ".join(data["answers"])
+        text = (
+            data["leadin"] + " " + " ".join(data["parts"]) + " ".join(data["answers"])
+        )
         if not alternate_subcategory and category in ALTERNATE_SUBCATEGORIES:
             alternate_subcategory = classify(
                 text,
