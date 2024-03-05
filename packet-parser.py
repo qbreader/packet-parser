@@ -1,3 +1,5 @@
+from typing import Literal
+
 import click
 import json
 import os
@@ -133,6 +135,7 @@ class Parser:
         modaq: bool,
         auto_insert_powermarks: bool,
         classify_unknown: bool,
+        always_classify: bool = False,
         constant_subcategory: str = "",
         constant_alternate_subcategory: str = "",
     ) -> None:
@@ -144,6 +147,7 @@ class Parser:
         self.modaq = modaq
         self.auto_insert_powermarks = auto_insert_powermarks
         self.classify_unknown = classify_unknown
+        self.always_classify = always_classify
 
         self.tossup_index: int = 0
         """
@@ -161,12 +165,12 @@ class Parser:
         self.constant_alternate_subcategory = constant_alternate_subcategory
 
         if not self.has_category_tags and not self.constant_subcategory == "":
-            Parser.print_warning(
+            Logger.warning(
                 f"Using fixed category {self.constant_category} and subcategory {self.constant_subcategory}"
             )
 
         if self.constant_alternate_subcategory:
-            Parser.print_warning(
+            Logger.warning(
                 f"Using fixed alternate subcategory {self.constant_alternate_subcategory}"
             )
 
@@ -202,12 +206,24 @@ class Parser:
     def parse_tossup(self, text: str) -> dict:
         data = {}
 
+        category, subcategory, alternate_subcategory, metadata = self.parse_category(text, "tossup")
+
+        data["category"] = category
+        data["subcategory"] = subcategory
+        data["metadata"] = metadata
+
+        if alternate_subcategory:
+            data["alternate_subcategory"] = alternate_subcategory
+
+        if not self.has_category_tags:
+            text = regex.sub(self.REGEX_CATEGORY_TAG, "", text)
+
         if self.auto_insert_powermarks and "(*)" not in text:
             index = text.rfind("{/b}")
             if index >= 0:
                 text = text[:index] + "{/b} (*) " + text[index:]
             else:
-                Parser.print_warning(
+                Logger.warning(
                     f"Could not insert powermark for tossup {self.tossup_index} - {text}"
                 )
 
@@ -235,7 +251,7 @@ class Parser:
 
         unformatted_question = remove_formatting(question)
         if "(*)" in question and " (*) " not in unformatted_question:
-            Parser.print_warning(
+            Logger.warning(
                 f"Tossup {self.tossup_index} powermark (*) is not surrounded by spaces"
             )
 
@@ -260,13 +276,13 @@ class Parser:
             exit(1)
 
         if "answer:" in question.lower():
-            Parser.print_warning(
+            Logger.warning(
                 f"Tossup {self.tossup_index} question text may contain the answer"
             )
             self.tossup_index += 1
 
         if "answer:" in answer.lower():
-            Parser.print_warning(
+            Logger.warning(
                 f"Tossup {self.tossup_index} answer may contain the next question"
             )
             self.tossup_index += 1
@@ -281,79 +297,22 @@ class Parser:
         else:
             data["answer"] = remove_formatting(answer)
 
-        if self.has_category_tags:
-            try:
-                category_tag: list[str] = regex.findall(
-                    self.REGEX_CATEGORY_TAG,
-                    remove_formatting(text),
-                    flags=Parser.REGEX_FLAGS,
-                )
-                category_tag = category_tag[0].strip().replace("\n", " ")
-                subcategory = get_subcategory(category_tag)
-                alternate_subcategory = get_alternate_subcategory(category_tag)
-                if alternate_subcategory:
-                    data["alternate_subcategory"] = alternate_subcategory
-            except:
-                Logger.error(
-                    f"Cannot find category tag for tossup {self.tossup_index} - {text}"
-                )
-                exit(3)
-
-            if self.modaq:
-                data["metadata"] = category_tag[1:-1]
-
-            if subcategory:
-                category = SUBCAT_TO_CAT[subcategory]
-            elif self.classify_unknown:
-                category, subcategory, temp = classify_question(data, type="tossup")
-                if not alternate_subcategory:
-                    Parser.print_warning(
-                        f"Tossup {self.tossup_index} classified as {category} - {subcategory}"
-                    )
-                else:
-                    alternate_subcategory = temp
-            else:
-                Parser.print_warning(
-                    f"Tossup {self.tossup_index} has unrecognized subcategory {category_tag}"
-                )
-        elif self.constant_category == "" or self.constant_subcategory == "":
-            category, subcategory, alternate_subcategory = classify_question(
-                data, type="tossup"
-            )
-        else:
-            category = self.constant_category
-            subcategory = self.constant_subcategory
-
-        if self.constant_alternate_subcategory:
-            data["alternate_subcategory"] = self.constant_alternate_subcategory
-
-        text = question + " " + answer
-        if not alternate_subcategory and category in ALTERNATE_SUBCATEGORIES:
-            alternate_subcategory = classify(
-                text,
-                mode="alternate-subcategory",
-                category=category,
-            )
-
-        if not alternate_subcategory and subcategory in SUBSUBCATEGORIES:
-            alternate_subcategory = classify(
-                text,
-                mode="subsubcategory",
-                subcategory=subcategory,
-            )
-        if not self.modaq:
-            data["category"] = category
-            data["subcategory"] = subcategory
-            if alternate_subcategory:
-                data["alternate_subcategory"] = alternate_subcategory
-
-        if self.modaq and not data["metadata"]:
-            data["metadata"] = category + " - " + subcategory
-
         return data
 
     def parse_bonus(self, text: str) -> dict:
         data = {}
+
+        category, subcategory, alternate_subcategory, metadata = self.parse_category(text, "bonus")
+
+        data["category"] = category
+        data["subcategory"] = subcategory
+        data["metadata"] = metadata
+
+        if alternate_subcategory:
+            data["alternate_subcategory"] = alternate_subcategory
+
+        if not self.has_category_tags:
+            text = regex.sub(self.REGEX_CATEGORY_TAG, "", text)
 
         tags = regex.findall(self.REGEX_BONUS_TAGS, text, flags=Parser.REGEX_FLAGS)
         values = []
@@ -427,7 +386,7 @@ class Parser:
         )
 
         if "answer:" in leadin.lower():
-            Parser.print_warning(
+            Logger.warning(
                 f"Bonus {self.bonus_index} leadin may contain the answer to the first part"
             )
             self.bonus_index += 1
@@ -454,88 +413,96 @@ class Parser:
             data["answers"] = [remove_formatting(answer) for answer in answers]
 
         if len(parts) < self.bonus_length or len(answers) < self.bonus_length:
-            Parser.print_warning(
+            Logger.warning(
                 f"Bonus {self.bonus_index} has fewer than {self.bonus_length} parts"
             )
             if not self.has_question_numbers:
                 print(f"\n{text[3:]}\n")
 
         if len(parts) > self.bonus_length or len(answers) > self.bonus_length:
-            Parser.print_warning(
+            Logger.warning(
                 f"Bonus {self.bonus_index} has more than {self.bonus_length} parts"
             )
 
-        if self.has_category_tags:
-            try:
-                category_tag = regex.findall(
-                    self.REGEX_CATEGORY_TAG,
-                    remove_formatting(text),
-                    flags=Parser.REGEX_FLAGS,
-                )[0]
-                category_tag = category_tag.strip().replace("\n", " ")
-                subcategory = get_subcategory(category_tag)
-                alternate_subcategory = get_alternate_subcategory(category_tag)
-                if alternate_subcategory:
-                    data["alternate_subcategory"] = alternate_subcategory
-            except:
-                Logger.error(
-                    f"Cannot find category tag for bonus {self.bonus_index} - {text}"
-                )
-                exit(3)
+        return data
 
-            if self.modaq:
-                data["metadata"] = category_tag[1:-1]
+    def parse_category(self, text: str, type: Literal["tossup", "bonus"]) -> tuple[str, str, str, str]:
+        category = ""
+        subcategory = ""
+        alternate_subcategory = ""
+        metadata = ""
 
-            if subcategory:
-                category = SUBCAT_TO_CAT[subcategory]
-            elif self.classify_unknown:
-                category, subcategory, temp = classify_question(data, type="bonus")
-                if not alternate_subcategory:
-                    Parser.print_warning(
-                        f"Bonus {self.bonus_index} classified as {category} - {subcategory}"
-                    )
-                else:
-                    alternate_subcategory = temp
-            else:
-                Parser.print_warning(
-                    f"Bonus {self.bonus_index} has unrecognized subcategory {category_tag}"
-                )
-        elif self.constant_category == "" or self.constant_subcategory == "":
-            category, subcategory, alternate_subcategory = classify_question(
-                data, type="bonus"
-            )
-        else:
-            category, subcategory = self.constant_category, self.constant_subcategory
+        index = self.tossup_index if type == "tossup" else self.bonus_index
+
+        category_tag = self.parse_tag(text)
+
+        if category_tag:
+            category, subcategory, alternate_subcategory, metadata = category_tag
+        elif self.has_category_tags:
+            Logger.error(f"No category tag for {type} {index} - {text}")
+            exit(3)
+
+        if self.constant_category and self.constant_subcategory:
+            category = self.constant_category
+            subcategory = self.constant_subcategory
 
         if self.constant_alternate_subcategory:
-            data["alternate_subcategory"] = self.constant_alternate_subcategory
+            alternate_subcategory = self.constant_alternate_subcategory
 
-        text = (
-            data["leadin"] + " " + " ".join(data["parts"]) + " ".join(data["answers"])
+        if not subcategory and self.has_category_tags and not self.classify_unknown:
+            Logger.error(f"{type} {index} has unrecognized subcategory {category_tag}")
+            exit(3)
+
+        if not subcategory or (not self.has_category_tags and self.always_classify):
+            category, subcategory, alternate_subcategory = classify_question(text)
+            if self.has_category_tags:
+                Logger.warning(f"{type} {index} classified as {category} - {subcategory}")
+
+        if not alternate_subcategory and not self.modaq:
+            if category in ALTERNATE_SUBCATEGORIES:
+                alternate_subcategory = classify(
+                    text,
+                    mode="alternate-subcategory",
+                    category=category,
+                )
+            elif subcategory in SUBSUBCATEGORIES:
+                alternate_subcategory = classify(
+                    text,
+                    mode="subsubcategory",
+                    subcategory=subcategory,
+                )
+
+        if self.modaq and not self.has_category_tags:
+            # automatically generate metadata for buzzpoint-migrator
+            metadata = ""
+
+        if not metadata and alternate_subcategory:
+            metadata = f"{category} - {subcategory} - {alternate_subcategory}"
+
+        if not metadata and not alternate_subcategory:
+            metadata = f"{category} - {subcategory}"
+
+        return category, subcategory, alternate_subcategory, metadata
+
+    def parse_tag(self, text: str) -> tuple[str, str, str, str] | None:
+        category_tag = regex.search(
+            self.REGEX_CATEGORY_TAG,
+            remove_formatting(text),
+            flags=Parser.REGEX_FLAGS,
         )
-        if not alternate_subcategory and category in ALTERNATE_SUBCATEGORIES:
-            alternate_subcategory = classify(
-                text,
-                mode="alternate-subcategory",
-                category=category,
-            )
 
-        if not alternate_subcategory and subcategory in SUBSUBCATEGORIES:
-            alternate_subcategory = classify(
-                text,
-                mode="subsubcategory",
-                subcategory=subcategory,
-            )
-        if not self.modaq:
-            data["category"] = category
-            data["subcategory"] = subcategory
-            if alternate_subcategory:
-                data["alternate_subcategory"] = alternate_subcategory
+        if not category_tag:
+            return None
 
-        if self.modaq and not data["metadata"]:
-            data["metadata"] = category + " - " + subcategory
+        category_tag = category_tag.group()
+        category_tag = category_tag.strip().replace("\n", " ")
+        metadata = category_tag[1:-1]
 
-        return data
+        subcategory = get_subcategory(category_tag)
+        alternate_subcategory = get_alternate_subcategory(category_tag)
+        category = SUBCAT_TO_CAT[subcategory] if subcategory else ""
+
+        return category, subcategory, alternate_subcategory, metadata
 
     def preprocess_packet(self, packet_text: str) -> str:
         if self.modaq:
@@ -632,9 +599,6 @@ class Parser:
             r"(?<=.)(?=ANSWER:)", "\n", packet_text, flags=Parser.REGEX_FLAGS
         )
 
-        if not self.has_category_tags:
-            packet_text = regex.sub(self.REGEX_CATEGORY_TAG, "", packet_text)
-
         return packet_text
 
     def parse_packet(self, packet_text: str, packet_name="") -> dict:
@@ -730,6 +694,12 @@ class Parser:
     is_flag=True,
     help="Overwrite existing files in output/ directory.",
 )
+@click.option(
+    "-a",
+    "--always-classify",
+    is_flag=True,
+    help="Always auto classify categories, even if category tag is detected.",
+)
 def main(
     input_directory,
     output_directory,
@@ -739,19 +709,16 @@ def main(
     auto_insert_powermarks,
     classify_unknown,
     force_overwrite,
+    always_classify,
 ):
     ########## START OF PROMPTS ##########
 
     try:
         os.mkdir(output_directory)
     except FileExistsError:
-        print(
-            f"{bcolors.WARNING}WARNING:{bcolors.ENDC} Output directory already exists!"
-        )
+        Logger.warning("Output directory already exists!")
         if force_overwrite:
-            print(
-                f"{bcolors.WARNING}WARNING:{bcolors.ENDC} Overwriting files in output directory"
-            )
+            Logger.warning("Overwriting files in output directory")
         else:
             print(
                 "Use -f/--force-overwrite to overwrite existing files in output directory"
@@ -773,6 +740,7 @@ def main(
         modaq,
         auto_insert_powermarks,
         classify_unknown,
+        always_classify,
         CONSTANT_SUBCATEGORY,
         CONSTANT_ALTERNATE_SUBCATEGORY,
     )

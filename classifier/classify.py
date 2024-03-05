@@ -37,22 +37,10 @@ with open(os.path.join(CURRENT_PATH, "../modules/subcat-to-cat.json")) as f:
     SUBCAT_TO_CAT = json.load(f)
 
 
-def classify_question(question, type="tossup"):
-    if type == "tossup":
-        text = question["question"] + " " + question["answer"]
-    elif type == "bonus":
-        text = (
-            question["leadin"]
-            + " "
-            + " ".join(question["parts"])
-            + " ".join(question["answers"])
-        )
-    else:
-        raise ValueError("type must be tossup or bonus")
-
+def classify_question(text) -> tuple[str, str, str]:
     subcategory = classify(text, mode="subcategory")
     category = SUBCAT_TO_CAT[subcategory]
-    alternate_subcategory = None
+    alternate_subcategory = ""
 
     if category in ALTERNATE_SUBCATEGORIES:
         alternate_subcategory = classify(
