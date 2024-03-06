@@ -206,7 +206,9 @@ class Parser:
     def parse_tossup(self, text: str) -> dict:
         data = {}
 
-        category, subcategory, alternate_subcategory, metadata = self.parse_category(text, "tossup")
+        category, subcategory, alternate_subcategory, metadata = self.parse_category(
+            text, "tossup"
+        )
 
         data["category"] = category
         data["subcategory"] = subcategory
@@ -302,7 +304,9 @@ class Parser:
     def parse_bonus(self, text: str) -> dict:
         data = {}
 
-        category, subcategory, alternate_subcategory, metadata = self.parse_category(text, "bonus")
+        category, subcategory, alternate_subcategory, metadata = self.parse_category(
+            text, "bonus"
+        )
 
         data["category"] = category
         data["subcategory"] = subcategory
@@ -426,7 +430,9 @@ class Parser:
 
         return data
 
-    def parse_category(self, text: str, type: Literal["tossup", "bonus"]) -> tuple[str, str, str, str]:
+    def parse_category(
+        self, text: str, type: Literal["tossup", "bonus"]
+    ) -> tuple[str, str, str, str]:
         category = ""
         subcategory = ""
         alternate_subcategory = ""
@@ -456,7 +462,9 @@ class Parser:
         if not subcategory or (not self.has_category_tags and self.always_classify):
             category, subcategory, alternate_subcategory = classify_question(text)
             if self.has_category_tags:
-                Logger.warning(f"{type} {index} classified as {category} - {subcategory}")
+                Logger.warning(
+                    f"{type} {index} classified as {category} - {subcategory}"
+                )
 
         if not alternate_subcategory and not self.modaq:
             if category in ALTERNATE_SUBCATEGORIES:
