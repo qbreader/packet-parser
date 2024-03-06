@@ -58,7 +58,7 @@ def get_subcategory(text: str) -> str:
     text = text.replace("–", " ")
     text = text.replace("—", " ")
     text = text.replace("-", " ")
-    text_split = regex.split(r"[\/,;: ]", text)
+    text_split = regex.split(r"[\/,;:. ]", text)
 
     for subcat in STANDARDIZE_SUBCATS:
         works = True
