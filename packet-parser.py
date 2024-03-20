@@ -307,26 +307,10 @@ class Parser:
         if not self.has_category_tags:
             text = regex.sub(self.REGEX_CATEGORY_TAG, "", text)
 
-        tags = regex.findall(self.REGEX_BONUS_TAGS, text, flags=Parser.REGEX_FLAGS)
-        difficulties = []
-        values = []
-
-        for tag in tags:
-            for value in ["10", "15", "20", "5"]:
-                if value in tag:
-                    values.append(int(value))
-                    break
-
-            for difficulty in ["e", "m", "h"]:
-                if difficulty in tag.lower():
-                    difficulties.append(difficulty)
-                    break
-
-        if len(values) == 0 and self.modaq:
-            values = [10 for _ in range(len(tags))]
-
         for typo in TEN_TYPOS:
             text = text.replace(typo, "[10]")
+
+        difficulties, values = self.parse_bonus_tags(text)
 
         leadin = regex.search(self.REGEX_BONUS_LEADIN, text, flags=Parser.REGEX_FLAGS)
 
@@ -512,6 +496,40 @@ class Parser:
         category = SUBCAT_TO_CAT[subcategory] if subcategory else ""
 
         return category, subcategory, alternate_subcategory, metadata
+
+    def parse_bonus_tags(
+        self, text: str
+    ) -> tuple[list[Literal["e", "m", "h"]], list[int]]:
+        """
+        Parse the bonus tags from the given text and extract the difficulties and values.
+        If self.modaq is true, the values will be set to 10 if no value is found.
+
+        Args:
+            text (str): The text to parse the bonus tags from.
+
+        Returns:
+            tuple[list[Literal["e", "m", "h"]], list[int]]: A tuple (difficulties, values)
+        """
+
+        tags = regex.findall(self.REGEX_BONUS_TAGS, text, flags=Parser.REGEX_FLAGS)
+        difficulties = []
+        values = []
+
+        for tag in tags:
+            for difficulty in ["e", "m", "h"]:
+                if difficulty in tag.lower():
+                    difficulties.append(difficulty)
+                    break
+
+            for value in ["10", "15", "20", "5"]:
+                if value in tag:
+                    values.append(int(value))
+                    break
+
+        if len(values) == 0 and self.modaq:
+            values = [10 for _ in range(len(tags))]
+
+        return difficulties, values
 
     def preprocess_packet(self, packet_text: str) -> str:
         if self.modaq:
