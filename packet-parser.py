@@ -441,7 +441,7 @@ class Parser:
 
         index = self.tossup_index if type == "tossup" else self.bonus_index
 
-        category_tag = self.parse_tag(text)
+        category_tag = self.parse_category_tag(text)
 
         if category_tag:
             category, subcategory, alternate_subcategory, metadata = category_tag
@@ -493,7 +493,7 @@ class Parser:
 
         return category, subcategory, alternate_subcategory, metadata
 
-    def parse_tag(self, text: str) -> tuple[str, str, str, str] | None:
+    def parse_category_tag(self, text: str) -> tuple[str, str, str, str] | None:
         category_tag = regex.search(
             self.REGEX_CATEGORY_TAG,
             remove_formatting(text),
