@@ -690,22 +690,10 @@ class Parser:
 )
 @click.option("-e", "-l", "--bonus-length", default=3, show_default=True, type=int)
 @click.option(
-    "-u",
-    "--unformatted-answerline",
+    "-a",
+    "--always-classify",
     is_flag=True,
-    help="Don't include formatted answerline in output",
-)
-@click.option(
-    "-m",
-    "--modaq",
-    is_flag=True,
-    help="Output in a format compatible with MODAQ.",
-)
-@click.option(
-    "-p",
-    "--auto-insert-powermarks",
-    is_flag=True,
-    help="Insert powermarks for questions that are bolded in power but do not have an explicit powermark.",
+    help="Always auto classify categories, even if category tag is detected.",
 )
 @click.option(
     "-c",
@@ -722,21 +710,33 @@ class Parser:
     help="Overwrite existing files in output/ directory.",
 )
 @click.option(
-    "-a",
-    "--always-classify",
+    "-m",
+    "--modaq",
     is_flag=True,
-    help="Always auto classify categories, even if category tag is detected.",
+    help="Output in a format compatible with MODAQ.",
+)
+@click.option(
+    "-p",
+    "--auto-insert-powermarks",
+    is_flag=True,
+    help="Insert powermarks for questions that are bolded in power but do not have an explicit powermark.",
+)
+@click.option(
+    "-u",
+    "--unformatted-answerline",
+    is_flag=True,
+    help="Don't include formatted answerline in output",
 )
 def main(
     input_directory,
     output_directory,
     bonus_length,
-    unformatted_answerline,
-    modaq,
-    auto_insert_powermarks,
+    always_classify,
     classify_unknown,
     force_overwrite,
-    always_classify,
+    modaq,
+    auto_insert_powermarks,
+    unformatted_answerline,
 ):
     ########## START OF PROMPTS ##########
 
