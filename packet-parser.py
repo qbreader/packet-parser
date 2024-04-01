@@ -135,6 +135,7 @@ class Parser:
         modaq: bool,
         auto_insert_powermarks: bool,
         classify_unknown: bool,
+        space_powermarks: bool,
         always_classify: bool = False,
         constant_subcategory: str = "",
         constant_alternate_subcategory: str = "",
@@ -147,6 +148,7 @@ class Parser:
         self.modaq = modaq
         self.auto_insert_powermarks = auto_insert_powermarks
         self.classify_unknown = classify_unknown
+        self.space_powermarks = space_powermarks
         self.always_classify = always_classify
 
         self.tossup_index: int = 0
@@ -241,9 +243,13 @@ class Parser:
         unformatted_question = remove_formatting(question)
 
         if "(*)" in question and " (*) " not in unformatted_question:
-            Logger.warning(
-                f"Tossup {self.tossup_index} powermark (*) is not surrounded by spaces"
-            )
+            if self.space_powermarks:
+                unformatted_question = regex.sub(r" *\(\*\) *", " (*) ", unformatted_question)
+                formatted_question =regex.sub(r" *\(\*\) *", " (*) ", formatted_question)
+            else:
+                Logger.warning(
+                    f"Tossup {self.tossup_index} powermark (*) is not surrounded by spaces"
+                )
 
         if "answer:" in unformatted_question.lower():
             Logger.warning(
@@ -722,6 +728,12 @@ class Parser:
     help="Insert powermarks for questions that are bolded in power but do not have an explicit powermark.",
 )
 @click.option(
+    "-s",
+    "--space-powermarks",
+    is_flag=True,
+    help="Ensure powermarks are surrounded by spaces.",
+)
+@click.option(
     "-u",
     "--unformatted-answerline",
     is_flag=True,
@@ -736,6 +748,7 @@ def main(
     force_overwrite,
     modaq,
     auto_insert_powermarks,
+    space_powermarks,
     unformatted_answerline,
 ):
     ########## START OF PROMPTS ##########
@@ -767,6 +780,7 @@ def main(
         modaq,
         auto_insert_powermarks,
         classify_unknown,
+        space_powermarks,
         always_classify,
         CONSTANT_SUBCATEGORY,
         CONSTANT_ALTERNATE_SUBCATEGORY,

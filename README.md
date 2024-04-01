@@ -44,6 +44,9 @@ Here are some common flags/options:
 - `-p, --auto-insert-powermarks`:
   Insert powermarks for questions that are bolded in power but do not have an explicit powermark.
   Most useful for old Chicago Open packets.
+- `-s, --space-powermarks`:
+  Ensure powermarks (\*) are surrounded by spaces.
+  MODAQ and qbreader both expect this for powers to correctly register.
 - `-e, -l, --bonus-length INTEGER [default: 3]`:
   The number of parts in a bonus.
   Useful when you don't have 3-part bonuses (e.g. MUSES).
