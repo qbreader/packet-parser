@@ -132,6 +132,7 @@ class Parser:
         has_category_tags: bool,
         bonus_length: int,
         formatted_answerline: bool,
+        buzzpoints: bool,
         modaq: bool,
         auto_insert_powermarks: bool,
         classify_unknown: bool,
@@ -145,6 +146,7 @@ class Parser:
 
         self.bonus_length = bonus_length
         self.formatted_answerline = formatted_answerline
+        self.buzzpoints = buzzpoints
         self.modaq = modaq
         self.auto_insert_powermarks = auto_insert_powermarks
         self.classify_unknown = classify_unknown
@@ -205,7 +207,7 @@ class Parser:
         )
         self.REGEX_BONUS_TAGS = r"(?<=\[)\d{0,2}?[EMH]?(?=\])"
 
-    def parse_tossup(self, text: str):
+    def parse_tossup(self, text: str) -> dict:
         category, subcategory, alternate_subcategory, metadata = self.parse_category(
             text, "tossup"
         )
@@ -244,8 +246,12 @@ class Parser:
 
         if "(*)" in question and " (*) " not in unformatted_question:
             if self.space_powermarks:
-                unformatted_question = regex.sub(r" *\(\*\) *", " (*) ", unformatted_question)
-                formatted_question =regex.sub(r" *\(\*\) *", " (*) ", formatted_question)
+                unformatted_question = regex.sub(
+                    r" *\(\*\) *", " (*) ", unformatted_question
+                )
+                formatted_question = regex.sub(
+                    r" *\(\*\) *", " (*) ", formatted_question
+                )
             else:
                 Logger.warning(
                     f"Tossup {self.tossup_index} powermark (*) is not surrounded by spaces"
@@ -279,7 +285,16 @@ class Parser:
         formatted_answer = format_text(answer, self.modaq)
         unformatted_answer = remove_formatting(answer)
 
-        if self.modaq:
+        if self.buzzpoints:
+            data = {
+                "question": formatted_question,
+                "answer": formatted_answer,
+                "answer_sanitized": unformatted_answer,
+                "metadata": metadata,
+            }
+
+            return data
+        elif self.modaq:
             data = {
                 "question": formatted_question,
                 "answer": formatted_answer,
@@ -380,7 +395,23 @@ class Parser:
                 f"Bonus {self.bonus_index} has more than {self.bonus_length} parts"
             )
 
-        if self.modaq:
+        if self.buzzpoints:
+            data = {
+                "values": values,
+                "leadin": formatted_leadin,
+                "leadin_sanitized": unformatted_leadin,
+                "parts": formatted_parts,
+                "parts_sanitized": unformatted_parts,
+                "answers": formatted_answers,
+                "answers_sanitized": unformatted_answers,
+                "metadata": metadata,
+                "difficultyModifiers": difficulties,
+            }
+
+            if len(difficulties) == 0:
+                del data["difficultyModifiers"]
+
+        elif self.modaq:
             data = {
                 "values": values,
                 "leadin": formatted_leadin,
@@ -471,7 +502,7 @@ class Parser:
                     subcategory=subcategory,
                 )
 
-        if self.modaq and not self.has_category_tags:
+        if self.buzzpoints:
             # automatically generate metadata for buzzpoint-migrator
             metadata = ""
 
@@ -532,7 +563,7 @@ class Parser:
                     values.append(int(value))
                     break
 
-        if len(values) == 0 and self.modaq:
+        if len(values) == 0 and (self.modaq or self.buzzpoints):
             values = [10 for _ in range(len(tags))]
 
         return difficulties, values
@@ -702,6 +733,12 @@ class Parser:
     help="Always auto classify categories, even if category tag is detected.",
 )
 @click.option(
+    "-b",
+    "--buzzpoints",
+    is_flag=True,
+    help="Output in a format compatible with buzzpoints. Cannot be used with -m/--modaq.",
+)
+@click.option(
     "-c",
     "--classify-unknown",
     is_flag=True,
@@ -719,7 +756,7 @@ class Parser:
     "-m",
     "--modaq",
     is_flag=True,
-    help="Output in a format compatible with MODAQ.",
+    help="Output in a format compatible with MODAQ. Cannot be used with -b/--buzzpoints.",
 )
 @click.option(
     "-p",
@@ -744,6 +781,7 @@ def main(
     output_directory,
     bonus_length,
     always_classify,
+    buzzpoints,
     classify_unknown,
     force_overwrite,
     modaq,
@@ -751,6 +789,10 @@ def main(
     space_powermarks,
     unformatted_answerline,
 ):
+    if buzzpoints and modaq:
+        Logger.error("Cannot output in both buzzpoints and MODAQ formats")
+        exit(1)
+
     ########## START OF PROMPTS ##########
 
     try:
@@ -777,6 +819,7 @@ def main(
         HAS_CATEGORY_TAGS,
         bonus_length,
         formatted_answerline,
+        buzzpoints,
         modaq,
         auto_insert_powermarks,
         classify_unknown,
