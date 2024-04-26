@@ -25,6 +25,7 @@ Make sure you have python3 and pip installed on your computer.
 4. If the packets are `.docx` or `.pdf` files, then run the `to-txt.sh` file to convert them to `.txt` files.
 5. Run the `packet-parser.py` python file.
    Specify the `-m` flag if you want to output in a format compatible with [MODAQ](https://github.com/alopezlago/MODAQ).
+   Specify the `-b` flag if you want to output in a format compatible with [buzzpoints](https://github.com/JemCasey/buzzpoint-migrator).
    - The script will prompt you if the packets have category tags.
      You can check by seeing if there are tags that look like one of the following in the packets:
      (If unsure, reply with "n").
@@ -39,6 +40,8 @@ Make sure you have python3 and pip installed on your computer.
 You can more info by running `python packet-parser.py --help`.
 Here are some common flags/options:
 
+- `-b, --buzzpoint`:
+  Output in a format compatible with [buzzpoints](https://github.com/JemCasey/buzzpoint-migrator).
 - `-m, --modaq`:
   Output in a format compatible with **MODAQ**.
 - `-p, --auto-insert-powermarks`:
