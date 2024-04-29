@@ -224,96 +224,98 @@ class Parser:
                     f"Could not insert powermark for tossup {self.tossup_index} - {text}"
                 )
 
-        question = regex.search(self.REGEX_TOSSUP_TEXT, text, flags=Parser.REGEX_FLAGS)
-        if not question:
+        question_raw = regex.search(
+            self.REGEX_TOSSUP_TEXT, text, flags=Parser.REGEX_FLAGS
+        )
+        if not question_raw:
             Logger.error(f"No question text for tossup {self.tossup_index} - {text}")
             exit(1)
 
-        question = question.group()
-        question = question.replace("\n", " ").strip()
-        question = regex.sub(r"^\d{1,2}\.", "", question, flags=Parser.REGEX_FLAGS)
-        question = question.strip()
+        question_raw = question_raw.group()
+        question_raw = question_raw.replace("\n", " ").strip()
+        question_raw = regex.sub(
+            r"^\d{1,2}\.", "", question_raw, flags=Parser.REGEX_FLAGS
+        )
+        question_raw = question_raw.strip()
 
-        if len(question) == 0:
+        if len(question_raw) == 0:
             Logger.error(f"Tossup {self.tossup_index} question text is empty - {text}")
             exit(1)
 
-        if len(regex.findall(r"\(\*\)", question)) >= 2:
+        if len(regex.findall(r"\(\*\)", question_raw)) >= 2:
             Logger.warning(f"Tossup {self.tossup_index} has multiple powermarks (*)")
 
-        formatted_question = format_text(question, self.modaq)
-        unformatted_question = remove_formatting(question)
+        question = format_text(question_raw, self.modaq)
+        question_sanitized = remove_formatting(question_raw)
 
-        if "(*)" in question and " (*) " not in unformatted_question:
+        if "(*)" in question_raw and " (*) " not in question_sanitized:
             if self.space_powermarks:
-                unformatted_question = regex.sub(
-                    r" *\(\*\) *", " (*) ", unformatted_question
+                question_sanitized = regex.sub(
+                    r" *\(\*\) *", " (*) ", question_sanitized
                 )
-                formatted_question = regex.sub(
-                    r" *\(\*\) *", " (*) ", formatted_question
-                )
+                question = regex.sub(r" *\(\*\) *", " (*) ", question)
             else:
                 Logger.warning(
                     f"Tossup {self.tossup_index} powermark (*) is not surrounded by spaces"
                 )
 
-        if "answer:" in unformatted_question.lower():
+        if "answer:" in question_sanitized.lower():
             Logger.warning(
                 f"Tossup {self.tossup_index} question text may contain the answer"
             )
             self.tossup_index += 1
 
-        answer = regex.search(self.REGEX_TOSSUP_ANSWER, text, flags=Parser.REGEX_FLAGS)
+        answer_raw = regex.search(
+            self.REGEX_TOSSUP_ANSWER, text, flags=Parser.REGEX_FLAGS
+        )
 
-        if not answer:
+        if not answer_raw:
             Logger.error(f"Cannot find answer for tossup {self.tossup_index} - {text}")
             exit(1)
 
-        answer = answer.group()
-        answer = answer.replace("\n", " ").strip()
-        if answer.startswith(":"):
-            answer = answer[1:].strip()
+        answer_raw = answer_raw.group()
+        answer_raw = answer_raw.replace("\n", " ").strip()
+        if answer_raw.startswith(":"):
+            answer_raw = answer_raw[1:].strip()
 
-        if "answer:" in answer.lower():
+        if "answer:" in answer_raw.lower():
             Logger.warning(
                 f"Tossup {self.tossup_index} answer may contain the next question"
             )
             self.tossup_index += 1
             if not self.has_category_tags:
-                print(f"\n{answer}\n")
+                print(f"\n{answer_raw}\n")
 
-        formatted_answer = format_text(answer, self.modaq)
-        unformatted_answer = remove_formatting(answer)
+        answer = format_text(answer_raw, self.modaq)
+        answer_sanitized = remove_formatting(answer_raw)
 
         if self.buzzpoints:
             data = {
-                "question": formatted_question,
-                "answer": formatted_answer,
-                "answer_sanitized": unformatted_answer,
+                "question": question,
+                "answer": answer,
+                "answer_sanitized": answer_sanitized,
                 "metadata": metadata,
             }
 
             return data
         elif self.modaq:
             data = {
-                "question": formatted_question,
-                "answer": formatted_answer,
+                "question": question,
+                "answer": answer,
                 "metadata": metadata,
             }
 
             return data
         else:
             data = {
-                "question": unformatted_question,
-                "answer": unformatted_answer,
-                "formatted_answer": formatted_answer,
+                "question": question,
+                "question_sanitized": question_sanitized,
+                "answer": answer,
+                "answer_sanitized": answer_sanitized,
                 "category": category,
                 "subcategory": subcategory,
                 "alternate_subcategory": alternate_subcategory,
             }
-
-            if not self.formatted_answerline:
-                del data["formatted_answer"]
 
             if alternate_subcategory == "":
                 del data["alternate_subcategory"]
@@ -331,66 +333,68 @@ class Parser:
         for typo in TEN_TYPOS:
             text = text.replace(typo, "[10]")
 
-        difficulties, values = self.parse_bonus_tags(text)
+        difficultyModifiers, values = self.parse_bonus_tags(text)
 
-        leadin = regex.search(self.REGEX_BONUS_LEADIN, text, flags=Parser.REGEX_FLAGS)
+        leadin_raw = regex.search(
+            self.REGEX_BONUS_LEADIN, text, flags=Parser.REGEX_FLAGS
+        )
 
-        if not leadin:
+        if not leadin_raw:
             Logger.error(f"Cannot find leadin for bonus {self.bonus_index} - {text}")
             exit(2)
 
-        leadin = leadin.group()
-        leadin = leadin.replace("\n", " ").strip()
-        leadin = regex.sub(r"^\d{1,2}\.", "", leadin, flags=Parser.REGEX_FLAGS)
-        leadin = leadin.strip()
+        leadin_raw = leadin_raw.group()
+        leadin_raw = leadin_raw.replace("\n", " ").strip()
+        leadin_raw = regex.sub(r"^\d{1,2}\.", "", leadin_raw, flags=Parser.REGEX_FLAGS)
+        leadin_raw = leadin_raw.strip()
 
-        formatted_leadin = format_text(leadin, self.modaq)
-        unformatted_leadin = remove_formatting(leadin)
+        leadin = format_text(leadin_raw, self.modaq)
+        leadin_sanitized = remove_formatting(leadin_raw)
 
-        if "answer:" in unformatted_leadin.lower():
+        if "answer:" in leadin_sanitized.lower():
             Logger.warning(
                 f"Bonus {self.bonus_index} leadin may contain the answer to the first part"
             )
             self.bonus_index += 1
             if not self.has_question_numbers:
-                print(f"\n{leadin}\n")
+                print(f"\n{leadin_raw}\n")
 
-        parts: list[str] = regex.findall(
+        parts_raw: list[str] = regex.findall(
             self.REGEX_BONUS_PARTS, text, flags=Parser.REGEX_FLAGS
         )
 
-        if len(parts) == 0:
+        if len(parts_raw) == 0:
             Logger.error(f"No parts found for bonus {self.bonus_index} - {text}")
             exit(2)
 
-        parts = [part.replace("\n", " ").strip() for part in parts]
-        formatted_parts = [format_text(part, self.modaq) for part in parts]
-        unformatted_parts = [remove_formatting(part) for part in parts]
+        parts_raw = [part.replace("\n", " ").strip() for part in parts_raw]
+        parts = [format_text(part, self.modaq) for part in parts_raw]
+        parts_sanitized = [remove_formatting(part) for part in parts_raw]
 
-        answers: list[str] = regex.findall(
+        answers_raw: list[str] = regex.findall(
             self.REGEX_BONUS_ANSWERS, f"{text}\n[10]", flags=Parser.REGEX_FLAGS
         )
 
-        if len(answers) == 0:
+        if len(answers_raw) == 0:
             Logger.error(f"No answers found for bonus {self.bonus_index} - {text}")
             exit(2)
 
-        answers = [answer.replace("\n", " ").strip() for answer in answers]
-        answers = [
+        answers_raw = [answer.replace("\n", " ").strip() for answer in answers_raw]
+        answers_raw = [
             answer[1:].strip() if answer.startswith(":") else answer
-            for answer in answers
+            for answer in answers_raw
         ]
-        formatted_answers = [format_text(answer, self.modaq) for answer in answers]
-        unformatted_answers = [remove_formatting(answer) for answer in answers]
+        answers = [format_text(answer, self.modaq) for answer in answers_raw]
+        answers_sanitized = [remove_formatting(answer) for answer in answers_raw]
 
-        if len(parts) < self.bonus_length or len(answers) < self.bonus_length:
+        if len(parts_raw) < self.bonus_length or len(answers_raw) < self.bonus_length:
             Logger.warning(
                 f"Bonus {self.bonus_index} has fewer than {self.bonus_length} parts"
             )
             if not self.has_question_numbers:
                 print(f"\n{text[3:]}\n")
 
-        if len(parts) > self.bonus_length or len(answers) > self.bonus_length:
+        if len(parts_raw) > self.bonus_length or len(answers_raw) > self.bonus_length:
             Logger.warning(
                 f"Bonus {self.bonus_index} has more than {self.bonus_length} parts"
             )
@@ -398,48 +402,47 @@ class Parser:
         if self.buzzpoints:
             data = {
                 "values": values,
-                "leadin": formatted_leadin,
-                "leadin_sanitized": unformatted_leadin,
-                "parts": formatted_parts,
-                "parts_sanitized": unformatted_parts,
-                "answers": formatted_answers,
-                "answers_sanitized": unformatted_answers,
+                "leadin": leadin,
+                "leadin_sanitized": leadin_sanitized,
+                "parts": parts,
+                "parts_sanitized": parts_sanitized,
+                "answers": answers,
+                "answers_sanitized": answers_sanitized,
                 "metadata": metadata,
-                "difficultyModifiers": difficulties,
+                "difficultyModifiers": difficultyModifiers,
             }
 
-            if len(difficulties) == 0:
+            if len(difficultyModifiers) == 0:
                 del data["difficultyModifiers"]
 
         elif self.modaq:
             data = {
                 "values": values,
-                "leadin": formatted_leadin,
-                "parts": formatted_parts,
-                "answers": formatted_answers,
+                "leadin": leadin,
+                "parts": parts,
+                "answers": answers,
                 "metadata": metadata,
-                "difficultyModifiers": difficulties,
+                "difficultyModifiers": difficultyModifiers,
             }
 
-            if len(difficulties) == 0:
+            if len(difficultyModifiers) == 0:
                 del data["difficultyModifiers"]
 
             return data
         else:
             data = {
-                "leadin": unformatted_leadin,
-                "parts": unformatted_parts,
-                "answers": unformatted_answers,
-                "formatted_answers": formatted_answers,
+                "leadin": leadin,
+                "leadin_sanitized": leadin_sanitized,
+                "parts": parts,
+                "parts_sanitized": parts_sanitized,
+                "answers": answers,
+                "answers_sanitized": answers_sanitized,
                 "category": category,
                 "subcategory": subcategory,
                 "alternate_subcategory": alternate_subcategory,
                 "values": values,
-                "difficulties": difficulties,
+                "difficultyModifiers": difficultyModifiers,
             }
-
-            if not self.formatted_answerline:
-                del data["formatted_answers"]
 
             if alternate_subcategory == "":
                 del data["alternate_subcategory"]
@@ -447,7 +450,7 @@ class Parser:
             if len(values) == 0:
                 del data["values"]
 
-            if len(difficulties) == 0:
+            if len(difficultyModifiers) == 0:
                 del data["difficulties"]
 
             return data
@@ -549,13 +552,13 @@ class Parser:
         """
 
         tags = regex.findall(self.REGEX_BONUS_TAGS, text, flags=Parser.REGEX_FLAGS)
-        difficulties = []
+        difficultyModifiers = []
         values = []
 
         for tag in tags:
-            for difficulty in ["e", "m", "h"]:
-                if difficulty in tag.lower():
-                    difficulties.append(difficulty)
+            for difficultyModifier in ["e", "m", "h"]:
+                if difficultyModifier in tag.lower():
+                    difficultyModifiers.append(difficultyModifier)
                     break
 
             for value in ["10", "15", "20", "5"]:
@@ -566,7 +569,7 @@ class Parser:
         if len(values) == 0 and (self.modaq or self.buzzpoints):
             values = [10 for _ in range(len(tags))]
 
-        return difficulties, values
+        return difficultyModifiers, values
 
     def preprocess_packet(self, packet_text: str) -> str:
         if self.modaq:
