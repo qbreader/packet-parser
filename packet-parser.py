@@ -131,7 +131,6 @@ class Parser:
         has_question_numbers: bool,
         has_category_tags: bool,
         bonus_length: int,
-        formatted_answerline: bool,
         buzzpoints: bool,
         modaq: bool,
         auto_insert_powermarks: bool,
@@ -145,7 +144,6 @@ class Parser:
         self.has_category_tags = has_category_tags
 
         self.bonus_length = bonus_length
-        self.formatted_answerline = formatted_answerline
         self.buzzpoints = buzzpoints
         self.modaq = modaq
         self.auto_insert_powermarks = auto_insert_powermarks
@@ -773,12 +771,6 @@ class Parser:
     is_flag=True,
     help="Ensure powermarks are surrounded by spaces.",
 )
-@click.option(
-    "-u",
-    "--unformatted-answerline",
-    is_flag=True,
-    help="Don't include formatted answerline in output",
-)
 def main(
     input_directory,
     output_directory,
@@ -790,7 +782,6 @@ def main(
     modaq,
     auto_insert_powermarks,
     space_powermarks,
-    unformatted_answerline,
 ):
     if buzzpoints and modaq:
         Logger.error("Cannot output in both buzzpoints and MODAQ formats")
@@ -816,12 +807,10 @@ def main(
 
     ########## END OF PROMPTS ##########
 
-    formatted_answerline = not unformatted_answerline
     parser = Parser(
         HAS_QUESTION_NUMBERS,
         HAS_CATEGORY_TAGS,
         bonus_length,
-        formatted_answerline,
         buzzpoints,
         modaq,
         auto_insert_powermarks,
