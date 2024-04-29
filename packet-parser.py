@@ -611,6 +611,10 @@ class Parser:
             packet_text = packet_text.replace(typo, "ANSWER:")
             packet_text = packet_text.replace(typo.title(), "ANSWER:")
 
+        # replace tabs and redundant spaces
+        packet_text = packet_text.replace("\t", " ")
+        packet_text = regex.sub(r" {2,}", " ", packet_text, flags=Parser.REGEX_FLAGS)
+
         # remove redundant tags
         packet_text = regex.sub(
             r"{(bu|b|u|i)}{/\g<1>}", "", packet_text, flags=Parser.REGEX_FLAGS
