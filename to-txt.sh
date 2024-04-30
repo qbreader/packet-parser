@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ##### Convert all files to .txt, and for .docx and .pdf also get the answerline formatting #####
 if [ -z "$TYPE" ]; then
     read -p "File type (p = pdf, d = docx, c = doc): " TYPE
