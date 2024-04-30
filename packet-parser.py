@@ -449,7 +449,7 @@ class Parser:
                 del data["values"]
 
             if len(difficultyModifiers) == 0:
-                del data["difficulties"]
+                del data["difficultyModifiers"]
 
             return data
 
