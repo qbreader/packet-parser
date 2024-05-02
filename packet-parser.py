@@ -213,15 +213,6 @@ class Parser:
         if not self.has_category_tags:
             text = regex.sub(self.REGEX_CATEGORY_TAG, "", text)
 
-        if self.auto_insert_powermarks and "(*)" not in text:
-            index = text.rfind("{/b}")
-            if index >= 0:
-                text = text[:index] + "{/b} (*) " + text[index:]
-            else:
-                Logger.warning(
-                    f"Could not insert powermark for tossup {self.tossup_index} - {text}"
-                )
-
         question_raw = regex.search(
             self.REGEX_TOSSUP_TEXT, text, flags=Parser.REGEX_FLAGS
         )
@@ -243,10 +234,13 @@ class Parser:
         if len(regex.findall(r"\(\*\)", question_raw)) >= 2:
             Logger.warning(f"Tossup {self.tossup_index} has multiple powermarks (*)")
 
+        if self.auto_insert_powermarks and "(*)" not in question_raw:
+            question_raw = self.insert_powermark(question_raw)
+
         question = format_text(question_raw, self.modaq)
         question_sanitized = remove_formatting(question_raw)
 
-        if "(*)" in question_raw and " (*) " not in question_sanitized:
+        if "(*)" in question_sanitized and " (*) " not in question_sanitized:
             if self.space_powermarks:
                 question_sanitized = regex.sub(
                     r" *\(\*\) *", " (*) ", question_sanitized
@@ -452,6 +446,13 @@ class Parser:
                 del data["difficultyModifiers"]
 
             return data
+
+    def insert_powermark(self, text: str) -> str:
+        index = text.rfind("{/b}")
+        if index < 0:
+            Logger.warning(f"Can't insert (*) for tossup {self.tossup_index} - {text}")
+
+        return text[:index] + "(*)" + text[index:]
 
     def parse_category(
         self, text: str, type: Literal["tossup", "bonus"]
