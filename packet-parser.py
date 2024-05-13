@@ -391,6 +391,12 @@ class Parser:
                 f"Bonus {self.bonus_index} has more than {self.bonus_length} parts"
             )
 
+        if "answer:" in answers_sanitized[-1].lower():
+            Logger.warning(
+                f"Bonus {self.bonus_index} answer may contain the next tossup"
+            )
+            print(f"\n{answers_sanitized[-1]}\n")
+
         if self.buzzpoints:
             data = {
                 "values": values,
