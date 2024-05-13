@@ -90,7 +90,7 @@ def get_alternate_subcategory(text: str) -> str:
                 break
 
         if works:
-            return subcat
+            return STANDARDIZE_ALTERNATE_SUBCATS[subcat]
 
     return ""
 
@@ -490,11 +490,15 @@ class Parser:
             exit(3)
 
         if not subcategory or (not self.has_category_tags and self.always_classify):
-            category, subcategory, alternate_subcategory = classify_question(text)
-            if self.has_category_tags:
+            category, subcategory, temp_alternate_subcategory = classify_question(text)
+
+            if self.has_category_tags and not alternate_subcategory:
                 Logger.warning(
                     f"{type} {index} classified as {category} - {subcategory}"
                 )
+
+            if not alternate_subcategory:
+                alternate_subcategory = temp_alternate_subcategory
 
         if not alternate_subcategory and not self.modaq:
             if category in ALTERNATE_SUBCATEGORIES:
