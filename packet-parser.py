@@ -322,10 +322,10 @@ class Parser:
         if not self.has_category_tags:
             text = regex.sub(self.REGEX_CATEGORY_TAG, "", text)
 
+        difficultyModifiers, values = self.parse_bonus_tags(text)
+
         for typo in TEN_TYPOS:
             text = text.replace(typo, "[10]")
-
-        difficultyModifiers, values = self.parse_bonus_tags(text)
 
         leadin_raw = regex.search(
             self.REGEX_BONUS_LEADIN, text, flags=Parser.REGEX_FLAGS
