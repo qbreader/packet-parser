@@ -379,14 +379,19 @@ class Parser:
         answers = [format_text(answer, self.modaq) for answer in answers_raw]
         answers_sanitized = [remove_formatting(answer) for answer in answers_raw]
 
-        if len(parts_raw) < self.bonus_length or len(answers_raw) < self.bonus_length:
+        if len(parts_raw) != len(answers_raw):
+            Logger.warning(
+                f"Bonus {self.bonus_index} has {len(parts_raw)} parts but {len(answers_raw)} answers"
+            )
+
+        if len(parts_raw) < self.bonus_length and sum(values) != 30:
             Logger.warning(
                 f"Bonus {self.bonus_index} has fewer than {self.bonus_length} parts"
             )
             if not self.has_question_numbers:
                 print(f"\n{text[3:]}\n")
 
-        if len(parts_raw) > self.bonus_length or len(answers_raw) > self.bonus_length:
+        if len(parts_raw) > self.bonus_length and sum(values) != 30:
             Logger.warning(
                 f"Bonus {self.bonus_index} has more than {self.bonus_length} parts"
             )
