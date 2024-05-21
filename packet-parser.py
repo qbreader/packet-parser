@@ -418,6 +418,8 @@ class Parser:
             if len(difficultyModifiers) == 0:
                 del data["difficultyModifiers"]
 
+            return data
+
         elif self.modaq:
             data = {
                 "values": values,
