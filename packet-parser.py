@@ -237,6 +237,13 @@ class Parser:
         if self.auto_insert_powermarks and "(*)" not in question_raw:
             question_raw = self.insert_powermark(question_raw)
 
+        if question_raw.startswith("{b}{i} "):
+            question_raw = "{b}{i}" + question_raw[6:]
+        elif question_raw.startswith("{b} "):
+            question_raw = "{b}" + question_raw[4:]
+        elif question_raw.startswith("{i} "):
+            question_raw = "{i}" + question_raw[4:]
+
         question = format_text(question_raw, self.modaq)
         question_sanitized = remove_formatting(question_raw)
 
@@ -339,6 +346,13 @@ class Parser:
         leadin_raw = leadin_raw.replace("\n", " ").strip()
         leadin_raw = regex.sub(r"^\d{1,2}\.", "", leadin_raw, flags=Parser.REGEX_FLAGS)
         leadin_raw = leadin_raw.strip()
+
+        if leadin_raw.startswith("{b}{i} "):
+            leadin_raw = "{b}{i}" + leadin_raw[6:]
+        elif leadin_raw.startswith("{b} "):
+            leadin_raw = "{b}" + leadin_raw[4:]
+        elif leadin_raw.startswith("{i} "):
+            leadin_raw = "{i}" + leadin_raw[4:]
 
         leadin = format_text(leadin_raw, self.modaq)
         leadin_sanitized = remove_formatting(leadin_raw)
@@ -590,6 +604,9 @@ class Parser:
     def preprocess_packet(self, packet_text: str) -> str:
         if self.modaq:
             packet_text = packet_text.replace('"', "\u0022")
+
+        # remove spaces before first non-space character
+        packet_text = regex.sub(r"^ +", "", packet_text, flags=Parser.REGEX_FLAGS)
 
         packet_text = packet_text + "\n0."
         # remove zero-width characters
