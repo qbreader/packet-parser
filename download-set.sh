@@ -20,6 +20,7 @@ case $TYPE in
     *) echo "Invalid file type" && exit 1 ;;
 esac
 echo "Getting packets from ${URL}${SET}"
-wget -nv -A.$TYPE --include-directories=$SET -r "https://${URL}"
-mv "${URL}${SET}/" "p-$TYPE"
-rm -r "${URL}"
+wget -nv -A.$TYPE -r --span-hosts --domains=$URL,"files.quizbowlpackets.com" "https://${URL}/${SET}/"
+mv "files.quizbowlpackets.com/${SET}" "p-$TYPE"
+rm -r "files.quizbowlpackets.com"
+rm -r $URL
