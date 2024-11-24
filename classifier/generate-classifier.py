@@ -10,7 +10,9 @@ from tqdm import tqdm
 
 np.random.seed(0)
 
-questions = open("tossups.json").readlines() + open("bonuses.json").readlines()
+tossups = open("tossups.json").readlines()
+bonuses = open("bonuses.json").readlines()
+questions = tossups + bonuses
 np.random.shuffle(questions)
 print("Number of questions:", len(questions))
 
@@ -62,6 +64,7 @@ subsubcategory_frequencies = {
 
 for line in tqdm(questions[int(0.2 * len(questions)) :]):
     data = json.loads(line)
+    data["type"] = "tossup" if "question" in data else "bonus"
 
     if "category" not in data or "subcategory" not in data:
         continue
@@ -74,23 +77,31 @@ for line in tqdm(questions[int(0.2 * len(questions)) :]):
 
     subcategory_index = SUBCATEGORIES.index(subcategory)
 
-    if data["type"] == "tossup" and "question" in data and "answer" in data:
-        tokens = (
-            removePunctuation(data["question"] + " " + data["answer"]).lower().split()
-        )
     if (
-        data["type"] == "bonus"
-        and "leadin" in data
-        and "parts" in data
-        and "answers" in data
+        data["type"] == "tossup"
+        and "question_sanitized" in data
+        and "answer_sanitized" in data
     ):
         tokens = (
             removePunctuation(
-                data["leadin"]
+                data["question_sanitized"] + " " + data["answer_sanitized"]
+            )
+            .lower()
+            .split()
+        )
+    if (
+        data["type"] == "bonus"
+        and "leadin_sanitized" in data
+        and "parts_sanitized" in data
+        and "answers_sanitized" in data
+    ):
+        tokens = (
+            removePunctuation(
+                data["leadin_sanitized"]
                 + " "
-                + " ".join(data["parts"])
+                + " ".join(data["parts_sanitized"])
                 + " "
-                + " ".join(data["answers"])
+                + " ".join(data["answers_sanitized"])
             )
             .lower()
             .split()
