@@ -611,6 +611,10 @@ class Parser:
         packet_text = packet_text + "\n0."
         # remove zero-width characters
         packet_text = packet_text.replace("", "").replace("​", "")
+        # change soft hyphens to regular hyphens
+        packet_text = packet_text.replace("\xad", "-")
+        # change greek question mark to semicolon
+        packet_text = packet_text.replace("\u037e", ";")  # Greek question mark
 
         packet_text = (
             packet_text.replace("\u00a0", " ")
