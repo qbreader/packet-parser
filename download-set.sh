@@ -2,11 +2,11 @@
 
 URL="quizbowlpackets.com/"
 
-read -p "Packet level (m = middle school, c = college, t = trash; leave blank for high school): " LEVEL
+read -p "Packet level (m = middle school, c = college, t/p = trash; leave blank for high school): " LEVEL
 case $LEVEL in
     c) URL="collegiate.quizbowlpackets.com/" ;;
     m) URL="ms.quizbowlpackets.com/" ;;
-    t) URL="trash.quizbowlpackets.com/" ;;
+    t | p) URL="popculture.quizbowlpackets.com/" ;;
 esac
 
 ##### Download all packets in the set to folder called p-TYPE #####
