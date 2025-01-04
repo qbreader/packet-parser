@@ -742,6 +742,8 @@ class Parser:
                 f"Found {len(tossups):2} tossups and {len(bonuses):2} bonuses in {bcolors.OKBLUE}{packet_name}{bcolors.ENDC}"
             )
 
+        missing_directives = regex.search("description acceptable", packet_text, flags=Parser.REGEX_FLAGS)
+        missing_directives = missing_directives is not None
         data = {
             "tossups": [],
             "bonuses": [],
@@ -750,10 +752,15 @@ class Parser:
         for tossup in tossups:
             data["tossups"].append(self.parse_tossup(tossup))
             self.tossup_index += 1
+            missing_directives &= "description acceptable" not in data["tossups"][-1]["question_sanitized"].lower()
 
         for bonus in bonuses:
             data["bonuses"].append(self.parse_bonus(bonus))
             self.bonus_index += 1
+            missing_directives &= "description acceptable" not in data["bonuses"][-1]["leadin_sanitized"].lower()
+
+        if missing_directives:
+            Logger.warning("'description acceptable' directive may not have parsed in this packet")
 
         return data
 
