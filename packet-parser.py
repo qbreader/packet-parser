@@ -742,25 +742,33 @@ class Parser:
                 f"Found {len(tossups):2} tossups and {len(bonuses):2} bonuses in {bcolors.OKBLUE}{packet_name}{bcolors.ENDC}"
             )
 
-        missing_directives = regex.search("description acceptable", packet_text, flags=Parser.REGEX_FLAGS)
-        missing_directives = missing_directives is not None
         data = {
             "tossups": [],
             "bonuses": [],
         }
 
+        missing_directives = regex.search("description acceptable", packet_text, flags=Parser.REGEX_FLAGS)
+        missing_directives = 0 if missing_directives is None else len(missing_directives)
+        not_sanitized = self.modaq or self.buzzpoints
+
         for tossup in tossups:
-            data["tossups"].append(self.parse_tossup(tossup))
+            tossup_parsed = self.parse_tossup(tossup)
+            data["tossups"].append(tossup_parsed)
             self.tossup_index += 1
-            missing_directives &= "description acceptable" not in data["tossups"][-1]["question_sanitized"].lower()
+            question_text = tossup_parsed["question"] if not_sanitized else tossup_parsed["question_sanitized"]
+            missing_directives -= int("description acceptable" in question_text.lower())
 
         for bonus in bonuses:
-            data["bonuses"].append(self.parse_bonus(bonus))
+            bonus_parsed = self.parse_bonus(bonus)
+            data["bonuses"].append(bonus_parsed)
             self.bonus_index += 1
-            missing_directives &= "description acceptable" not in data["bonuses"][-1]["leadin_sanitized"].lower()
+            leadin_text = bonus_parsed["leadin"] if not_sanitized else bonus_parsed["leadin_sanitized"]
+            missing_directives -= int("description acceptable" in leadin_text.lower())
+            for part in (bonus_parsed["parts"] if not_sanitized else bonus_parsed["parts_sanitized"]):
+                missing_directives -= int("description acceptable" in part.lower())
 
-        if missing_directives:
-            Logger.warning("'description acceptable' directive may not have parsed in this packet")
+        if missing_directives > 0:
+            Logger.warning(f"{missing_directives} 'description acceptable' directive(s) may not have parsed in this packet")
 
         return data
 
