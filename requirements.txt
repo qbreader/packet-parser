@@ -4,3 +4,5 @@ docx==0.2.4
 numpy==2.0.1
 pdf2docx==0.5.5
 regex==2023.8.8
+PyMuPDF==1.24.14
+fonttools==4.55.0
