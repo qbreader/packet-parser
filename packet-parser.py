@@ -678,7 +678,7 @@ class Parser:
 
         # handle nonstandard question numbering
         packet_text = regex.sub(
-            r"^\(?(\d{1,2}|TB)\)(?=[ {])", "1. ", packet_text, flags=Parser.REGEX_FLAGS
+            r"^\(?(\d{1,2}|TB)\)", "1. ", packet_text, flags=Parser.REGEX_FLAGS
         )
         packet_text = regex.sub(
             r"^(TB|X|Tiebreaker|Extra)[\.:]?",
@@ -694,9 +694,13 @@ class Parser:
         packet_text = regex.sub(
             r"^[ABC][.:] *", "[10] ", packet_text, flags=Parser.REGEX_FLAGS
         )
-
         packet_text = regex.sub(
             r"^BS\d{1,2}[\.:]?", "21.", packet_text, flags=Parser.REGEX_FLAGS
+        )
+
+        # handle question number on a new line from the question text
+        packet_text = regex.sub(
+            r"(\d{1,2}\.) *\n", "\g<1>", packet_text, flags=Parser.REGEX_FLAGS
         )
 
         # clear lines that are all spaces
@@ -706,6 +710,17 @@ class Parser:
         packet_text = regex.sub(
             r"(?<=.)(?=ANSWER:)", "\n", packet_text, flags=Parser.REGEX_FLAGS
         )
+
+        # remove duplicate lines
+        count = regex.findall(r"(.+)\n\1", packet_text, flags=Parser.REGEX_FLAGS)
+        packet_text = regex.sub(
+            r"([^\n]+)\n\1\n", "\g<1>\n", packet_text, flags=Parser.REGEX_FLAGS
+        )
+        if len(count) > 0:
+            Logger.warning(f"Removed {len(count)} duplicate lines")
+
+        # remove "Page X" lines
+        packet_text = regex.sub(r"Page \d+( of \d+)?", "", packet_text, flags=Parser.REGEX_FLAGS)
 
         return packet_text
 
@@ -747,28 +762,46 @@ class Parser:
             "bonuses": [],
         }
 
-        missing_directives = regex.search("description acceptable", packet_text, flags=Parser.REGEX_FLAGS)
-        missing_directives = 0 if missing_directives is None else len(missing_directives)
+        missing_directives = regex.search(
+            "description acceptable", packet_text, flags=Parser.REGEX_FLAGS
+        )
+        missing_directives = (
+            0 if missing_directives is None else len(missing_directives)
+        )
         not_sanitized = self.modaq or self.buzzpoints
 
         for tossup in tossups:
             tossup_parsed = self.parse_tossup(tossup)
             data["tossups"].append(tossup_parsed)
             self.tossup_index += 1
-            question_text = tossup_parsed["question"] if not_sanitized else tossup_parsed["question_sanitized"]
+            question_text = (
+                tossup_parsed["question"]
+                if not_sanitized
+                else tossup_parsed["question_sanitized"]
+            )
             missing_directives -= int("description acceptable" in question_text.lower())
 
         for bonus in bonuses:
             bonus_parsed = self.parse_bonus(bonus)
             data["bonuses"].append(bonus_parsed)
             self.bonus_index += 1
-            leadin_text = bonus_parsed["leadin"] if not_sanitized else bonus_parsed["leadin_sanitized"]
+            leadin_text = (
+                bonus_parsed["leadin"]
+                if not_sanitized
+                else bonus_parsed["leadin_sanitized"]
+            )
             missing_directives -= int("description acceptable" in leadin_text.lower())
-            for part in (bonus_parsed["parts"] if not_sanitized else bonus_parsed["parts_sanitized"]):
+            for part in (
+                bonus_parsed["parts"]
+                if not_sanitized
+                else bonus_parsed["parts_sanitized"]
+            ):
                 missing_directives -= int("description acceptable" in part.lower())
 
         if missing_directives > 0:
-            Logger.warning(f"{missing_directives} 'description acceptable' directive(s) may not have parsed in this packet")
+            Logger.warning(
+                f"{missing_directives} 'description acceptable' directive(s) may not have parsed in this packet"
+            )
 
         return data
 
