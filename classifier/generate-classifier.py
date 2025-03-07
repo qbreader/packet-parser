@@ -6,6 +6,7 @@ It should contain all of the questions in the database dumped from mongodb.
 import json
 import math
 import numpy as np
+from collections import Counter
 from tqdm import tqdm
 
 np.random.seed(0)
@@ -17,23 +18,15 @@ np.random.shuffle(questions)
 print("Number of questions:", len(questions))
 
 
-def hhi(arr):
-    return sum([_**2 for _ in arr]) / sum(arr) ** 2
-
-
-def normalized_hhi(arr):
-    return (hhi(arr) - 1 / len(arr)) / (1 - 1 / len(arr))
+def filterJSON(data: dict, cutoff=10):
+    """
+    All fields whose corresponding array has sum < cutoff are removed.
+    """
+    return {k: v for k, v in data.items() if sum(v) >= cutoff}
 
 
 def removePunctuation(s, punctuation=""".,!-;:'"\/?@#$%^&*_~()[]{}“”‘’"""):
     return "".join(ch for ch in s if ch not in punctuation)
-
-
-def round_to_n(x, n=5):
-    if x == 0:
-        return 0
-
-    return round(x, -int(math.floor(math.log10(abs(x)))) + (n - 1))
 
 
 with open("stop-words.txt") as f:
@@ -156,26 +149,33 @@ for line in tqdm(questions[int(0.2 * len(questions)) :]):
 with open("classifier-subcategory.json", "w") as f:
     json.dump(
         {
-            "word_to_subcategory": word_to_subcategory,
+            "word_to_subcategory": filterJSON(word_to_subcategory),
             "subcategory_frequencies": subcategory_frequencies,
         },
         f,
+        separators=(",", ":"),
     )
 
 with open("classifier-alternate-subcategory.json", "w") as f:
     json.dump(
         {
-            "word_to_alternate_subcategory": word_to_alternate_subcategory,
+            "word_to_alternate_subcategory": {
+                k: filterJSON(v) for k, v in word_to_alternate_subcategory.items()
+            },
             "alternate_subcategory_frequencies": alternate_subcategory_frequencies,
         },
         f,
+        separators=(",", ":"),
     )
 
 with open("classifier-subsubcategory.json", "w") as f:
     json.dump(
         {
-            "word_to_subsubcategory": word_to_subsubcategory,
+            "word_to_subsubcategory": {
+                k: filterJSON(v) for k, v in word_to_subsubcategory.items()
+            },
             "subsubcategory_frequencies": subsubcategory_frequencies,
         },
         f,
+        separators=(",", ":"),
     )

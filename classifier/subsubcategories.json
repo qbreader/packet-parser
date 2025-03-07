@@ -1,10 +1,10 @@
 {
     "Other Science": [
-        "Math",
         "Astronomy",
         "Computer Science",
         "Earth Science",
         "Engineering",
+        "Math",
         "Misc Science"
     ],
     "Other Fine Arts": [
@@ -12,6 +12,7 @@
         "Dance",
         "Film",
         "Jazz",
+        "Musicals",
         "Opera",
         "Photography",
         "Misc Arts"
