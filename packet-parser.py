@@ -711,10 +711,12 @@ class Parser:
             r"(?<=.)(?=ANSWER:)", "\n", packet_text, flags=Parser.REGEX_FLAGS
         )
 
+        # remove trailing spaces
+        packet_text = regex.sub(r"[ \t]+$", "", packet_text, flags=Parser.REGEX_FLAGS)
         # remove duplicate lines
-        count = regex.findall(r"(.+)\n\1", packet_text, flags=Parser.REGEX_FLAGS)
+        count = regex.findall(r"^(.+)\n\1$", packet_text, flags=Parser.REGEX_FLAGS)
         packet_text = regex.sub(
-            r"([^\n]+)\n\1\n", "\g<1>\n", packet_text, flags=Parser.REGEX_FLAGS
+            r"^(.+)\n\1$", "\g<1>\n", packet_text, flags=Parser.REGEX_FLAGS
         )
         if len(count) > 0:
             Logger.warning(f"Removed {len(count)} duplicate lines")
