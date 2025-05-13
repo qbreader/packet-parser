@@ -181,7 +181,7 @@ class Parser:
     def __init_regex__(self):
         if self.has_question_numbers and self.has_category_tags:
             self.REGEX_QUESTION = r"^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.|\n)*?<[^>]*>"
-        elif self.has_question_numbers:
+        elif self.has_question_numbers and not self.has_category_tags:
             # self.REGEX_QUESTION = r"^ *\d{1,2}\.(?:.|\n)*?ANSWER(?:.*\n)*?(?= *\d{1,2}\.)"
             self.REGEX_QUESTION = r"\d{0,2}(?:[^\d\n].*\n)*[ \t]*ANSWER.*(?:\n.+)*?(?=\n\s*\d{1,2}|\n\s*$)"
         else:
