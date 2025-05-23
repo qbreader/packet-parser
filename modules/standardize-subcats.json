@@ -1,4 +1,7 @@
 {
+    "Comic": "Other Pop Culture",
+    "Comics": "Other Pop Culture",
+    "Manga": "Other Pop Culture",
     "American Lit": "American Literature",
     "American Literature": "American Literature",
     "US Literature": "American Literature",
@@ -186,6 +189,7 @@
     "OA": "Other Academic",
     "Movies": "Movies",
     "Pop Music": "Music",
+    "Rock": "Music",
     "R&B": "Music",
     "Soul": "Music",
     "Sports": "Sports",
@@ -194,7 +198,6 @@
     "Small Screen": "Television",
     "Video Games": "Video Games",
     "Other Pop Culture": "Other Pop Culture",
-    "Comics": "Other Pop Culture",
     "Trash": "Other Pop Culture",
     "Pop Culture": "Other Pop Culture",
     "Popular Culture": "Other Pop Culture",
