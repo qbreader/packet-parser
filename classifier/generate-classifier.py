@@ -18,7 +18,7 @@ np.random.shuffle(questions)
 print("Number of questions:", len(questions))
 
 
-def filterJSON(data: dict, cutoff=10):
+def filterJSON(data: dict, cutoff=100):
     """
     All fields whose corresponding array has sum < cutoff are removed.
     """
