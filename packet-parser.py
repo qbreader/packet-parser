@@ -13,6 +13,7 @@ from classifier.classify import (
     SUBSUBCATEGORIES,
 )
 
+CONSTANT_CATEGORY = ""
 CONSTANT_SUBCATEGORY = ""
 # CONSTANT_ALTERNATE_SUBCATEGORY is optional,
 # and can be used even if CONSTANT_SUBCATEGORY is empty.
@@ -136,6 +137,7 @@ class Parser:
         classify_unknown: bool,
         space_powermarks: bool,
         always_classify: bool = False,
+        constant_category: str = "",
         constant_subcategory: str = "",
         constant_alternate_subcategory: str = "",
     ) -> None:
@@ -159,21 +161,29 @@ class Parser:
         1-indexed
         """
 
+        if constant_category and constant_subcategory:
+            message = "Cannot use both a constant category and a constant subcategory."
+            raise ValueError(message)
+
         self.constant_subcategory = constant_subcategory
         self.constant_category = (
-            SUBCAT_TO_CAT[constant_subcategory] if constant_subcategory else ""
+            SUBCAT_TO_CAT[constant_subcategory]
+            if constant_subcategory
+            else constant_category
         )
         self.constant_alternate_subcategory = constant_alternate_subcategory
 
-        if not self.has_category_tags and not self.constant_subcategory == "":
-            Logger.warning(
-                f"Using fixed category {self.constant_category} and subcategory {self.constant_subcategory}"
-            )
+        if not self.has_category_tags and not self.constant_category == "":
+            message = f"Using fixed category {self.constant_category}"
+            Logger.warning(message)
+
+        elif not self.has_category_tags and not self.constant_subcategory == "":
+            message = f"Using fixed category {self.constant_category} and subcategory {self.constant_subcategory}"
+            Logger.warning(message)
 
         if self.constant_alternate_subcategory:
-            Logger.warning(
-                f"Using fixed alternate subcategory {self.constant_alternate_subcategory}"
-            )
+            message = f"Using fixed alternate subcategory {self.constant_alternate_subcategory}"
+            Logger.warning()
 
         self.__init_regex__()
 
@@ -510,7 +520,9 @@ class Parser:
             exit(3)
 
         if not subcategory or (not self.has_category_tags and self.always_classify):
-            category, subcategory, temp_alternate_subcategory = classify_question(text)
+            category, subcategory, temp_alternate_subcategory = classify_question(
+                text, fixed_category=self.constant_category
+            )
 
             if self.has_category_tags and not alternate_subcategory:
                 Logger.warning(
@@ -909,6 +921,7 @@ def main(
         classify_unknown,
         space_powermarks,
         always_classify,
+        CONSTANT_CATEGORY,
         CONSTANT_SUBCATEGORY,
         CONSTANT_ALTERNATE_SUBCATEGORY,
     )

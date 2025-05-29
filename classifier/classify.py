@@ -12,6 +12,9 @@ with open(os.path.join(CURRENT_PATH, "stop-words.txt")) as f:
 with open(os.path.join(CURRENT_PATH, "subcategories.txt")) as f:
     SUBCATEGORIES = [line.strip() for line in f.readlines()]
 
+with open(os.path.join(CURRENT_PATH, "subcategory-to-category.json")) as f:
+    SUBCATEGORY_TO_CATEGORY = json.load(f)
+
 with open(os.path.join(CURRENT_PATH, "alternate-subcategories.json")) as f:
     ALTERNATE_SUBCATEGORIES = json.load(f)
 
@@ -37,8 +40,8 @@ with open(os.path.join(CURRENT_PATH, "../modules/subcat-to-cat.json")) as f:
     SUBCAT_TO_CAT = json.load(f)
 
 
-def classify_question(text) -> tuple[str, str, str]:
-    subcategory = classify(text, mode="subcategory")
+def classify_question(text, fixed_category=None) -> tuple[str, str, str]:
+    subcategory = classify(text, mode="subcategory", category=fixed_category)
     category = SUBCAT_TO_CAT[subcategory]
     alternate_subcategory = ""
 
@@ -58,12 +61,27 @@ def classify_question(text) -> tuple[str, str, str]:
 
 def classify(text, mode="subcategory", category="", subcategory="", EPSILON=0.01):
     if mode == "subcategory":
+        if category:
+            valid_indices = []
+            for i, subcategory in enumerate(SUBCATEGORIES):
+                if SUBCATEGORY_TO_CATEGORY[subcategory] == category:
+                    valid_indices.append(i)
+        else:
+            valid_indices = None
         index = naive_bayes_classify(
-            text, WORD_TO_SUBCATEGORY, SUBCATEGORY_FREQUENCIES, EPSILON=EPSILON
+            text,
+            WORD_TO_SUBCATEGORY,
+            SUBCATEGORY_FREQUENCIES,
+            valid_indices=valid_indices,
+            EPSILON=EPSILON,
         )
         return SUBCATEGORIES[index]
 
     if mode == "alternate-subcategory":
+        if category not in ALTERNATE_SUBCATEGORIES:
+            message = f"Category {category} does not have alternate subcategories."
+            raise ValueError(message)
+
         index = naive_bayes_classify(
             text,
             WORD_TO_ALTERNATE_SUBCATEGORY[category],
@@ -73,6 +91,10 @@ def classify(text, mode="subcategory", category="", subcategory="", EPSILON=0.01
         return ALTERNATE_SUBCATEGORIES[category][index]
 
     if mode == "subsubcategory":
+        if subcategory not in SUBSUBCATEGORIES:
+            message = f"Subcategory {subcategory} does not have subsubcategories."
+            raise ValueError(message)
+
         index = naive_bayes_classify(
             text,
             WORD_TO_SUBSUBCATEGORY[subcategory],
@@ -82,7 +104,13 @@ def classify(text, mode="subcategory", category="", subcategory="", EPSILON=0.01
         return SUBSUBCATEGORIES[subcategory][index]
 
 
-def naive_bayes_classify(text, WORD_TO_FREQUENCY, CLASS_FREQUENCIES, EPSILON=0.01):
+def naive_bayes_classify(
+    text,
+    WORD_TO_FREQUENCY,
+    CLASS_FREQUENCIES,
+    valid_indices=None,
+    EPSILON=0.01,
+):
     """
     Returns the index of the class prediction.
     """
@@ -102,6 +130,11 @@ def naive_bayes_classify(text, WORD_TO_FREQUENCY, CLASS_FREQUENCIES, EPSILON=0.0
         for i in range(len(CLASS_FREQUENCIES)):
             likelihoods[i] += math.log(WORD_TO_FREQUENCY[token][i] + EPSILON)
             likelihoods[i] -= SMOOTHED_CLASS_FREQUENCIES[i]
+
+    if valid_indices is not None:
+        for i in range(len(likelihoods)):
+            if i not in valid_indices:
+                likelihoods[i] = -math.inf
 
     max_likelihood = max(likelihoods)
     # as far as I can tell, there's always only one valid index
