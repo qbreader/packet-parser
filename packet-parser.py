@@ -607,6 +607,16 @@ class Parser:
                     values.append(int(value))
                     break
 
+        if len(difficultyModifiers) > 0 and not len(values) == len(difficultyModifiers):
+            message = f"Bonus {self.bonus_index} has {len(difficultyModifiers)} difficulty modifiers but {len(values)} values"
+            Logger.warning(message)
+
+        if len(difficultyModifiers) == 3 and not set(difficultyModifiers) == set(
+            ["e", "m", "h"]
+        ):
+            message = f"Bonus {self.bonus_index} has difficulty modifiers {difficultyModifiers} but should be e, m, h"
+            Logger.warning(message)
+
         if len(values) == 0 and (self.modaq or self.buzzpoints):
             values = [10 for _ in range(len(tags))]
 
