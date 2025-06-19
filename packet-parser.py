@@ -4,6 +4,7 @@ import click
 import json
 import os
 import regex
+import unicodedata
 
 from bcolors import bcolors
 from classifier.classify import (
@@ -95,7 +96,7 @@ def get_alternate_subcategory(text: str) -> str:
     return ""
 
 
-def remove_formatting(text: str, include_italics=False):
+def remove_formatting(text: str, include_italics=False, sanitize_string=True):
     text = (
         text.replace("{b}", "")
         .replace("{/b}", "")
@@ -106,7 +107,31 @@ def remove_formatting(text: str, include_italics=False):
     if not include_italics:
         text = text.replace("{i}", "").replace("{/i}", "")
 
-    return text.strip()
+    text = text.strip()
+
+    if not sanitize_string:
+        return text
+
+    # Normalize to NFD (decompose characters)
+    s = unicodedata.normalize("NFD", text)
+    # Remove diacritics
+    s = regex.sub(r"[\u0300-\u036f]", "", s)
+    # Replace various unicode dashes with '-'
+    s = regex.sub(r"[\u2010-\u2015]", "-", s)
+    # Replace various unicode single quotes with "'"
+    s = regex.sub(r"[\u2018-\u201B]", "'", s)
+    # Replace various unicode double quotes with '"'
+    s = regex.sub(r"[\u201C-\u201F]", '"', s)
+    # Replace unicode ellipsis with '...'
+    s = regex.sub(r"[\u2026]", "...", s)
+    # Replace various unicode primes with "'"
+    s = regex.sub(r"[\u2032-\u2037]", "'", s)
+    # Remove interpuncts
+    s = regex.sub(r"[\u00B7\u22C5\u2027]", "", s)
+    # Replace ł with l
+    s = regex.sub(r"\u0142", "l", s)
+
+    return s
 
 
 def remove_punctuation(s: str, punctuation=""".,!-;:'"\/?@#$%^&*_~()[]{}“”‘’"""):
