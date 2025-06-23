@@ -162,6 +162,7 @@ class Parser:
         classify_unknown: bool,
         space_powermarks: bool,
         always_classify: bool = False,
+        no_question_underlining: bool = False,
         constant_category: str = "",
         constant_subcategory: str = "",
         constant_alternate_subcategory: str = "",
@@ -176,6 +177,7 @@ class Parser:
         self.classify_unknown = classify_unknown
         self.space_powermarks = space_powermarks
         self.always_classify = always_classify
+        self.no_question_underlining = no_question_underlining
 
         self.tossup_index: int = 0
         """
@@ -277,6 +279,11 @@ class Parser:
             question_raw = "{b}" + question_raw[4:]
         elif question_raw.startswith("{i} "):
             question_raw = "{i}" + question_raw[4:]
+
+        if self.no_question_underlining:
+            if "{u}" in question_raw:
+                question_raw = question_raw.replace("{u}", "").replace("{/u}", "")
+                Logger.warning(f"Tossup {self.tossup_index} question text had underlining removed")
 
         question = format_text(question_raw, self.modaq)
         question_sanitized = remove_formatting(question_raw)
@@ -388,6 +395,11 @@ class Parser:
         elif leadin_raw.startswith("{i} "):
             leadin_raw = "{i}" + leadin_raw[4:]
 
+        if self.no_question_underlining:
+            if "{u}" in leadin_raw:
+                leadin_raw = leadin_raw.replace("{u}", "").replace("{/u}", "")
+                Logger.warning(f"Bonus {self.tossup_index} leadin text had underlining removed")
+
         leadin = format_text(leadin_raw, self.modaq)
         leadin_sanitized = remove_formatting(leadin_raw)
 
@@ -408,6 +420,13 @@ class Parser:
             exit(2)
 
         parts_raw = [part.replace("\n", " ").strip() for part in parts_raw]
+
+        if self.no_question_underlining:
+            for i, part in enumerate(parts_raw):
+                if "{u}" in part:
+                    parts_raw[i] = part.replace("{u}", "").replace("{/u}", "")
+                    Logger.warning(f"Bonus {self.bonus_index} part {i + 1} text had underlining removed")
+
         parts = [format_text(part, self.modaq) for part in parts_raw]
         parts_sanitized = [remove_formatting(part) for part in parts_raw]
 
@@ -632,10 +651,6 @@ class Parser:
                     values.append(int(value))
                     break
 
-        if len(difficultyModifiers) > 0 and not len(values) == len(difficultyModifiers):
-            message = f"Bonus {self.bonus_index} has {len(difficultyModifiers)} difficulty modifiers but {len(values)} values"
-            Logger.warning(message)
-
         if len(difficultyModifiers) == 3 and not set(difficultyModifiers) == set(
             ["e", "m", "h"]
         ):
@@ -644,6 +659,14 @@ class Parser:
 
         if len(values) == 0 and (self.modaq or self.buzzpoints):
             values = [10 for _ in range(len(tags))]
+
+        if (
+            len(difficultyModifiers) > 0
+            and len(values) > 0
+            and not len(values) == len(difficultyModifiers)
+        ):
+            message = f"Bonus {self.bonus_index} has {len(difficultyModifiers)} difficulty modifiers but {len(values)} values"
+            Logger.warning(message)
 
         return difficultyModifiers, values
 
@@ -910,6 +933,12 @@ class Parser:
     is_flag=True,
     help="Ensure powermarks are surrounded by spaces.",
 )
+@click.option(
+    "-u",
+    "--no-question-underlining",
+    is_flag=True,
+    help="Detect and remove underlining from (non-answer) question text."
+)
 def main(
     input_directory,
     output_directory,
@@ -921,6 +950,7 @@ def main(
     modaq,
     auto_insert_powermarks,
     space_powermarks,
+    no_question_underlining,
 ):
     if buzzpoints and modaq:
         Logger.error("Cannot output in both buzzpoints and MODAQ formats")
@@ -956,6 +986,7 @@ def main(
         classify_unknown,
         space_powermarks,
         always_classify,
+        no_question_underlining,
         CONSTANT_CATEGORY,
         CONSTANT_SUBCATEGORY,
         CONSTANT_ALTERNATE_SUBCATEGORY,
