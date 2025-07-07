@@ -283,7 +283,9 @@ class Parser:
         if self.no_question_underlining:
             if "{u}" in question_raw:
                 question_raw = question_raw.replace("{u}", "").replace("{/u}", "")
-                Logger.warning(f"Tossup {self.tossup_index} question text had underlining removed")
+                Logger.warning(
+                    f"Tossup {self.tossup_index} question text had underlining removed"
+                )
 
         question = format_text(question_raw, self.modaq)
         question_sanitized = remove_formatting(question_raw)
@@ -398,7 +400,9 @@ class Parser:
         if self.no_question_underlining:
             if "{u}" in leadin_raw:
                 leadin_raw = leadin_raw.replace("{u}", "").replace("{/u}", "")
-                Logger.warning(f"Bonus {self.tossup_index} leadin text had underlining removed")
+                Logger.warning(
+                    f"Bonus {self.tossup_index} leadin text had underlining removed"
+                )
 
         leadin = format_text(leadin_raw, self.modaq)
         leadin_sanitized = remove_formatting(leadin_raw)
@@ -425,7 +429,9 @@ class Parser:
             for i, part in enumerate(parts_raw):
                 if "{u}" in part:
                     parts_raw[i] = part.replace("{u}", "").replace("{/u}", "")
-                    Logger.warning(f"Bonus {self.bonus_index} part {i + 1} text had underlining removed")
+                    Logger.warning(
+                        f"Bonus {self.bonus_index} part {i + 1} text had underlining removed"
+                    )
 
         parts = [format_text(part, self.modaq) for part in parts_raw]
         parts_sanitized = [remove_formatting(part) for part in parts_raw]
@@ -573,8 +579,7 @@ class Parser:
                     f"{type} {index} classified as {category} - {subcategory}"
                 )
 
-            if not alternate_subcategory:
-                alternate_subcategory = temp_alternate_subcategory
+            alternate_subcategory = temp_alternate_subcategory
 
         if not alternate_subcategory and not self.modaq:
             if category in ALTERNATE_SUBCATEGORIES:
