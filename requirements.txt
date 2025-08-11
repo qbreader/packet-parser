@@ -3,7 +3,7 @@ docx==0.2.4
 fire==0.7.0
 fonttools==4.55.0
 lxml==5.4.0
-numpy==2.0.1
+numpy>=2.2.0
 opencv-python==4.11.0.86
 opencv-python-headless==4.11.0.86
 pdf2docx==0.5.8
