@@ -13,14 +13,12 @@ A complete program to automatically parse quizbowl packets, such as from [quizbo
 Make sure you have python3 and pip installed on your computer.
 
 1. Clone the repository and cd into the folder.
-2. Install necessary python libraries (e.g. pdf2docx, regex, python-docx) with `pip install -r requirements.txt`.
-3. Download the packets, either manually or using `download-set.sh`.
+2. Install necessary python libraries with `pip install -r requirements.txt`.
+3. Download the packets, either manually or using `download-set.sh`. You need `wget` for this script.
 
    - If the packets are `.docx` files, then place the packets in a folder called `p-docx`.
    - If the packets are `.pdf` files, then place the packets in a folder called `p-pdf`.
-   - If the packets are `.txt` files, then place the packets in a folder called `packets`
-   - If you are using a Mac，you can use [MacroRecorder](https://www.macrorecorder.com/) along with the provided macro file `doc-to-docx.mrf` to automatically convert doc files to docx files.
-     - **Note:** There are known issues with this macro; I've only gotten it to work on 16" Macbook Pros.
+   - If the packets are `.txt` files, then place the packets in a folder called `packets`.
 
 4. If the packets are `.docx` or `.pdf` files, then run the `to-txt.sh` file to convert them to `.txt` files.
 5. Run the `packet-parser.py` python file.
