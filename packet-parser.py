@@ -134,7 +134,7 @@ def remove_formatting(text: str, include_italics=False, sanitize_string=True):
     return s
 
 
-def remove_punctuation(s: str, punctuation=""".,!-;:'"\/?@#$%^&*_~()[]{}“”‘’"""):
+def remove_punctuation(s: str, punctuation=".,!-;:'\"\\/?@#$%^&*_~()[]{}“”‘’"):
     return "".join(ch for ch in s if ch not in punctuation)
 
 
@@ -739,13 +739,13 @@ class Parser:
         # handle html formatting at start of string
         packet_text = regex.sub(
             r"^\{(bu|b|u|i)\}(\d{1,2}|TB|X)\.",
-            "1. {\g<1>}",
+            r"1. {\g<1>}",
             packet_text,
             flags=Parser.REGEX_FLAGS,
         )
         packet_text = regex.sub(
             r"^\{(bu|b|u|i)\}ANSWER(:?)",
-            "ANSWER\g<2>{\g<1>}",
+            r"ANSWER\g<2>{\g<1>}",
             packet_text,
             flags=Parser.REGEX_FLAGS,
         )
@@ -774,7 +774,7 @@ class Parser:
 
         # handle question number on a new line from the question text
         packet_text = regex.sub(
-            r"(\d{1,2}\.) *\n", "\g<1>", packet_text, flags=Parser.REGEX_FLAGS
+            r"(\d{1,2}\.) *\n", r"\g<1>", packet_text, flags=Parser.REGEX_FLAGS
         )
 
         # clear lines that are all spaces
@@ -790,7 +790,7 @@ class Parser:
         # remove duplicate lines
         count = regex.findall(r"^(.+)\n\1$", packet_text, flags=Parser.REGEX_FLAGS)
         packet_text = regex.sub(
-            r"^(.+)\n\1$", "\g<1>\n", packet_text, flags=Parser.REGEX_FLAGS
+            r"^(.+)\n\1$", r"\g<1>\n", packet_text, flags=Parser.REGEX_FLAGS
         )
         if len(count) > 0:
             Logger.warning(f"Removed {len(count)} duplicate lines")
@@ -819,7 +819,7 @@ class Parser:
             )
 
             if (not self.has_question_numbers) ^ (
-                1 if regex.match("^\d{1,2}\.", question) else 0
+                1 if regex.match(r"^\d{1,2}\.", question) else 0
             ):
                 question = "1. " + question
 
