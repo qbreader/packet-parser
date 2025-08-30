@@ -80,6 +80,7 @@
     "Astro": "Other Science",
     "Computer Science": "Other Science",
     "CompSci": "Other Science",
+    "CS Science": "Other Science",
     "Earth Science": "Other Science",
     "Earth Sci": "Other Science",
     "Earth": "Other Science",
@@ -166,6 +167,7 @@
     "Economics": "Social Science",
     "Psychology": "Social Science",
     "Linguistics": "Social Science",
+    "Ling": "Social Science",
     "Sociology": "Social Science",
     "Anthro": "Social Science",
     "Anthropology": "Social Science",
@@ -198,10 +200,5 @@
     "TV": "Television",
     "Small Screen": "Television",
     "Video Games": "Video Games",
-    "Other Pop Culture": "Other Pop Culture",
-    "Trash": "Other Pop Culture",
-    "Pop Culture": "Other Pop Culture",
-    "Popular Culture": "Other Pop Culture",
-    "Culture": "Other Pop Culture",
-    "Other": "Other Academic"
+    "Other Pop Culture": "Other Pop Culture"
 }
