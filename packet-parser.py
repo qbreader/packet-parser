@@ -796,7 +796,9 @@ class Parser:
             Logger.warning(f"Removed {len(count)} duplicate lines")
 
         # remove "Page X" lines
-        packet_text = regex.sub(r"Page \d+( of \d+)?", "", packet_text, flags=Parser.REGEX_FLAGS)
+        packet_text = regex.sub(
+            r"Page \d+( of \d+)?", "", packet_text, flags=Parser.REGEX_FLAGS
+        )
 
         return packet_text
 
@@ -942,7 +944,7 @@ class Parser:
     "-u",
     "--no-question-underlining",
     is_flag=True,
-    help="Detect and remove underlining from (non-answer) question text."
+    help="Detect and remove underlining from (non-answer) question text.",
 )
 def main(
     input_directory,
