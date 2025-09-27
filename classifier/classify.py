@@ -144,7 +144,7 @@ def naive_bayes_classify(
     return np.random.choice(valid_indices)
 
 
-def removePunctuation(s, punctuation=""".,!-;:'"\/?@#$%^&*_~()[]{}“”‘’"""):
+def removePunctuation(s, punctuation=""".,!-;:'"\\/?@#$%^&*_~()[]{}“”‘’"""):
     return "".join(ch for ch in s if ch not in punctuation)
 
 
