@@ -280,11 +280,12 @@ class Parser:
         elif question_raw.startswith("{i} "):
             question_raw = "{i}" + question_raw[4:]
 
-        if self.no_question_underlining:
-            if "{u}" in question_raw:
+        if "{u}" in question_raw:
+            if self.no_question_underlining:
                 question_raw = question_raw.replace("{u}", "").replace("{/u}", "")
+            else:
                 Logger.warning(
-                    f"Tossup {self.tossup_index} question text had underlining removed"
+                    f"Tossup {self.tossup_index} question text has underlining"
                 )
 
         question = format_text(question_raw, self.modaq)
@@ -397,12 +398,11 @@ class Parser:
         elif leadin_raw.startswith("{i} "):
             leadin_raw = "{i}" + leadin_raw[4:]
 
-        if self.no_question_underlining:
-            if "{u}" in leadin_raw:
+        if "{u}" in leadin_raw:
+            if self.no_question_underlining:
                 leadin_raw = leadin_raw.replace("{u}", "").replace("{/u}", "")
-                Logger.warning(
-                    f"Bonus {self.tossup_index} leadin text had underlining removed"
-                )
+            else:
+                Logger.warning(f"Bonus {self.tossup_index} leadin text has underlining")
 
         leadin = format_text(leadin_raw, self.modaq)
         leadin_sanitized = remove_formatting(leadin_raw)
@@ -425,12 +425,13 @@ class Parser:
 
         parts_raw = [part.replace("\n", " ").strip() for part in parts_raw]
 
-        if self.no_question_underlining:
-            for i, part in enumerate(parts_raw):
-                if "{u}" in part:
+        for i, part in enumerate(parts_raw):
+            if "{u}" in part:
+                if self.no_question_underlining:
                     parts_raw[i] = part.replace("{u}", "").replace("{/u}", "")
+                else:
                     Logger.warning(
-                        f"Bonus {self.bonus_index} part {i + 1} text had underlining removed"
+                        f"Bonus {self.bonus_index} part {i + 1} text has underlining"
                     )
 
         parts = [format_text(part, self.modaq) for part in parts_raw]
