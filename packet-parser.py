@@ -32,8 +32,11 @@ with open("modules/standardize-subcats.json") as f:
 with open("modules/standardize-alternate-subcats.json") as f:
     STANDARDIZE_ALTERNATE_SUBCATS = json.load(f)
 
+with open("modules/standardize-category.json") as f:
+    STANDARDIZE_CATEGORIES = json.load(f)
+
 with open("modules/subcat-to-cat.json") as f:
-    SUBCAT_TO_CAT = json.load(f)
+    SUBCAT_TO_CAT: dict[str, str] = json.load(f)
 
 
 def format_text(text: str, modaq=False) -> str:
@@ -52,7 +55,7 @@ def format_text(text: str, modaq=False) -> str:
     return text.strip()
 
 
-def get_subcategory(text: str) -> str:
+def get_key_value_matches(text: str, lookup: dict[str, str]) -> list[str]:
     if text[0] == "<" and text[-1] == ">":
         text = text[1:-1]
 
@@ -61,39 +64,19 @@ def get_subcategory(text: str) -> str:
     text = text.replace("(", "").replace(")", "")
     text_split = regex.split(r"[\/,;:. ]", text)
 
-    for subcat in STANDARDIZE_SUBCATS:
+    results = []
+
+    for key in lookup:
         works = True
-        for word in subcat.lower().split(" "):
+        for word in key.lower().split(" "):
             if word not in text_split:
                 works = False
                 break
 
         if works:
-            return STANDARDIZE_SUBCATS[subcat]
+            results.append(lookup[key])
 
-    return ""
-
-
-def get_alternate_subcategory(text: str) -> str:
-    if text[0] == "<" and text[-1] == ">":
-        text = text[1:-1]
-
-    text = text.lower()
-    text = text.replace("–", " ")
-    text = text.replace("-", " ")
-    text_split = regex.split(r"[\/,; ]", text)
-
-    for subcat in STANDARDIZE_ALTERNATE_SUBCATS:
-        works = True
-        for word in subcat.lower().split(" "):
-            if word not in text_split:
-                works = False
-                break
-
-        if works:
-            return STANDARDIZE_ALTERNATE_SUBCATS[subcat]
-
-    return ""
+    return results
 
 
 def remove_formatting(text: str, include_italics=False, sanitize_string=True):
@@ -360,7 +343,7 @@ class Parser:
                 "alternate_subcategory": alternate_subcategory,
             }
 
-            if alternate_subcategory == "":
+            if alternate_subcategory is None:
                 del data["alternate_subcategory"]
 
         return data
@@ -523,7 +506,7 @@ class Parser:
                 "difficultyModifiers": difficultyModifiers,
             }
 
-            if alternate_subcategory == "":
+            if alternate_subcategory is None:
                 del data["alternate_subcategory"]
 
             if len(values) == 0:
@@ -544,9 +527,9 @@ class Parser:
     def parse_category(
         self, text: str, type: Literal["tossup", "bonus"]
     ) -> tuple[str, str, str, str]:
-        category = ""
-        subcategory = ""
-        alternate_subcategory = ""
+        category = None
+        subcategory = None
+        alternate_subcategory = None
         metadata = ""
 
         index = self.tossup_index if type == "tossup" else self.bonus_index
@@ -572,7 +555,10 @@ class Parser:
 
         if not subcategory or (not self.has_category_tags and self.always_classify):
             category, subcategory, temp_alternate_subcategory = classify_question(
-                text, fixed_category=self.constant_category
+                text,
+                fixed_category=self.constant_category
+                if self.constant_category
+                else category,
             )
 
             if self.has_category_tags and not alternate_subcategory:
@@ -581,7 +567,6 @@ class Parser:
                 )
 
             alternate_subcategory = temp_alternate_subcategory
-
         if not alternate_subcategory and not self.modaq:
             if category in ALTERNATE_SUBCATEGORIES:
                 alternate_subcategory = classify(
@@ -608,7 +593,9 @@ class Parser:
 
         return category, subcategory, alternate_subcategory, metadata
 
-    def parse_category_tag(self, text: str) -> tuple[str, str, str, str] | None:
+    def parse_category_tag(
+        self, text: str
+    ) -> tuple[str | None, str | None, str | None, str] | None:
         category_tag = regex.search(
             self.REGEX_CATEGORY_TAG,
             remove_formatting(text),
@@ -622,9 +609,22 @@ class Parser:
         category_tag = category_tag.strip().replace("\n", " ")
         metadata = category_tag[1:-1]
 
-        subcategory = get_subcategory(category_tag)
-        alternate_subcategory = get_alternate_subcategory(category_tag)
-        category = SUBCAT_TO_CAT[subcategory] if subcategory else ""
+        subcategory = get_key_value_matches(category_tag, STANDARDIZE_SUBCATS)
+        subcategory = subcategory[0] if len(subcategory) == 1 else None
+        alternate_subcategory = get_key_value_matches(
+            category_tag, STANDARDIZE_ALTERNATE_SUBCATS
+        )
+        alternate_subcategory = (
+            alternate_subcategory[0] if len(alternate_subcategory) == 1 else None
+        )
+        category = get_key_value_matches(category_tag, STANDARDIZE_CATEGORIES)
+        category = (
+            SUBCAT_TO_CAT[subcategory]
+            if subcategory
+            else category[0]
+            if len(category) == 1
+            else None
+        )
 
         return category, subcategory, alternate_subcategory, metadata
 

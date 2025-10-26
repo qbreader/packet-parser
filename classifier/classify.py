@@ -43,7 +43,7 @@ with open(os.path.join(CURRENT_PATH, "../modules/subcat-to-cat.json")) as f:
 def classify_question(text, fixed_category=None) -> tuple[str, str, str]:
     subcategory = classify(text, mode="subcategory", category=fixed_category)
     category = SUBCAT_TO_CAT[subcategory]
-    alternate_subcategory = ""
+    alternate_subcategory = None
 
     if category in ALTERNATE_SUBCATEGORIES:
         alternate_subcategory = classify(
