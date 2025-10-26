@@ -130,6 +130,10 @@ class Logger:
     def warning(message: str):
         print(f"{bcolors.WARNING}WARNING:{bcolors.ENDC} {message}")
 
+    @staticmethod
+    def info(message: str):
+        print(f"{bcolors.OKBLUE}INFO:{bcolors.ENDC} {message}")
+
 
 class Parser:
     REGEX_FLAGS = regex.IGNORECASE | regex.MULTILINE
@@ -247,11 +251,13 @@ class Parser:
         question_raw = question_raw.strip()
 
         if len(question_raw) == 0:
-            Logger.error(f"Tossup {self.tossup_index} question text is empty - {text}")
+            message = f"[tossup {self.tossup_index:2}] question text is empty - {text}"
+            Logger.error(message)
             exit(1)
 
         if len(regex.findall(r"\(\*\)", question_raw)) >= 2:
-            Logger.warning(f"Tossup {self.tossup_index} has multiple powermarks (*)")
+            message = f"[tossup {self.tossup_index:2}] has multiple powermarks (*)"
+            Logger.warning(message)
 
         if self.auto_insert_powermarks and "(*)" not in question_raw:
             question_raw = self.insert_powermark(question_raw)
@@ -268,7 +274,7 @@ class Parser:
                 question_raw = question_raw.replace("{u}", "").replace("{/u}", "")
             else:
                 Logger.warning(
-                    f"Tossup {self.tossup_index} question text has underlining"
+                    f"[tossup {self.tossup_index:2}] question text has underlining"
                 )
 
         question = format_text(question_raw, self.modaq)
@@ -282,12 +288,12 @@ class Parser:
                 question = regex.sub(r" *\(\*\) *", " (*) ", question)
             else:
                 Logger.warning(
-                    f"Tossup {self.tossup_index} powermark (*) is not surrounded by spaces"
+                    f"[tossup {self.tossup_index:2}] powermark (*) is not surrounded by spaces"
                 )
 
         if "answer:" in question_sanitized.lower():
             Logger.warning(
-                f"Tossup {self.tossup_index} question text may contain the answer"
+                f"[tossup {self.tossup_index:2}] question text may contain the answer"
             )
             self.tossup_index += 1
 
@@ -296,7 +302,7 @@ class Parser:
         )
 
         if not answer_raw:
-            Logger.error(f"Cannot find answer for tossup {self.tossup_index} - {text}")
+            Logger.error(f"[tossup {self.tossup_index:2}] missing answer - {text}")
             exit(1)
 
         answer_raw = answer_raw.group()
@@ -306,7 +312,7 @@ class Parser:
 
         if "answer:" in answer_raw.lower():
             Logger.warning(
-                f"Tossup {self.tossup_index} answer may contain the next question"
+                f"[tossup {self.tossup_index:2}] answer may contain the next question"
             )
             self.tossup_index += 1
             if not self.has_category_tags:
@@ -366,7 +372,7 @@ class Parser:
         )
 
         if not leadin_raw:
-            Logger.error(f"Cannot find leadin for bonus {self.bonus_index} - {text}")
+            Logger.error(f"[bonus {self.bonus_index:2}] missing leadin - {text}")
             exit(2)
 
         leadin_raw = leadin_raw.group()
@@ -385,14 +391,14 @@ class Parser:
             if self.no_question_underlining:
                 leadin_raw = leadin_raw.replace("{u}", "").replace("{/u}", "")
             else:
-                Logger.warning(f"Bonus {self.tossup_index} leadin text has underlining")
+                Logger.warning(f"[bonus {self.tossup_index:2}] leadin has underlining")
 
         leadin = format_text(leadin_raw, self.modaq)
         leadin_sanitized = remove_formatting(leadin_raw)
 
         if "answer:" in leadin_sanitized.lower():
             Logger.warning(
-                f"Bonus {self.bonus_index} leadin may contain the answer to the first part"
+                f"[bonus {self.bonus_index:2}] leadin may contain the answer to the first part"
             )
             self.bonus_index += 1
             if not self.has_question_numbers:
@@ -403,7 +409,7 @@ class Parser:
         )
 
         if len(parts_raw) == 0:
-            Logger.error(f"No parts found for bonus {self.bonus_index} - {text}")
+            Logger.error(f"[bonus {self.bonus_index:2}] missing parts - {text}")
             exit(2)
 
         parts_raw = [part.replace("\n", " ").strip() for part in parts_raw]
@@ -414,7 +420,7 @@ class Parser:
                     parts_raw[i] = part.replace("{u}", "").replace("{/u}", "")
                 else:
                     Logger.warning(
-                        f"Bonus {self.bonus_index} part {i + 1} text has underlining"
+                        f"[bonus {self.bonus_index:2}] part {i + 1} text has underlining"
                     )
 
         parts = [format_text(part, self.modaq) for part in parts_raw]
@@ -425,7 +431,7 @@ class Parser:
         )
 
         if len(answers_raw) == 0:
-            Logger.error(f"No answers found for bonus {self.bonus_index} - {text}")
+            Logger.error(f"[bonus {self.bonus_index:2}] missing answers - {text}")
             exit(2)
 
         answers_raw = [answer.replace("\n", " ").strip() for answer in answers_raw]
@@ -438,24 +444,24 @@ class Parser:
 
         if len(parts_raw) != len(answers_raw):
             Logger.warning(
-                f"Bonus {self.bonus_index} has {len(parts_raw)} parts but {len(answers_raw)} answers"
+                f"bonus {self.bonus_index:2}] has {len(parts_raw)} parts but {len(answers_raw)} answers"
             )
 
         if len(parts_raw) < self.bonus_length and sum(values) != 30:
             Logger.warning(
-                f"Bonus {self.bonus_index} has fewer than {self.bonus_length} parts"
+                f"[bonus {self.bonus_index:2}] has fewer than {self.bonus_length} parts"
             )
             if not self.has_question_numbers:
                 print(f"\n{text[3:]}\n")
 
         if len(parts_raw) > self.bonus_length and sum(values) != 30:
             Logger.warning(
-                f"Bonus {self.bonus_index} has more than {self.bonus_length} parts"
+                f"[bonus {self.bonus_index:2}] has more than {self.bonus_length} parts"
             )
 
         if "answer:" in answers_sanitized[-1].lower():
             Logger.warning(
-                f"Bonus {self.bonus_index} answer may contain the next tossup"
+                f"[bonus {self.bonus_index:2}] answer may contain the next tossup"
             )
             print(f"\n{answers_sanitized[-1]}\n")
 
@@ -520,7 +526,7 @@ class Parser:
     def insert_powermark(self, text: str) -> str:
         index = text.rfind("{/b}")
         if index < 0:
-            Logger.warning(f"Can't insert (*) for tossup {self.tossup_index} - {text}")
+            Logger.warning(f"[tossup {self.tossup_index:2}] can't insert powermark (*)")
 
         return text[:index] + "(*)" + text[index:]
 
@@ -539,7 +545,7 @@ class Parser:
         if category_tag:
             category, subcategory, alternate_subcategory, metadata = category_tag
         elif self.has_category_tags:
-            Logger.error(f"No category tag for {type} {index} - {text}")
+            Logger.error(f"[{type:6} {index:2}] no category tag found - {text}")
             exit(3)
 
         if self.constant_category and self.constant_subcategory:
@@ -550,7 +556,9 @@ class Parser:
             alternate_subcategory = self.constant_alternate_subcategory
 
         if not subcategory and self.has_category_tags and not self.classify_unknown:
-            Logger.error(f"{type} {index} has unrecognized subcategory {category_tag}")
+            Logger.error(
+                f"[{type:6} {index:2}] has unrecognized subcategory {category_tag}"
+            )
             exit(3)
 
         if not subcategory or (not self.has_category_tags and self.always_classify):
@@ -562,8 +570,13 @@ class Parser:
             )
 
             if self.has_category_tags and not alternate_subcategory:
-                Logger.warning(
-                    f"{type} {index} classified as {category} - {subcategory}"
+                Logger.info(
+                    f"[{type:6} {index:2}] classified as {category} - {subcategory}"
+                    + (
+                        f" - {temp_alternate_subcategory}"
+                        if temp_alternate_subcategory
+                        else ""
+                    )
                 )
 
             alternate_subcategory = temp_alternate_subcategory
@@ -660,7 +673,7 @@ class Parser:
         if len(difficultyModifiers) == 3 and not set(difficultyModifiers) == set(
             ["e", "m", "h"]
         ):
-            message = f"Bonus {self.bonus_index} has difficulty modifiers {difficultyModifiers} but should be e, m, h"
+            message = f"[bonus  {self.bonus_index:2}] has difficulty modifiers {difficultyModifiers} but should be e, m, h"
             Logger.warning(message)
 
         if len(values) == 0 and (self.modaq or self.buzzpoints):
@@ -671,7 +684,7 @@ class Parser:
             and len(values) > 0
             and not len(values) == len(difficultyModifiers)
         ):
-            message = f"Bonus {self.bonus_index} has {len(difficultyModifiers)} difficulty modifiers but {len(values)} values"
+            message = f"[bonus  {self.bonus_index:2}] has {len(difficultyModifiers)} difficulty modifiers but {len(values)} values"
             Logger.warning(message)
 
         return difficultyModifiers, values
