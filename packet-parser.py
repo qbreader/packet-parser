@@ -197,7 +197,7 @@ class Parser:
 
         if self.constant_alternate_subcategory:
             message = f"Using fixed alternate subcategory {self.constant_alternate_subcategory}"
-            Logger.warning()
+            Logger.warning(message)
 
         self.__init_regex__()
 
