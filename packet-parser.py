@@ -391,7 +391,7 @@ class Parser:
             if self.no_question_underlining:
                 leadin_raw = leadin_raw.replace("{u}", "").replace("{/u}", "")
             else:
-                Logger.warning(f"[bonus {self.tossup_index:2}] leadin has underlining")
+                Logger.warning(f"[bonus {self.bonus_index:2}] leadin has underlining")
 
         leadin = format_text(leadin_raw, self.modaq)
         leadin_sanitized = remove_formatting(leadin_raw)
@@ -444,7 +444,7 @@ class Parser:
 
         if len(parts_raw) != len(answers_raw):
             Logger.warning(
-                f"bonus {self.bonus_index:2}] has {len(parts_raw)} parts but {len(answers_raw)} answers"
+                f"[bonus {self.bonus_index:2}] has {len(parts_raw)} parts but {len(answers_raw)} answers"
             )
 
         if len(parts_raw) < self.bonus_length and sum(values) != 30:
