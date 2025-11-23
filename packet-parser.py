@@ -76,7 +76,7 @@ def get_key_value_matches(text: str, lookup: dict[str, str]) -> list[str]:
         if works:
             results.append(lookup[key])
 
-    return results
+    return list(set(results))
 
 
 def remove_formatting(text: str, include_italics=False, sanitize_string=True):
