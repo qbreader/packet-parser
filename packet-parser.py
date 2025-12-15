@@ -127,8 +127,8 @@ class Logger:
         print(f"{bcolors.FAIL}ERROR:{bcolors.ENDC} {message}")
 
     @staticmethod
-    def warning(message: str):
-        print(f"{bcolors.WARNING}WARNING:{bcolors.ENDC} {message}")
+    def warn(message: str):
+        print(f"{bcolors.WARNING}WARN:{bcolors.ENDC} {message}")
 
     @staticmethod
     def info(message: str):
@@ -189,15 +189,15 @@ class Parser:
 
         if not self.has_category_tags and not self.constant_category == "":
             message = f"Using fixed category {self.constant_category}"
-            Logger.warning(message)
+            Logger.warn(message)
 
         elif not self.has_category_tags and not self.constant_subcategory == "":
             message = f"Using fixed category {self.constant_category} and subcategory {self.constant_subcategory}"
-            Logger.warning(message)
+            Logger.warn(message)
 
         if self.constant_alternate_subcategory:
             message = f"Using fixed alternate subcategory {self.constant_alternate_subcategory}"
-            Logger.warning(message)
+            Logger.warn(message)
 
         self.__init_regex__()
 
@@ -257,7 +257,7 @@ class Parser:
 
         if len(regex.findall(r"\(\*\)", question_raw)) >= 2:
             message = f"[tossup {self.tossup_index:2}] has multiple powermarks (*)"
-            Logger.warning(message)
+            Logger.warn(message)
 
         if self.auto_insert_powermarks and "(*)" not in question_raw:
             question_raw = self.insert_powermark(question_raw)
@@ -273,7 +273,7 @@ class Parser:
             if self.no_question_underlining:
                 question_raw = question_raw.replace("{u}", "").replace("{/u}", "")
             else:
-                Logger.warning(
+                Logger.warn(
                     f"[tossup {self.tossup_index:2}] question text has underlining"
                 )
 
@@ -287,12 +287,12 @@ class Parser:
                 )
                 question = regex.sub(r" *\(\*\) *", " (*) ", question)
             else:
-                Logger.warning(
+                Logger.warn(
                     f"[tossup {self.tossup_index:2}] powermark (*) is not surrounded by spaces"
                 )
 
         if "answer:" in question_sanitized.lower():
-            Logger.warning(
+            Logger.warn(
                 f"[tossup {self.tossup_index:2}] question text may contain the answer"
             )
             self.tossup_index += 1
@@ -311,7 +311,7 @@ class Parser:
             answer_raw = answer_raw[1:].strip()
 
         if "answer:" in answer_raw.lower():
-            Logger.warning(
+            Logger.warn(
                 f"[tossup {self.tossup_index:2}] answer may contain the next question"
             )
             self.tossup_index += 1
@@ -391,13 +391,13 @@ class Parser:
             if self.no_question_underlining:
                 leadin_raw = leadin_raw.replace("{u}", "").replace("{/u}", "")
             else:
-                Logger.warning(f"[bonus {self.bonus_index:2}] leadin has underlining")
+                Logger.warn(f"[bonus {self.bonus_index:2}] leadin has underlining")
 
         leadin = format_text(leadin_raw, self.modaq)
         leadin_sanitized = remove_formatting(leadin_raw)
 
         if "answer:" in leadin_sanitized.lower():
-            Logger.warning(
+            Logger.warn(
                 f"[bonus {self.bonus_index:2}] leadin may contain the answer to the first part"
             )
             self.bonus_index += 1
@@ -419,7 +419,7 @@ class Parser:
                 if self.no_question_underlining:
                     parts_raw[i] = part.replace("{u}", "").replace("{/u}", "")
                 else:
-                    Logger.warning(
+                    Logger.warn(
                         f"[bonus {self.bonus_index:2}] part {i + 1} text has underlining"
                     )
 
@@ -443,24 +443,24 @@ class Parser:
         answers_sanitized = [remove_formatting(answer) for answer in answers_raw]
 
         if len(parts_raw) != len(answers_raw):
-            Logger.warning(
+            Logger.warn(
                 f"[bonus {self.bonus_index:2}] has {len(parts_raw)} parts but {len(answers_raw)} answers"
             )
 
         if len(parts_raw) < self.bonus_length and sum(values) != 30:
-            Logger.warning(
+            Logger.warn(
                 f"[bonus {self.bonus_index:2}] has fewer than {self.bonus_length} parts"
             )
             if not self.has_question_numbers:
                 print(f"\n{text[3:]}\n")
 
         if len(parts_raw) > self.bonus_length and sum(values) != 30:
-            Logger.warning(
+            Logger.warn(
                 f"[bonus {self.bonus_index:2}] has more than {self.bonus_length} parts"
             )
 
         if "answer:" in answers_sanitized[-1].lower():
-            Logger.warning(
+            Logger.warn(
                 f"[bonus {self.bonus_index:2}] answer may contain the next tossup"
             )
             print(f"\n{answers_sanitized[-1]}\n")
@@ -526,7 +526,7 @@ class Parser:
     def insert_powermark(self, text: str) -> str:
         index = text.rfind("{/b}")
         if index < 0:
-            Logger.warning(f"[tossup {self.tossup_index:2}] can't insert powermark (*)")
+            Logger.warn(f"[tossup {self.tossup_index:2}] can't insert powermark (*)")
 
         return text[:index] + "(*)" + text[index:]
 
@@ -674,7 +674,7 @@ class Parser:
             ["e", "m", "h"]
         ):
             message = f"[bonus  {self.bonus_index:2}] has difficulty modifiers {difficultyModifiers} but should be e, m, h"
-            Logger.warning(message)
+            Logger.warn(message)
 
         if len(values) == 0 and (self.modaq or self.buzzpoints):
             values = [10 for _ in range(len(tags))]
@@ -685,7 +685,7 @@ class Parser:
             and not len(values) == len(difficultyModifiers)
         ):
             message = f"[bonus  {self.bonus_index:2}] has {len(difficultyModifiers)} difficulty modifiers but {len(values)} values"
-            Logger.warning(message)
+            Logger.warn(message)
 
         return difficultyModifiers, values
 
@@ -807,7 +807,7 @@ class Parser:
             r"^(.+)\n\1$", r"\g<1>\n", packet_text, flags=Parser.REGEX_FLAGS
         )
         if len(count) > 0:
-            Logger.warning(f"Removed {len(count)} duplicate lines")
+            Logger.warn(f"Removed {len(count)} duplicate lines")
 
         # remove "Page X" lines
         packet_text = regex.sub(
@@ -891,7 +891,7 @@ class Parser:
                 missing_directives -= int("description acceptable" in part.lower())
 
         if missing_directives > 0:
-            Logger.warning(
+            Logger.warn(
                 f"{missing_directives} 'description acceptable' directive(s) may not have parsed in this packet"
             )
 
@@ -982,9 +982,9 @@ def main(
     try:
         os.mkdir(output_directory)
     except FileExistsError:
-        Logger.warning("Output directory already exists!")
+        Logger.warn("Output directory already exists!")
         if force_overwrite:
-            Logger.warning("Overwriting files in output directory")
+            Logger.warn("Overwriting files in output directory")
         else:
             print(
                 "Use -f/--force-overwrite to overwrite existing files in output directory"
