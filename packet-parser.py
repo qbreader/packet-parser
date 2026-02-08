@@ -122,17 +122,22 @@ def remove_punctuation(s: str, punctuation=".,!-;:'\"\\/?@#$%^&*_~()[]{}“”�
 
 
 class Logger:
+    log_level = "info"
+
     @staticmethod
     def error(message: str):
-        print(f"{bcolors.FAIL}ERROR:{bcolors.ENDC} {message}")
+        if Logger.log_level in ["error", "warn", "info"]:
+            print(f"{bcolors.FAIL}ERROR:{bcolors.ENDC} {message}")
 
     @staticmethod
     def warn(message: str):
-        print(f"{bcolors.WARNING}WARN:{bcolors.ENDC} {message}")
+        if Logger.log_level in ["warn", "info"]:
+            print(f"{bcolors.WARNING}WARN:{bcolors.ENDC} {message}")
 
     @staticmethod
     def info(message: str):
-        print(f"{bcolors.OKBLUE}INFO:{bcolors.ENDC} {message}")
+        if Logger.log_level == "info":
+            print(f"{bcolors.OKBLUE}INFO:{bcolors.ENDC} {message}")
 
 
 class Parser:
@@ -909,7 +914,7 @@ class Parser:
 @click.option(
     "-o", "--output-directory", default="output/", show_default=True, type=str
 )
-@click.option("-e", "-l", "--bonus-length", default=3, show_default=True, type=int)
+@click.option("-e", "--bonus-length", default=3, show_default=True, type=int)
 @click.option(
     "-a",
     "--always-classify",
@@ -960,6 +965,13 @@ class Parser:
     is_flag=True,
     help="Detect and remove underlining from (non-answer) question text.",
 )
+@click.option(
+    "-l",
+    "--log-level",
+    default="info",
+    show_default=True,
+    type=click.Choice(["error", "warn", "info"], case_sensitive=False),
+)
 def main(
     input_directory,
     output_directory,
@@ -972,6 +984,7 @@ def main(
     auto_insert_powermarks,
     space_powermarks,
     no_question_underlining,
+    log_level,
 ):
     if buzzpoints and modaq:
         Logger.error("Cannot output in both buzzpoints and MODAQ formats")
@@ -996,6 +1009,8 @@ def main(
     print("Using category tags" if HAS_CATEGORY_TAGS else "Using question classifier")
 
     ########## END OF PROMPTS ##########
+
+    Logger.log_level = log_level
 
     parser = Parser(
         HAS_QUESTION_NUMBERS,
