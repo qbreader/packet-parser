@@ -711,6 +711,7 @@ class Parser:
 
         packet_text = (
             packet_text.replace("\u00a0", " ")
+            .replace("\u200c", "")
             .replace(" {/u}", "{/u} ")
             .replace(" {/i}", "{/i} ")
             .replace("{i}\n{/i}", "\n")
@@ -816,14 +817,14 @@ class Parser:
         # remove duplicate lines
         count = regex.findall(r"^(.+)\n\1$", packet_text, flags=Parser.REGEX_FLAGS)
         packet_text = regex.sub(
-            r"^(.+)\n\1$", r"\g<1>\n", packet_text, flags=Parser.REGEX_FLAGS
+            r"^(.+)\n\1$", r"\g<1>", packet_text, flags=Parser.REGEX_FLAGS
         )
         if len(count) > 0:
             Logger.warn(f"Removed {len(count)} duplicate lines")
 
         # remove "Page X" lines
         packet_text = regex.sub(
-            r"Page \d+( of \d+)?", "", packet_text, flags=Parser.REGEX_FLAGS
+            r".*Page \d+( of \d+)?", "", packet_text, flags=Parser.REGEX_FLAGS
         )
 
         return packet_text
