@@ -711,7 +711,6 @@ class Parser:
 
         packet_text = (
             packet_text.replace("\u00a0", " ")
-            .replace(" {/bu}", "{/bu} ")
             .replace(" {/u}", "{/u} ")
             .replace(" {/i}", "{/i} ")
             .replace("{i}\n{/i}", "\n")
@@ -748,22 +747,30 @@ class Parser:
         packet_text = regex.sub(r" {2,}", " ", packet_text, flags=Parser.REGEX_FLAGS)
 
         # remove redundant tags
-        packet_text = regex.sub(
-            r"{(bu|b|u|i)}{/\g<1>}", "", packet_text, flags=Parser.REGEX_FLAGS
-        )
-        packet_text = regex.sub(
-            r"{/(bu|b|u|i)}{\g<1>}", "", packet_text, flags=Parser.REGEX_FLAGS
-        )
+        # three iterations to handle nesting with all combinations of b, i, u
+        for _ in range(3):
+            packet_text = regex.sub(
+                r"{([bui])}( ?){/\g<1>}",
+                r"\g<2>",
+                packet_text,
+                flags=Parser.REGEX_FLAGS,
+            )
+            packet_text = regex.sub(
+                r"{/([bui])}( ?){\g<1>}",
+                r"\g<2>",
+                packet_text,
+                flags=Parser.REGEX_FLAGS,
+            )
 
         # handle html formatting at start of string
         packet_text = regex.sub(
-            r"^\{(bu|b|u|i)\}(\d{1,2}|TB|X)\.",
+            r"^\{([bui]{1,2})\}(\d{1,2}|TB|X)\.",
             r"1. {\g<1>}",
             packet_text,
             flags=Parser.REGEX_FLAGS,
         )
         packet_text = regex.sub(
-            r"^\{(bu|b|u|i)\}ANSWER(:?)",
+            r"^\{([bui]{1,2})\}ANSWER(:?)",
             r"ANSWER\g<2>{\g<1>}",
             packet_text,
             flags=Parser.REGEX_FLAGS,
