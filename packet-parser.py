@@ -751,14 +751,14 @@ class Parser:
         # three iterations to handle nesting with all combinations of b, i, u
         for _ in range(3):
             packet_text = regex.sub(
-                r"{([bui])}( ?){/\g<1>}",
-                r"\g<2>",
+                r"{([bui])}{/\g<1>}",
+                r"",
                 packet_text,
                 flags=Parser.REGEX_FLAGS,
             )
             packet_text = regex.sub(
-                r"{/([bui])}( ?){\g<1>}",
-                r"\g<2>",
+                r"{/([bui])}{\g<1>}",
+                r"",
                 packet_text,
                 flags=Parser.REGEX_FLAGS,
             )
