@@ -113,6 +113,8 @@ def remove_formatting(text: str, include_italics=False, sanitize_string=True):
     s = regex.sub(r"[\u00B7\u22C5\u2027]", "", s)
     # Replace ł with l
     s = regex.sub(r"\u0142", "l", s)
+    # Replace ø with o
+    s = regex.sub(r"\u00F8", "o", s)
 
     return s
 
