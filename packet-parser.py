@@ -790,7 +790,7 @@ class Parser:
             flags=Parser.REGEX_FLAGS,
         )
         packet_text = regex.sub(
-            r"^(T|S|TU)\d{1,2}[\.:]?", "21.", packet_text, flags=Parser.REGEX_FLAGS
+            r"^(T|S|TU|B)\d{1,2}[\.:]?", "21.", packet_text, flags=Parser.REGEX_FLAGS
         )
 
         # handle nonstandard bonus part numbering
